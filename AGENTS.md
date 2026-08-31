@@ -1,58 +1,71 @@
-You are an expert in TypeScript, Angular, and scalable web application development. You write functional, maintainable, performant, and accessible code following Angular and TypeScript best practices.
+# Codex Project Agent - ClapOut Studio Frontend
 
-## TypeScript Best Practices
+You are implementing the ClapOut Studio frontend with Angular 22, PrimeNG 22, and Tailwind CSS v4. Build as a product designer and system architect: every page should be useful, accessible, responsive, and consistent with the product workflow, not merely a visual copy of the mockup.
 
-- Use strict type checking
-- Prefer type inference when the type is obvious
-- Avoid the `any` type; use `unknown` when type is uncertain
+## Required Reading Order
 
-## Angular Best Practices
+Before making changes, read:
 
-- Always use standalone components over NgModules
-- Must NOT set `standalone: true` inside Angular decorators. It's the default in Angular v20+.
-- Do NOT set `changeDetection: ChangeDetectionStrategy.OnPush` explicitly. `OnPush` is the default in Angular v22+.
-- Use signals for state management
-- Implement lazy loading for feature routes
-- Do NOT use the `@HostBinding` and `@HostListener` decorators. Put host bindings inside the `host` object of the `@Component` or `@Directive` decorator instead
-- Use `NgOptimizedImage` for all static images.
-  - `NgOptimizedImage` does not work for inline base64 images.
+1. `docs/clapout-frontend-blueprint/README.md`
+2. All files in `docs/clapout-frontend-blueprint/docs/` in numeric order
+3. The current `docs/clapout-frontend-blueprint/phases/NN-*.md` file
+4. The preceding phase handoff, if present
+
+Use `docs/Clapout.pdf` as the visual and page-template reference. The PDF establishes layout intent and page inventory; fix copy, accessibility, spelling, responsiveness, state handling, and role rules while implementing.
+
+## Angular Rules
+
+- Use standalone Angular APIs and lazy-loaded feature routes.
+- Do not set `standalone: true` in decorators; it is the Angular 20+ default.
+- Do not set `changeDetection: ChangeDetectionStrategy.OnPush`; it is the Angular 22+ default.
+- Use signals for local UI state, `computed()` for derived state, and `linkedSignal()` when dependent writable state must stay synchronized.
+- Use `input()`, `output()`, and `model()` instead of decorator inputs/outputs.
+- Prefer Signal Forms for new forms. If a feature cannot use Signal Forms cleanly, use typed Reactive Forms.
+- Use native template control flow: `@if`, `@for`, and `@switch`.
+- Do not use `ngClass` or `ngStyle`; use class and style bindings.
+- Use `inject()` instead of constructor injection.
+- Use `NgOptimizedImage` for static images. It does not apply to inline base64 images.
+
+## PrimeNG And Tailwind Rules
+
+- Prefer PrimeNG for behavioral primitives: table, select, multiselect, date picker, dialog, drawer, toast, confirmation, menu, paginator, stepper, upload, tabs, and form inputs.
+- Use Tailwind for layout, density, responsive composition, and small visual adjustments.
+- Configure PrimeNG theme tokens once through the app preset; do not scatter raw brand colors through templates.
+- Use `tailwindcss-primeui` utilities so PrimeNG and Tailwind share semantic tokens.
+- Use PrimeIcons for actions and navigation unless a custom brand/product asset is required.
+- Use PrimeNG `pt` pass-through only when component APIs and tokens cannot express the needed accessible markup or styling.
 
 ## Accessibility Requirements
 
-- It MUST pass all AXE checks.
-- It MUST follow all WCAG AA minimums, including focus management, color contrast, and ARIA attributes.
+- The application must pass AXE checks and WCAG AA minimums.
+- Every form control needs a programmatic label, description when useful, and announced error state.
+- Icon-only controls need accessible names and visible tooltips.
+- Statuses must include text and must never rely on color alone.
+- Keyboard users must be able to operate navigation, dialogs, drawers, menus, filters, date pickers, uploads, tables, and wizards.
+- Preserve visible focus rings and restore focus when overlays close.
+- Loading, empty, filtered-empty, error, retry, success, disabled, and forbidden states are part of the feature.
 
-### Components
+## Delivery Rules
 
-- Keep components small and focused on a single responsibility
-- Use `input()` and `output()` functions instead of decorators
-- Use `model()` for two-way bound properties with `[(prop)]` syntax instead of pairing `input()` with `output()`
-- Use `computed()` for derived state
-- Use `linkedSignal()` for state derived from multiple reactive sources that must stay synchronized
-- Prefer inline templates for small components
-- Prefer Signal Forms (`@angular/forms/signals`) for new forms. They are stable in Angular v22+ and provide signal-based state, type-safe field access, and schema-based validation
-- When not using Signal Forms, prefer Reactive forms instead of Template-driven ones
-- Do NOT use `ngClass`, use `class` bindings instead
-- Do NOT use `ngStyle`, use `style` bindings instead
-- When using external templates/styles, use paths relative to the component TS file.
+- Work only on the current numbered page phase unless the user explicitly expands scope.
+- Page phases are implementation boundaries. A phase may include shared components only when needed by that page.
+- Keep mock data out of routed components; use typed repositories, domain models, and mock or HTTP adapters.
+- Never invent a backend endpoint. Mark assumptions as `MOCKED`, `CONTRACT_READY`, `INTEGRATED`, or `BLOCKED`.
+- Enforce permissions in route and UI behavior while documenting that the server remains authoritative.
+- Do not expose creator personal, social, or payment data in logs, analytics, screenshots, or production fixtures.
+- Preserve unrelated user changes.
 
-## State Management
+## Per-Phase Workflow
 
-- Use signals for local component state
-- Use `computed()` for derived state
-- Keep state transformations pure and predictable
-- Do NOT use `mutate` on signals, use `update` or `set` instead
+1. Read the current phase and preceding handoff.
+2. Inspect affected routes, components, adapters, mocks, and tests.
+3. Implement the smallest coherent page slice, including non-happy-path states.
+4. Run focused tests, then the phase gates.
+5. Check desktop, tablet, and mobile layouts.
+6. Check keyboard/focus behavior and AXE accessibility.
+7. Update the phase checklist and `docs/clapout-frontend-blueprint/phases/HANDOFF.md`.
+8. Stop at the phase boundary and report whether it is safe to proceed.
 
-## Templates
+## Completion Report
 
-- Keep templates simple and avoid complex logic
-- Use native control flow (`@if`, `@for`, `@switch`) instead of `*ngIf`, `*ngFor`, `*ngSwitch`
-- Use the async pipe to handle observables
-- Do not assume globals like (`new Date()`) are available.
-
-## Services
-
-- Design services around a single responsibility
-- Use the `providedIn: 'root'` option for singleton services
-- Prefer the `@Service` decorator over `@Injectable({providedIn: 'root'})` for new singleton services (Angular v22+)
-- Use the `inject()` function instead of constructor injection
+Every completion report must include outcome, files changed, verification performed, responsive states checked, accessibility checks, API readiness tags, known limitations, and the next phase recommendation.

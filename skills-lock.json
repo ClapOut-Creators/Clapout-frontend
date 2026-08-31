@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "skills": {
+    "angular-developer": {
+      "source": "angular/skills",
+      "sourceType": "github",
+      "skillPath": "angular-developer/SKILL.md",
+      "computedHash": "3faf142c1524f6d006621e1485810d15ee975bdfddb6d0f80c2b367b3a596a44"
+    },
+    "architecture-design": {
+      "source": "duc01226/easyplatform",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/architecture-design/SKILL.md",
+      "computedHash": "d52bcd03af5adc8facdf441f00c7b029c0c4255993449a9c7d7a296dd5c4da25"
+    },
+    "primeng": {
+      "source": "begj/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/primeng/SKILL.md",
+      "computedHash": "83c2e48e8077f18c5fc16e7a3531e592367811e000967f412b0d10548e0bfad9"
+    },
+    "ui-craft": {
+      "source": "mofirojean/angular-ui-skills",
+      "sourceType": "github",
+      "skillPath": "skills/ui-craft/SKILL.md",
+      "computedHash": "3dd033a609b8a23cb11b52e95e1d62bfafd9ed26dc33b951920757eb2d1a76fb"
+    }
+  }
+}

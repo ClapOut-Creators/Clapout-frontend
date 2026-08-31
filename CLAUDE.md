@@ -1,58 +1,59 @@
-You are an expert in TypeScript, Angular, and scalable web application development. You write functional, maintainable, performant, and accessible code following Angular and TypeScript best practices.
+# Claude Project Agent - ClapOut Studio Frontend
 
-## TypeScript Best Practices
+This file governs Claude's work on the same project plan used by Codex.
 
-- Use strict type checking
-- Prefer type inference when the type is obvious
-- Avoid the `any` type; use `unknown` when type is uncertain
+## Mission
 
-## Angular Best Practices
+Build a maintainable, accessible, role-aware ClapOut Studio frontend using Angular 22, PrimeNG 22, and Tailwind CSS v4. The complete workflow is brand -> campaign -> creator registration -> admin decision -> content submission -> manual verification/payout preparation.
 
-- Always use standalone components over NgModules
-- Must NOT set `standalone: true` inside Angular decorators. It's the default in Angular v20+.
-- Do NOT set `changeDetection: ChangeDetectionStrategy.OnPush` explicitly. `OnPush` is the default in Angular v22+.
-- Use signals for state management
-- Implement lazy loading for feature routes
-- Do NOT use the `@HostBinding` and `@HostListener` decorators. Put host bindings inside the `host` object of the `@Component` or `@Directive` decorator instead
-- Use `NgOptimizedImage` for all static images.
-  - `NgOptimizedImage` does not work for inline base64 images.
+## Load Context Before Acting
 
-## Accessibility Requirements
+Read, in order:
 
-- It MUST pass all AXE checks.
-- It MUST follow all WCAG AA minimums, including focus management, color contrast, and ARIA attributes.
+1. `docs/clapout-frontend-blueprint/README.md`
+2. All files in `docs/clapout-frontend-blueprint/docs/` in numeric order
+3. The current numbered file in `docs/clapout-frontend-blueprint/phases/`
+4. `docs/clapout-frontend-blueprint/phases/HANDOFF.md` if it exists
+5. `docs/Clapout.pdf` for the visual/page template relevant to the current phase
 
-### Components
+Do not infer that a later page phase is authorized merely because its requirements are visible.
 
-- Keep components small and focused on a single responsibility
-- Use `input()` and `output()` functions instead of decorators
-- Use `model()` for two-way bound properties with `[(prop)]` syntax instead of pairing `input()` with `output()`
-- Use `computed()` for derived state
-- Use `linkedSignal()` for state derived from multiple reactive sources that must stay synchronized
-- Prefer inline templates for small components
-- Prefer Signal Forms (`@angular/forms/signals`) for new forms. They are stable in Angular v22+ and provide signal-based state, type-safe field access, and schema-based validation
-- When not using Signal Forms, prefer Reactive forms instead of Template-driven ones
-- Do NOT use `ngClass`, use `class` bindings instead
-- Do NOT use `ngStyle`, use `style` bindings instead
-- When using external templates/styles, use paths relative to the component TS file.
+## Architecture Constraints
 
-## State Management
+- Standalone Angular components and lazy-loaded feature routes.
+- Do not set `standalone: true`; Angular 20+ treats it as the default.
+- Do not set `ChangeDetectionStrategy.OnPush`; Angular 22+ treats it as the default.
+- PrimeNG provides accessible interaction primitives and app services.
+- Tailwind handles layout, density, spacing, responsive behavior, and composition.
+- Shared semantic design tokens connect PrimeNG and Tailwind through the theme preset and `tailwindcss-primeui`.
+- Signal Forms are preferred for new forms; typed Reactive Forms are acceptable when Signal Forms are not a clean fit.
+- Signals own local and derived state.
+- Typed repositories isolate mock and HTTP adapters.
+- URL state owns shareable filters, tabs, pagination, and entity IDs.
+- Feature boundaries are described in `docs/clapout-frontend-blueprint/docs/02-frontend-architecture.md`.
 
-- Use signals for local component state
-- Use `computed()` for derived state
-- Keep state transformations pure and predictable
-- Do NOT use `mutate` on signals, use `update` or `set` instead
+## Product Constraints
 
-## Templates
+- `docs/Clapout.pdf` supplies visual/page templates, not permission policy or backend contracts.
+- Correct PDF copy defects, spelling, ambiguous labels, accessibility issues, and responsive defects during implementation.
+- Every campaign has one brand.
+- A registration is one creator applying to one campaign.
+- Admins publish; brand users submit for review; creators apply.
+- "Accepted registrations" and "unique creators" are different metrics.
+- Automated verification and payouts are outside the MVP.
+- Never weaken access rules to simplify a screen.
 
-- Keep templates simple and avoid complex logic
-- Use native control flow (`@if`, `@for`, `@switch`) instead of `*ngIf`, `*ngFor`, `*ngSwitch`
-- Use the async pipe to handle observables
-- Do not assume globals like (`new Date()`) are available.
+## Execution Protocol
 
-## Services
+- Inspect before editing and protect unrelated changes.
+- Keep work within the active numbered page phase.
+- State backend assumptions explicitly; do not fabricate contracts.
+- Implement loading, empty, filtered-empty, error, retry, success, permission, and validation states with the happy path.
+- Use PrimeNG components for tables, dialogs, drawers, menus, selects, date pickers, toasts, confirmations, steppers, uploaders, and pagination unless there is a documented reason not to.
+- Run the phase's commands and report exact failures.
+- Update `docs/clapout-frontend-blueprint/phases/HANDOFF.md` after meaningful completion.
+- Ask for a decision when a blocker changes product behavior, authorization, data ownership, or the phase boundary.
 
-- Design services around a single responsibility
-- Use the `providedIn: 'root'` option for singleton services
-- Prefer the `@Service` decorator over `@Injectable({providedIn: 'root'})` for new singleton services (Angular v22+)
-- Use the `inject()` function instead of constructor injection
+## Completion Format
+
+Report outcome, changed files, tests/checks, responsive/accessibility review, mock/live API status, limitations, and whether the next phase should begin.
