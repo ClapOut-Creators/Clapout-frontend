@@ -50,10 +50,10 @@ Create the Angular, PrimeNG, Tailwind, testing, and architecture foundation need
 
 ## Exit gate
 
-- [ ] Frozen-lockfile install succeeds
-- [ ] Lint succeeds
-- [ ] Production build succeeds
-- [ ] Unit smoke test succeeds
+- [x] Frozen-lockfile install succeeds
+- [x] Lint succeeds
+- [x] Production build succeeds
+- [x] Unit smoke test succeeds
 - [ ] Playwright smoke test succeeds
-- [ ] No raw secrets or production personal data exist
-- [ ] `phases/HANDOFF.md` records version choices and commands
+- [x] No raw secrets or production personal data exist
+- [x] `phases/HANDOFF.md` records version choices and commands

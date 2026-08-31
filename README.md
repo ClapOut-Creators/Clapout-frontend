@@ -1,59 +1,54 @@
-# ClapoutStudio
+# ClapOut Studio
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 22.1.6.
+ClapOut Studio is the Angular frontend for the ClapOut campaign operations MVP.
 
-## Development server
+Phase 00 establishes the application foundation only: Angular, PrimeNG, Tailwind, semantic tokens, typed configuration, mock-first repository mode, linting, unit tests, Playwright smoke tests, and the phase handoff workflow.
 
-To start a local development server, run:
+## Prerequisites
 
-```bash
-ng serve
-```
-
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+- Node `v24.18.0` via `.nvmrc` or any Angular-supported Node `24.15+` runtime.
+- npm `11.16.0` or newer.
 
 ```bash
-ng generate component component-name
+nvm use
+npm ci
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+## Development
 
 ```bash
-ng generate --help
+npm start
 ```
 
-## Building
+The app serves at `http://localhost:4200/`.
 
-To build the project run:
+## Verification
 
 ```bash
-ng build
+npm run format:check
+npm run lint
+npm run build
+npm run test:unit
+npm run test:e2e
+npm run verify:angular-defaults
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+Install Playwright browsers when needed:
 
 ```bash
-ng test
+npm run test:e2e:install
 ```
 
-## Running end-to-end tests
+## Phase Workflow
 
-For end-to-end (e2e) testing, run:
+1. Read `AGENTS.md`.
+2. Read `docs/clapout-frontend-blueprint/README.md`.
+3. Read `docs/clapout-frontend-blueprint/docs/` in numeric order.
+4. Read the current phase file and the previous `docs/clapout-frontend-blueprint/phases/HANDOFF.md`.
+5. Implement only the current phase boundary.
+6. Run focused checks, responsive checks, and accessibility checks.
+7. Update the phase checklist and handoff before moving on.
 
-```bash
-ng e2e
-```
+## API Readiness
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+The frontend is mock-first during Phase 00. `APP_ENVIRONMENT` provides `apiBaseUrl`, `useMockAdapters`, and an `apiReadiness` marker. The current marker is `MOCKED`; do not add backend endpoints until a contract is confirmed.
