@@ -1,0 +1,43 @@
+<main class="foundation-shell">
+  <section class="foundation-panel" aria-labelledby="foundation-title">
+    <div class="brand-lockup" aria-label="ClapOut Studio">
+      <span class="brand-mark" aria-hidden="true">C</span>
+      <span class="brand-name">ClapOut Studio</span>
+    </div>
+
+    <div class="hero-copy">
+      <p-tag value="Phase 00" severity="warn" />
+      <h1 id="foundation-title">Frontend foundation is ready for page work.</h1>
+      <p>
+        Angular, PrimeNG, Tailwind, typed configuration, and mock-first API boundaries are prepared
+        before the first product screen ships.
+      </p>
+    </div>
+
+    <dl class="status-grid" aria-label="Foundation status">
+      <div>
+        <dt>Framework</dt>
+        <dd>Angular 22</dd>
+      </div>
+      <div>
+        <dt>UI system</dt>
+        <dd>PrimeNG 22 + Tailwind v4</dd>
+      </div>
+      <div>
+        <dt>API readiness</dt>
+        <dd>{{ environment.apiReadiness }}</dd>
+      </div>
+      <div>
+        <dt>Adapters</dt>
+        <dd>{{ environment.useMockAdapters ? 'Mock repositories' : 'HTTP repositories' }}</dd>
+      </div>
+    </dl>
+
+    <div class="action-row">
+      <p-button label="Phase 01 Shell Next" size="small" />
+      <a class="text-link" href="/docs/clapout-frontend-blueprint/phases/00-foundation.md">
+        Foundation brief
+      </a>
+    </div>
+  </section>
+</main>

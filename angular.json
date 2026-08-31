@@ -24,17 +24,15 @@
                 "input": "public"
               }
             ],
-            "styles": [
-              "src/styles.css"
-            ]
+            "styles": ["src/styles.css"]
           },
           "configurations": {
             "production": {
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "500kB",
-                  "maximumError": "1MB"
+                  "maximumWarning": "700kB",
+                  "maximumError": "850kB"
                 },
                 {
                   "type": "anyComponentStyle",
@@ -51,6 +49,12 @@
             }
           },
           "defaultConfiguration": "production"
+        },
+        "lint": {
+          "builder": "@angular-eslint/builder:lint",
+          "options": {
+            "lintFilePatterns": ["src/**/*.ts", "src/**/*.html"]
+          }
         },
         "serve": {
           "builder": "@angular/build:dev-server",
