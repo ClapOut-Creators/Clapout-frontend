@@ -43,8 +43,8 @@ __screenshots__/
 .DS_Store
 Thumbs.db
 
-.agents/*
-.claude/*
-AGENTS.md
-CLAUDE.md
-docs/*
+# .agents/*
+# .claude/*
+# AGENTS.md
+# CLAUDE.md
+# docs/*
