@@ -17,7 +17,7 @@
     "test:unit": "ng test",
     "test:e2e": "playwright test",
     "test:e2e:install": "playwright install",
-    "verify:angular-defaults": "rg \"standalone:\\\\s*true|ChangeDetectionStrategy\\\\.OnPush\" src; test $? -eq 1",
+    "verify:angular-defaults": "rg \"standalone:\\\\s*true|ChangeDetectionStrategy\\\\.OnPush\" src --glob \"*.ts\"; test $? -eq 1",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },

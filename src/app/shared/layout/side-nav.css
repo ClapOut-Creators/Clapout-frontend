@@ -1,0 +1,56 @@
+.co-shell-rail {
+  background-color: #ffffff;
+  border-right: 1px solid #ececec;
+}
+
+.co-rail-link {
+  align-items: center;
+  border-radius: 8px;
+  color: var(--clapout-text-muted);
+  display: inline-flex;
+  height: 28px;
+  justify-content: center;
+  text-decoration: none;
+  transition:
+    background-color 150ms ease,
+    color 150ms ease;
+  width: 28px;
+}
+
+.co-rail-link:hover,
+.co-rail-link:focus-visible,
+.co-rail-link-active {
+  background: var(--p-primary-color);
+  color: var(--clapout-primary-contrast);
+}
+
+.co-rail-link-disabled,
+.co-rail-link-disabled:hover,
+.co-rail-link-disabled:focus-visible {
+  background: transparent;
+  color: var(--clapout-text-muted);
+  cursor: not-allowed;
+  opacity: 0.85;
+}
+
+.co-rail-avatar {
+  align-items: center;
+  background: var(--p-surface-200);
+  border: 0;
+  border-radius: 999px;
+  color: var(--clapout-text-muted);
+  display: inline-flex;
+  font-size: 0.625rem;
+  font-weight: 700;
+  height: 28px;
+  justify-content: center;
+  line-height: 1;
+  padding: 0;
+  width: 28px;
+}
+
+.co-rail-avatar:hover,
+.co-rail-avatar:focus-visible {
+  background: var(--p-surface-300);
+  color: var(--clapout-text-strong);
+}

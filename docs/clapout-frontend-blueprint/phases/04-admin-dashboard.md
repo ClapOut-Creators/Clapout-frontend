@@ -42,3 +42,13 @@ Deliver the admin dashboard overview with metrics, registration activity, attent
 ## Handoff Requirements
 
 - Record dashboard data assumptions, chart library/component choice, visual states checked, and API readiness per dashboard section.
+
+## Completion Notes
+
+- [x] Signed-in desktop navbar uses the uploaded compact white icon rail across admin and creator workspaces.
+- [x] Icon-only nav controls have accessible names and PrimeNG tooltips.
+- [x] Mobile signed-in navigation remains a labelled drawer/topbar.
+- [x] Admin dashboard includes metric cards, registration activity, Need Attention, and recent campaigns.
+- [x] Loading, empty, error, retry, and status-text states are covered by component tests.
+- [x] Dashboard data continues to use existing admin stats/campaign contracts; attention rows are frontend-derived and remain `MOCKED`.
+- [ ] Authenticated `/admin/dashboard` browser responsive and AXE pass still needs a signed-in admin session.

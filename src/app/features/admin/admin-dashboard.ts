@@ -1,5 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
+import { ChevronRight } from '@primeicons/angular/chevron-right';
+import { Home } from '@primeicons/angular/home';
 import { ButtonModule } from 'primeng/button';
 import { MessageModule } from 'primeng/message';
 import { ProgressBarModule } from 'primeng/progressbar';
@@ -28,8 +30,18 @@ interface StatCard {
   readonly value: string;
 }
 
+interface AttentionItem {
+  readonly key: string;
+  readonly label: string;
+  readonly detail: string;
+  readonly count: number;
+  readonly href: string;
+  readonly tone: 'warning' | 'primary' | 'success' | 'neutral';
+}
+
 /** How many campaigns the "Recent campaigns" card shows. */
 const RECENT_CAMPAIGN_COUNT = 3;
+const ENDING_SOON_WINDOW_DAYS = 7;
 
 /** '11 Aug' — compact enough for a 21-column axis. */
 function compactDay(iso: string): string {
@@ -53,6 +65,18 @@ function formatCount(value: number): string {
   return Number.isFinite(value) ? value.toLocaleString('en-GB') : '—';
 }
 
+function endsWithinDays(campaign: PublicCampaign, days: number): boolean {
+  if (!campaign.endDate || campaign.status !== 'ACTIVE') {
+    return false;
+  }
+  const end = new Date(campaign.endDate).getTime();
+  if (Number.isNaN(end)) {
+    return false;
+  }
+  const now = Date.now();
+  return end >= now && end <= now + days * 24 * 60 * 60 * 1000;
+}
+
 /**
  * Admin home: platform totals, the 21-day registration trend, and the campaigns
  * touched most recently. Both `/admin` calls load together behind one state, so
@@ -62,6 +86,8 @@ function formatCount(value: number): string {
   imports: [
     BarChart,
     ButtonModule,
+    ChevronRight,
+    Home,
     MessageModule,
     ProgressBarModule,
     RouterLink,
@@ -110,6 +136,18 @@ export class AdminDashboard {
     this.activity().map((point) => compactDay(point.date)),
   );
   protected readonly activityValues = computed(() => this.activity().map((point) => point.count));
+  protected readonly activityTotal = computed(() =>
+    this.activity().reduce((total, point) => total + point.count, 0),
+  );
+  protected readonly activitySummary = computed(() => {
+    const points = this.activity();
+    if (points.length === 0) {
+      return 'No registration activity has been recorded for this period.';
+    }
+    const first = compactDay(points[0].date);
+    const last = compactDay(points[points.length - 1].date);
+    return `${formatCount(this.activityTotal())} new registrations from ${first} to ${last}.`;
+  });
 
   protected readonly activityAriaLabel = computed(
     () => `Bar chart of new registrations per day over the last ${this.activity().length} days.`,
@@ -121,6 +159,50 @@ export class AdminDashboard {
       .sort((left, right) => timestamp(right.updatedAt) - timestamp(left.updatedAt))
       .slice(0, RECENT_CAMPAIGN_COUNT),
   );
+
+  protected readonly attentionItems = computed<AttentionItem[]>(() => {
+    const stats = this.stats();
+    const campaigns = this.campaigns();
+    const pendingBudget = campaigns.filter((campaign) => !hasBudget(campaign.budgetTotal)).length;
+    const endingSoon = campaigns.filter((campaign) =>
+      endsWithinDays(campaign, ENDING_SOON_WINDOW_DAYS),
+    ).length;
+
+    return [
+      {
+        key: 'awaiting-review',
+        label: 'Creator applications',
+        detail: 'Awaiting review',
+        count: stats?.awaitingReview ?? 0,
+        href: '/admin/registrations',
+        tone: 'warning',
+      },
+      {
+        key: 'ending-soon',
+        label: 'Campaigns',
+        detail: 'Ending soon',
+        count: endingSoon,
+        href: '/admin/campaigns',
+        tone: 'primary',
+      },
+      {
+        key: 'pending-budget',
+        label: 'Campaigns',
+        detail: 'Pending budget',
+        count: pendingBudget,
+        href: '/admin/campaigns',
+        tone: 'success',
+      },
+      {
+        key: 'reports',
+        label: 'Reports',
+        detail: 'Require action',
+        count: 0,
+        href: '/admin/campaigns',
+        tone: 'neutral',
+      },
+    ];
+  });
 
   protected readonly budgetPercent = budgetPercent;
   protected readonly campaignStatusLabel = campaignStatusLabel;

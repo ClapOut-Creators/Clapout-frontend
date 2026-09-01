@@ -297,3 +297,67 @@ Everything behind an admin session: the guard's non-admin → `/forbidden` branc
 against real rows, status PATCH, the wizard's save/publish round trip, and publish's 422
 handling. Signing in requires entering the seeded admin password, which I don't do — run
 those flows manually with `admin@clapoutcreators.com`.
+
+---
+
+## Phase 04 Navbar and Dashboard Polish (added 2026-09-01)
+
+### Outcome
+
+The signed-in application shell now uses the uploaded compact white icon rail across admin and
+creator workspaces. `/admin/dashboard` has been tightened toward the PDF/page-2 reference with a
+compact metric row, registration activity plus text summary, a `Need Attention` panel, and recent
+campaign cards.
+
+### Files and routes changed
+
+- `shared/layout/side-nav.*`: desktop signed-in nav changed from a 256px labelled sidebar to a
+  54px white icon rail with `#ECECEC` right border, PrimeIcons SVGs, PrimeNG tooltips, role-aware
+  destinations, settings coming-soon affordance, and an account menu with sign out.
+- `features/admin/admin-dashboard.*`: dashboard composition updated for the metric/activity/
+  attention/recent-campaign layout while preserving existing `/admin/stats` and `/admin/campaigns`
+  repository calls.
+- `e2e/foundation.spec.ts`: stale foundation readiness assertion now accepts the rendered readiness
+  marker instead of assuming `MOCKED`.
+- `package.json`: `verify:angular-defaults` now scans TypeScript files only, avoiding valid
+  template `ngModelOptions="{ standalone: true }"` false positives.
+
+### Verification
+
+| Check                     | Result                                                                                                                                              |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run format:check`    | PASS with Node `v24.18.0`.                                                                                                                          |
+| `npm run lint`            | PASS.                                                                                                                                               |
+| `npm run test:unit`       | PASS: 4 files, 10 tests. Added side-nav role/accessibility coverage and admin-dashboard loading/ready/empty/error coverage.                         |
+| `npm run build`           | PASS unsandboxed. Initial total `812.55 kB`, over the `700 kB` warning budget and under the `850 kB` error budget.                                  |
+| `verify:angular-defaults` | PASS after narrowing the script to `.ts` files.                                                                                                     |
+| `npm run test:e2e`        | PASS unsandboxed: 2 Playwright foundation tests, including responsive widths and critical AXE check. Sandboxed run still fails with `listen EPERM`. |
+
+### API readiness
+
+| Dashboard section     | Status     | Notes                                                                                                           |
+| --------------------- | ---------- | --------------------------------------------------------------------------------------------------------------- |
+| Metrics               | INTEGRATED | Uses existing `GET /admin/stats`.                                                                               |
+| Registration activity | INTEGRATED | Uses `registrationActivity` from existing stats response and keeps a non-visual text summary.                   |
+| Need Attention        | MOCKED     | Derived on the frontend from stats/campaigns; report count remains `0` until a real endpoint exists.            |
+| Recent campaigns      | INTEGRATED | Uses existing `GET /admin/campaigns`.                                                                           |
+| Settings/profile nav  | BLOCKED    | Settings/profile routes are not implemented; settings is a coming-soon control, account menu supports sign out. |
+
+### Responsive and accessibility notes
+
+- Component tests verify icon-only rail accessible names, role-specific destinations, and account
+  menu exposure.
+- Mobile keeps labelled drawer navigation instead of icon-only labels.
+- Existing Playwright responsive/AXE smoke passes for `/foundation`; authenticated
+  `/admin/dashboard` visual/AXE verification still requires a signed-in admin session against the
+  backend.
+- Pre-existing generated `src/app/core/config/runtime-env.ts` remains changed to
+  `https://clapout-backend.vercel.app/api/v1`; this phase did not hand-edit it.
+
+### Next phase recommendation
+
+`HOLD`
+
+Reason: Phase 04 code and static/browser smoke gates are complete, but the admin-only dashboard still
+needs a manual signed-in admin browser pass for desktop/tablet/mobile framing and AXE before moving to
+Phase 05.
