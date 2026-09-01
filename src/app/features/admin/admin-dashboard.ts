@@ -1,7 +1,12 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
+import { ArrowDown } from '@primeicons/angular/arrow-down';
+import { ArrowUp } from '@primeicons/angular/arrow-up';
 import { ChevronRight } from '@primeicons/angular/chevron-right';
+import { File as FileIcon } from '@primeicons/angular/file';
 import { Home } from '@primeicons/angular/home';
+import { Megaphone } from '@primeicons/angular/megaphone';
+import { Users } from '@primeicons/angular/users';
 import { ButtonModule } from 'primeng/button';
 import { MessageModule } from 'primeng/message';
 import { ProgressBarModule } from 'primeng/progressbar';
@@ -28,6 +33,11 @@ interface StatCard {
   readonly key: string;
   readonly label: string;
   readonly value: string;
+  /**
+   * Mock period-over-period change — AdminStats has no trend data yet, so this
+   * is placeholder only. Replace with real figures once the API adds them.
+   */
+  readonly trend: { readonly direction: 'up' | 'down'; readonly label: string };
 }
 
 interface AttentionItem {
@@ -84,15 +94,20 @@ function endsWithinDays(campaign: PublicCampaign, days: number): boolean {
  */
 @Component({
   imports: [
+    ArrowDown,
+    ArrowUp,
     BarChart,
     ButtonModule,
     ChevronRight,
+    FileIcon,
     Home,
+    Megaphone,
     MessageModule,
     ProgressBarModule,
     RouterLink,
     SkeletonModule,
     TagModule,
+    Users,
   ],
   selector: 'app-admin-dashboard',
   templateUrl: './admin-dashboard.html',
@@ -118,17 +133,40 @@ export class AdminDashboard {
         key: 'published',
         label: 'Published campaigns',
         value: formatCount(stats.publishedCampaigns),
+        trend: { direction: 'up', label: '+7.4%' },
       },
       {
         key: 'registrations',
         label: 'New registrations (7d)',
         value: formatCount(stats.newRegistrations7d),
+        trend: { direction: 'up', label: '+2%' },
       },
-      { key: 'review', label: 'Awaiting review', value: formatCount(stats.awaitingReview) },
-      { key: 'creators', label: 'Total creators', value: formatCount(stats.totalCreators) },
-      { key: 'brands', label: 'Total brands', value: formatCount(stats.totalBrands) },
+      {
+        key: 'review',
+        label: 'Awaiting review',
+        value: formatCount(stats.awaitingReview),
+        trend: { direction: 'up', label: '+3.5%' },
+      },
+      {
+        key: 'creators',
+        label: 'Total creators',
+        value: formatCount(stats.totalCreators),
+        trend: { direction: 'down', label: '-3%' },
+      },
+      {
+        key: 'brands',
+        label: 'Total brands',
+        value: formatCount(stats.totalBrands),
+        trend: { direction: 'down', label: '-4.3%' },
+      },
     ];
   });
+
+  /**
+   * Mock "before this window" registration total — AdminStats has no all-time
+   * or previous-period count yet. Placeholder pending backend support.
+   */
+  protected readonly oldRegistrationTotal = formatCount(7260);
 
   private readonly activity = computed(() => this.stats()?.registrationActivity ?? []);
   protected readonly hasActivity = computed(() => this.activity().length > 0);

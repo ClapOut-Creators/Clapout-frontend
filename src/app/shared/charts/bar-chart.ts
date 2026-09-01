@@ -4,12 +4,15 @@ import { GridComponent, TooltipComponent } from 'echarts/components';
 import * as echarts from 'echarts/core';
 import { EChartsCoreOption } from 'echarts/core';
 import { CanvasRenderer } from 'echarts/renderers';
+import type { CallbackDataParams } from 'echarts/types/dist/shared';
 import { NgxEchartsDirective, provideEchartsCore } from 'ngx-echarts';
 
 echarts.use([EchartsBarChart, GridComponent, TooltipComponent, CanvasRenderer]);
 
 /** Brand orange, used when the theme variable is unreadable (SSR, tests). */
 const FALLBACK_BAR_COLOR = '#EC612C';
+/** Light tint for below-average days, used when the theme variable is unreadable. */
+const FALLBACK_BAR_COLOR_LIGHT = '#F7C4B0';
 
 function barColor(): string {
   if (typeof document === 'undefined') {
@@ -18,6 +21,16 @@ function barColor(): string {
   return (
     getComputedStyle(document.documentElement).getPropertyValue('--p-primary-color').trim() ||
     FALLBACK_BAR_COLOR
+  );
+}
+
+function barColorLight(): string {
+  if (typeof document === 'undefined') {
+    return FALLBACK_BAR_COLOR_LIGHT;
+  }
+  return (
+    getComputedStyle(document.documentElement).getPropertyValue('--p-primary-200').trim() ||
+    FALLBACK_BAR_COLOR_LIGHT
   );
 }
 
@@ -54,6 +67,15 @@ export class BarChart {
   readonly ariaLabel = input('');
 
   protected readonly initOptions = { renderer: 'canvas' as const };
+  /** Bars at/above the series average render in the brand orange; below render in a light tint. */
+  private readonly average = computed(() => {
+    const values = this.values();
+    if (values.length === 0) {
+      return 0;
+    }
+    return values.reduce((total, value) => total + value, 0) / values.length;
+  });
+
   protected readonly chartOptions = computed<EChartsCoreOption>(() => ({
     animation: false,
     color: [barColor()],
@@ -98,6 +120,8 @@ export class BarChart {
         data: this.values(),
         itemStyle: {
           borderRadius: [4, 4, 4, 4],
+          color: (params: CallbackDataParams) =>
+            Number(params.value) >= this.average() ? barColor() : barColorLight(),
         },
         type: 'bar',
       },
