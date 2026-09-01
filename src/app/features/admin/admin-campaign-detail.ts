@@ -122,6 +122,30 @@ export class AdminCampaignDetail {
     });
   }
 
+  /** Undo an (accidental) close — the API restores Active/Upcoming by dates. */
+  protected async reopen(): Promise<void> {
+    if (this.working()) {
+      return;
+    }
+    this.working.set(true);
+    this.actionMessage.set('');
+    try {
+      const updated = await this.admin.reopenCampaign(this.slug());
+      this.campaign.set(updated);
+      this.messages.add({
+        severity: 'success',
+        summary: 'Campaign reopened',
+        detail: `${updated.title} is ${campaignStatusLabel(updated.status).toLowerCase()} again.`,
+      });
+    } catch (error) {
+      this.actionMessage.set(
+        error instanceof ApiError ? error.message : 'We could not reopen this campaign.',
+      );
+    } finally {
+      this.working.set(false);
+    }
+  }
+
   private async close(): Promise<void> {
     if (this.working()) {
       return;

@@ -151,4 +151,22 @@ export class AdminRepository {
       throw toApiError(error);
     }
   }
+
+  /**
+   * `POST /admin/campaigns/:slug/reopen` — undoes a close. No completeness
+   * gate (the campaign was already public); 422 when the campaign isn't CLOSED.
+   */
+  async reopenCampaign(slug: string): Promise<PublicCampaign> {
+    try {
+      const response = await firstValueFrom(
+        this.http.post<{ data: PublicCampaign }>(
+          `${this.baseUrl}/campaigns/${encodeURIComponent(slug)}/reopen`,
+          {},
+        ),
+      );
+      return response.data;
+    } catch (error) {
+      throw toApiError(error);
+    }
+  }
 }

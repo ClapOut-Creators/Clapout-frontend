@@ -94,6 +94,14 @@
                 (onClick)="confirmClose()"
               />
             }
+            @if (campaign.status === 'CLOSED') {
+              <p-button
+                label="Reopen campaign"
+                [loading]="working()"
+                [disabled]="working()"
+                (onClick)="reopen()"
+              />
+            }
           </div>
         </header>
 
