@@ -17,6 +17,7 @@
   --clapout-border-default: var(--p-surface-200);
   --clapout-border-strong: var(--p-surface-400);
   --clapout-border-focus: var(--p-primary-600);
+  --clapout-accent: #ffc93c; /* landing brand.yellow — gradient partner of the primary orange */
   --clapout-success: #15803d;
   --clapout-warning: #b45309;
   --clapout-danger: #b91c1c;
@@ -27,14 +28,21 @@
   --clapout-radius-modal: 0.75rem;
   --clapout-shadow-card: 0 18px 50px color-mix(in srgb, var(--p-surface-950) 10%, transparent);
   --clapout-shadow-overlay: 0 24px 70px color-mix(in srgb, var(--p-surface-950) 18%, transparent);
-  font-family:
-    Inter,
-    ui-sans-serif,
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    'Segoe UI',
-    sans-serif;
+  /* Landing-page typography: SF Pro system stack for body copy, Poppins for
+     headings (loaded from Google Fonts in index.html). */
+  --clapout-font-body:
+    -apple-system, 'SF Pro Text', 'Helvetica Neue', 'Segoe UI', ui-sans-serif, system-ui, sans-serif;
+  --clapout-font-heading: Poppins, var(--clapout-font-body);
+  font-family: var(--clapout-font-body);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--clapout-font-heading);
 }
 
 html {
@@ -60,6 +68,11 @@ body {
 :focus-visible {
   outline: 2px solid var(--clapout-border-focus);
   outline-offset: 3px;
+}
+
+/* Slim budget/progress meter used by campaign cards and the budget panel. */
+.co-meter .p-progressbar {
+  height: 0.5rem;
 }
 
 @media (prefers-reduced-motion: reduce) {

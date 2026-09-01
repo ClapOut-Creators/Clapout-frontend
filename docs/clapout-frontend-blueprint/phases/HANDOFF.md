@@ -58,3 +58,162 @@ No direct PDF page. This phase enables later PDF-backed pages.
 `HOLD`
 
 Reason: Phase 00 implementation is complete, but the Playwright smoke gate still needs to pass outside the sandbox before Phase 01 is formally safe.
+
+---
+
+# Integration Slice - Public Campaigns, Auth, Apply, Creator Dashboard
+
+## Phase
+
+`Integration (Workstream B)` - layered on top of Phase 00, ahead of the numbered page phases.
+
+## Outcome
+
+The platform now consumes the live ClapOut backend contract (`INTEGRATION-PLAN.md`, API v1). Visitors
+arriving from the landing page land on a real public campaign detail page and can sign up, apply to a
+campaign, and track the application from a guarded creator dashboard.
+
+## Files and routes added
+
+Routes (all lazy):
+
+- `/` redirects to `/campaigns`; the Phase 00 placeholder moved to `/foundation` (its Playwright spec
+  now targets that path).
+- `/campaigns` - public discovery list.
+- `/campaigns/:slug` - public detail with the register CTA.
+- `/auth/sign-in`, `/auth/sign-up` - `returnUrl` aware.
+- `/creator/campaigns/:slug/apply` - guarded application form.
+- `/creator/dashboard` - guarded application list.
+- `**` - not-found page.
+
+Core:
+
+- `core/models/{campaign,user,registration}.ts` - contract types copied verbatim from the plan.
+- `core/api/api-error.ts` - normalises HTTP failures into `ApiError` (`status` + backend `code`).
+- `core/auth/{token-store,auth-service,auth-interceptor,creator-guard}.ts`.
+- `core/data/{campaigns-repository,registrations-repository}.ts`.
+- `core/util/campaign-format.ts` - dates, currency, days-left, status tone helpers.
+- `shared/layout/top-nav.*`, `shared/forms/form-errors.ts`.
+
+Config: `provideHttpClient(withInterceptors([authInterceptor]))`, `withComponentInputBinding()`, an
+app initializer that rehydrates the session, and `provideAppConfiguration()` now points at
+`http://localhost:4000/api/v1` with `apiReadiness: 'INTEGRATED'` and `useMockAdapters: false`.
+
+## Verification
+
+| Check            | Command or method                                      | Result                                                                                                                                                                    |
+| ---------------- | ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Install          | `npm install`                                          | PASS                                                                                                                                                                      |
+| Build            | `npm run build`                                        | PASS. Initial total `730.33 kB` - over the `700 kB` warning budget, under the `850 kB` error budget.                                                                      |
+| Lint             | `npx eslint .`                                         | PASS                                                                                                                                                                      |
+| Format           | `npm run format:check`                                 | PASS                                                                                                                                                                      |
+| Unit/component   | `npm run test:unit -- --watch=false`                   | PASS; 2 files, 3 tests.                                                                                                                                                   |
+| Angular defaults | ripgrep for `standalone: true` / `OnPush`              | PASS (no matches). The npm script needs `rg` on PATH; not available on this Windows shell.                                                                                |
+| Live smoke       | Browser against the running dev server + local backend | PASS: list renders 6 seeded campaigns with logos, detail renders with banner and closed-CTA, guarded route redirects to `/auth/sign-in?returnUrl=%2Fcreator%2Fdashboard`. |
+
+## API readiness
+
+| Capability                | Status     | Notes                                                                                                         |
+| ------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------- |
+| Public campaigns          | INTEGRATED | `GET /public/campaigns`, `GET /public/campaigns/:slug`.                                                       |
+| Creator auth              | INTEGRATED | `POST /auth/sign-up`, `POST /auth/sign-in`, `GET /me`.                                                        |
+| Campaign registrations    | INTEGRATED | `POST /registrations`, `GET /me/registrations`.                                                               |
+| Profile editing / payouts | BLOCKED    | `PATCH /me` exists in the contract but no screen is in this slice; the dashboard hint links are placeholders. |
+
+## Deviations and decisions
+
+- No `src/environments/*` files: `APP_ENVIRONMENT` from Phase 00 stays the single source of
+  `apiBaseUrl`, with a TODO in `app.config.ts` for the deployed origin.
+- Typed Reactive Forms rather than Signal Forms, per the CLAUDE.md allowance.
+- The token lives in a dependency-free `TokenStore` so the interceptor never has to inject
+  `AuthService` (which would be cyclic once `AuthService` issues its own `/me` request).
+- Demo campaigns are shown, not filtered: the landing page filters `demo`, but the Studio list is the
+  only place these seeded campaigns are browsable today.
+
+## Known issues
+
+- PrimeNG 22 logs `[PrimeUI] PrimeUI license is not configured` and paints an "Invalid PrimeUI
+  License" watermark in the corner of every page (Phase 00 pages included). It needs a license key in
+  `providePrimeNG({ license })` or a licensing decision; it is not caused by this slice.
+- Initial bundle now exceeds the 700 kB warning budget by ~30 kB, mostly `HttpClient` plus the session
+  bootstrap being needed at startup.
+- Playwright e2e was not run here; the foundation spec was retargeted to `/foundation`.
+
+## Contract amendment - UPCOMING campaigns
+
+`PublicCampaign` gained a third status and four nullable fields; the platform was updated to match.
+
+| Field                               | Before                 | After                                |
+| ----------------------------------- | ---------------------- | ------------------------------------ |
+| `status`                            | `'ACTIVE' \| 'CLOSED'` | `'UPCOMING' \| 'ACTIVE' \| 'CLOSED'` |
+| `cpm`, `budgetSpent`, `budgetTotal` | `number`               | `number \| null`                     |
+| `endDate`                           | `string`               | `string \| null`                     |
+
+`registrationOpen` is now `status === 'ACTIVE' && startDate <= now && (endDate == null || now < endDate)`.
+
+Rendering rules, mirroring the landing page:
+
+- UPCOMING renders an `Upcoming` tag at `warn` severity.
+- Unannounced money renders as `${currency}—` (`NOT_ANNOUNCED` in `campaign-format.ts`), never `₵0`.
+- The budget progress bar is omitted entirely when `budgetTotal` is null; the card and the budget
+  panel say the budget has not been announced yet.
+- A live `Opens in HH:MM:SS` countdown against `startDate` replaces the days-left label, falling back
+  to `Opens <date>` when `startDate` is past or unparsable.
+- Null `endDate` renders as `—` in both the meta line and the facts table.
+- Detail CTA order: UPCOMING (disabled, `Registration opens in HH:MM:SS`) -> already applied ->
+  registration closed -> register. Already-applied now outranks closed, so a creator can still see
+  their application on a campaign that has since closed.
+- The apply page has a dedicated upcoming state ("Registration hasn't opened yet") separate from the
+  closed state.
+
+The countdown is a shared `createNowSignal()` helper (`shared/time/clock.ts`): a signal ticking on an
+interval, gated by an `enabled` signal so pages without an upcoming campaign never run a per-second
+change detection cycle, and cleared through `DestroyRef.onDestroy`. Formatting helpers take an
+explicit `now` argument (defaulting to `Date.now()`) so the tick is a real reactive dependency rather
+than a hidden global clock, and so they stay unit-testable.
+
+Every arithmetic path is null-guarded: `budgetPercent()` returns 0 unless `hasBudget()` confirms a
+positive total, `formatMoney()` short-circuits on null/undefined/non-finite, and `daysLeftLabel()` /
+`openCountdownLabel()` return `—` / null rather than computing against a missing date.
+
+Verified live against the running backend: E-WALE renders Upcoming with a ticking countdown, `₵—`
+throughout and no progress bar; NIKE (open) shows the enabled register CTA; Klap (expired) shows the
+disabled closed CTA; Coca-Cola shows already-applied. `npm run build`, `npx eslint .`,
+`npm run format:check` and `npm run test:unit` all pass.
+
+## Password reset (added 2026-09-01)
+
+Implements the plan's `POST /auth/forgot-password` / `POST /auth/reset-password` contract as two real
+pages, replacing the "email support" placeholder.
+
+- `/auth/forgot-password` - email form -> confirmation state ("Check your inbox - if an account
+  exists for <email>, a reset link is on its way. It expires in 60 minutes.") with "Back to sign in"
+  and a "try a different email" affordance that returns to the prefilled form. 422 renders under the
+  field; transport failures render a banner and the button retries.
+- `/auth/reset-password?token=…` (title "Choose a new password - ClapOut Studio") - `token` arrives
+  through `withComponentInputBinding()` like `returnUrl` elsewhere. Missing token shows a gentle
+  invalid state linking to `/auth/forgot-password`; `400 INVALID_RESET_TOKEN` swaps the form for the
+  same state with expiry wording; `422` renders inline; success shows "Password updated" with a
+  button to sign-in.
+
+`AuthService.requestPasswordReset()` / `resetPassword()` sit beside the other auth calls. Both are
+unauthenticated: no token is read, issued, or cleared, and an existing session is left intact -
+resetting deliberately does not sign the user in.
+
+The confirmation copy is intentionally non-committal ("if an account exists"), matching the API's
+no-enumeration design; the client must not become the oracle the backend avoids being.
+
+`fieldsMatchValidator(field, confirmField)` in `shared/forms/form-errors.ts` is a group-level
+cross-field validator. It stays quiet while the confirmation is empty so the control's own `required`
+message owns that case, and reports on the group rather than mutating the control's errors; the
+component surfaces it under the confirm field.
+
+Verification: `npm run build` PASS (753.81 kB initial - over the 700 kB warning budget, under the
+850 kB error budget), `npx eslint .` PASS, `npm run test:unit` PASS (2 files, 3 tests),
+`npm run format:check` PASS. Live smoke: both pages render in the sign-in visual language, the
+no-token and tokened reset states resolve correctly. Forms were not submitted (no test account data
+was entered).
+
+Incidental fix: the remember-me `<label>` in `sign-in.html` wrapped the `p-checkbox` without a `for`,
+failing `@angular-eslint/template/label-has-associated-control` and leaving the control unlabelled
+for assistive tech. It now associates with `for="signin-remember"`.

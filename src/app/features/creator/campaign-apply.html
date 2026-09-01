@@ -1,0 +1,201 @@
+<main class="mx-auto max-w-2xl px-4 py-10">
+  <a
+    [routerLink]="['/campaigns', slug()]"
+    class="inline-flex items-center gap-2 rounded-lg border border-surface-200 px-3 py-1.5 text-sm text-surface-700 no-underline hover:bg-surface-100"
+  >
+    <span aria-hidden="true">&larr;</span> Back to campaign
+  </a>
+
+  @switch (state()) {
+    @case ('loading') {
+      <div class="mt-8" aria-busy="true" aria-live="polite">
+        <span class="sr-only">Loading campaign</span>
+        <p-skeleton width="55%" height="2rem" />
+        <div class="mt-6"><p-skeleton width="100%" height="16rem" borderRadius="1rem" /></div>
+      </div>
+    }
+
+    @case ('not-found') {
+      <section class="mt-10 rounded-xl border border-surface-200 bg-surface-0 p-10 text-center">
+        <h1 class="text-2xl font-semibold text-surface-900">Campaign not found</h1>
+        <p class="mx-auto mt-3 max-w-md text-surface-600">
+          We could not find a campaign matching &ldquo;{{ slug() }}&rdquo;.
+        </p>
+        <a
+          routerLink="/campaigns"
+          class="mt-6 inline-block rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-contrast no-underline"
+          >Browse campaigns</a
+        >
+      </section>
+    }
+
+    @case ('error') {
+      <section class="mt-10 rounded-xl border border-surface-200 bg-surface-0 p-6">
+        <p-message severity="error" [closable]="false">{{ loadErrorMessage() }}</p-message>
+        <p-button label="Try again" size="small" styleClass="mt-4" (onClick)="reload()" />
+      </section>
+    }
+
+    @default {
+      @if (campaign(); as campaign) {
+        <header class="mt-8">
+          <p class="text-sm text-surface-500">{{ campaign.brand.name }}</p>
+          <h1 class="mt-1 text-2xl font-semibold tracking-tight text-surface-900">
+            Apply to {{ campaign.title || campaign.brand.name }}
+          </h1>
+          <p class="mt-2 text-sm text-surface-600">
+            {{ formatMoney(campaign.currency, campaign.cpm) }} per 1k views
+            @if (isUpcoming()) {
+              - opens {{ formatDateTime(campaign.startDate) }}
+            } @else if (campaign.endDate) {
+              - closes {{ formatDate(campaign.endDate) }}
+            }
+          </p>
+        </header>
+
+        @if (alreadyRegistered()) {
+          <section class="mt-6 rounded-2xl border border-surface-200 bg-surface-50 p-6">
+            <p-message severity="info" [closable]="false"
+              >You have already applied to this campaign.</p-message
+            >
+            <p class="mt-3 text-sm text-surface-600">
+              Each creator can apply to a campaign once. Track the decision from your dashboard.
+            </p>
+            <a
+              routerLink="/creator/dashboard"
+              class="mt-4 inline-block rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-contrast no-underline"
+              >Go to your dashboard</a
+            >
+          </section>
+        } @else if (isUpcoming()) {
+          <section class="mt-6 rounded-2xl border border-surface-200 bg-surface-50 p-6">
+            <p-message severity="warn" [closable]="false"
+              >Registration hasn't opened yet.</p-message
+            >
+            <p class="mt-3 text-sm text-surface-600">
+              This campaign has been announced but is not accepting applications yet. Registration
+              opens {{ formatDateTime(campaign.startDate) }}.
+            </p>
+            @if (openCountdown(); as countdown) {
+              <p class="mt-1 text-sm font-medium text-surface-900">Opens in {{ countdown }}</p>
+            }
+            <div class="mt-4 flex flex-wrap gap-3">
+              <a
+                [routerLink]="['/campaigns', slug()]"
+                class="inline-block rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-contrast no-underline"
+                >Back to campaign</a
+              >
+              <a
+                routerLink="/campaigns"
+                class="inline-block rounded-lg border border-surface-200 px-4 py-2 text-sm font-medium text-surface-700 no-underline"
+                >Browse campaigns</a
+              >
+            </div>
+          </section>
+        } @else if (!campaign.registrationOpen) {
+          <section class="mt-6 rounded-2xl border border-surface-200 bg-surface-50 p-6">
+            <p-message severity="warn" [closable]="false"
+              >Registration for this campaign is closed.</p-message
+            >
+            <p class="mt-3 text-sm text-surface-600">
+              This campaign is no longer accepting new creators. Browse the campaigns that are still
+              live.
+            </p>
+            <a
+              routerLink="/campaigns"
+              class="mt-4 inline-block rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-contrast no-underline"
+              >Browse campaigns</a
+            >
+          </section>
+        } @else {
+          @if (submitErrorMessage()) {
+            <div class="mt-6">
+              <p-message severity="error" [closable]="false">{{ submitErrorMessage() }}</p-message>
+            </div>
+          }
+
+          <form
+            class="mt-6 flex flex-col gap-5 rounded-2xl border border-surface-200 bg-surface-0 p-6"
+            [formGroup]="form"
+            (ngSubmit)="submit()"
+            novalidate
+          >
+            <div class="flex flex-col gap-2">
+              <label class="text-sm font-medium text-surface-800" for="apply-platform"
+                >Platform</label
+              >
+              <p-select
+                inputId="apply-platform"
+                formControlName="platform"
+                class="w-full"
+                optionLabel="label"
+                optionValue="value"
+                placeholder="Select a platform"
+                [options]="platformOptions()"
+              />
+              <p class="text-xs text-surface-500">
+                Only the platforms this campaign accepts are listed.
+              </p>
+              @if (fieldError('platform'); as message) {
+                <p class="text-sm text-red-700">{{ message }}</p>
+              }
+            </div>
+
+            <div class="flex flex-col gap-2">
+              <label class="text-sm font-medium text-surface-800" for="apply-account"
+                >Account URL</label
+              >
+              <input
+                pInputText
+                id="apply-account"
+                type="url"
+                inputmode="url"
+                placeholder="https://www.tiktok.com/@yourname"
+                formControlName="accountUrl"
+                class="w-full"
+                [attr.aria-invalid]="fieldError('accountUrl') ? 'true' : null"
+              />
+              @if (fieldError('accountUrl'); as message) {
+                <p class="text-sm text-red-700">{{ message }}</p>
+              }
+            </div>
+
+            <div class="flex flex-col gap-2">
+              <label class="text-sm font-medium text-surface-800" for="apply-note"
+                >Note <span class="font-normal text-surface-500">(optional)</span></label
+              >
+              <textarea
+                pTextarea
+                id="apply-note"
+                rows="4"
+                formControlName="note"
+                class="w-full"
+                placeholder="Anything the brand should know about your clipping style or reach."
+              ></textarea>
+            </div>
+
+            <div class="flex flex-col gap-2">
+              <div class="flex items-start gap-3">
+                <p-checkbox inputId="apply-terms" formControlName="terms" [binary]="true" />
+                <label class="text-sm text-surface-700" for="apply-terms">
+                  I agree to the campaign requirements and confirm the account above is mine.
+                </label>
+              </div>
+              @if (fieldError('terms'); as message) {
+                <p class="text-sm text-red-700">{{ message }}</p>
+              }
+            </div>
+
+            <p-button
+              type="submit"
+              label="Submit application"
+              [fluid]="true"
+              [loading]="submitting()"
+              [disabled]="submitting()"
+            />
+          </form>
+        }
+      }
+    }
+  }
+</main>

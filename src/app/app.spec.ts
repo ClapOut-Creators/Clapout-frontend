@@ -1,3 +1,4 @@
+import { provideHttpClient } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { ConfirmationService, MessageService } from 'primeng/api';
@@ -12,6 +13,7 @@ describe('App', () => {
         ConfirmationService,
         MessageService,
         provideAppConfiguration(),
+        provideHttpClient(),
         provideRouter([]),
       ],
     }).compileComponents();

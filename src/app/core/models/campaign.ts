@@ -1,0 +1,63 @@
+/**
+ * Public campaign contract served by the ClapOut backend
+ * (`GET /public/campaigns`, `GET /public/campaigns/:slug`).
+ *
+ * Mirrors the shared API contract in INTEGRATION-PLAN.md verbatim; do not widen
+ * these types without a matching backend change.
+ */
+
+export type CampaignPlatform = 'tiktok' | 'x' | 'facebook' | 'instagram' | 'youtube';
+
+/**
+ * `UPCOMING` campaigns are announced but not open yet: clients count down to
+ * `startDate` and render the unannounced money fields as `${currency}—`.
+ */
+export type CampaignStatus = 'UPCOMING' | 'ACTIVE' | 'CLOSED';
+
+export interface CampaignBrand {
+  /** Brand display name, e.g. 'E-wale tech'. */
+  name: string;
+  /** Absolute logo URL, or null when the brand has no artwork yet. */
+  logoUrl: string | null;
+  /** Hex background the logo is rendered on, e.g. '#0B51F0'. */
+  logoBg: string;
+  logoFit: 'cover' | 'contain';
+}
+
+export interface PublicCampaign {
+  slug: string;
+  title: string;
+  /** Demo/dummy campaigns seeded for the landing page. */
+  demo: boolean;
+  brand: CampaignBrand;
+  status: CampaignStatus;
+  /**
+   * `status === 'ACTIVE' && startDate <= now && (endDate == null || now < endDate)`,
+   * computed server side.
+   */
+  registrationOpen: boolean;
+  platforms: CampaignPlatform[];
+  /** Currency symbol, e.g. '₵' or '$'. */
+  currency: string;
+  /** null until the brand announces it. */
+  cpm: number | null;
+  /** null until the brand announces the budget. */
+  budgetSpent: number | null;
+  /** null until the brand announces the budget. */
+  budgetTotal: number | null;
+  description: string;
+  category: string;
+  /** ISO date or datetime; for UPCOMING this is when registration opens. */
+  startDate: string;
+  /** ISO datetime; null = not announced yet. */
+  endDate: string | null;
+  /** Human readable review turnaround, e.g. '1d'. */
+  avgReviewTime: string;
+  tags: string[];
+  bannerUrl: string | null;
+  requirementsNote: string | null;
+  requirementsDocUrl: string | null;
+  resourceLabel: string | null;
+  resourceUrl: string | null;
+  updatedAt: string;
+}

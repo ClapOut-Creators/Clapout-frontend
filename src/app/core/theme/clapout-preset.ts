@@ -3,18 +3,21 @@ import Aura from '@primeuix/themes/aura';
 
 export const clapoutPreset = definePreset(Aura, {
   semantic: {
+    // Ramp anchored on the landing page's brand orange (#EC612C, see the
+    // website repo's tailwind.config.js `brand.orange`); yellow accent is
+    // exposed as --clapout-accent in styles.css.
     primary: {
-      50: '#fff7ed',
-      100: '#ffedd5',
-      200: '#fed7aa',
-      300: '#fdba74',
-      400: '#fb923c',
-      500: '#f97316',
-      600: '#ea580c',
-      700: '#c2410c',
-      800: '#9a3412',
-      900: '#7c2d12',
-      950: '#431407',
+      50: '#fdf3ef',
+      100: '#fbe2d8',
+      200: '#f7c4b0',
+      300: '#f3a385',
+      400: '#ef8259',
+      500: '#ec612c',
+      600: '#d54e1c',
+      700: '#b04117',
+      800: '#8c3412',
+      900: '#69270e',
+      950: '#3c1608',
     },
     focusRing: {
       color: '{primary.600}',

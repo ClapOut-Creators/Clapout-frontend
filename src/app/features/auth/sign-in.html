@@ -1,0 +1,94 @@
+<main
+  class="flex min-h-[calc(100svh-3.75rem)] flex-col items-center justify-center px-4 py-10 lg:min-h-svh"
+>
+  <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary shadow-sm">
+    <img src="/clapout-logo.png" alt="" class="h-9 w-9 select-none" draggable="false" />
+  </div>
+
+  <h1 class="mt-4 text-center text-3xl font-semibold tracking-tight text-surface-900">
+    Welcome back
+  </h1>
+  <p class="mt-2 max-w-xs text-center text-surface-600">
+    Sign in to manage your campaigns, registrations and payouts
+  </p>
+
+  @if (errorMessage()) {
+    <div class="mt-5 w-full max-w-sm">
+      <p-message severity="error" [closable]="false">{{ errorMessage() }}</p-message>
+    </div>
+  }
+
+  <form
+    class="mt-7 flex w-full max-w-sm flex-col gap-5"
+    [formGroup]="form"
+    (ngSubmit)="submit()"
+    novalidate
+  >
+    <div class="flex flex-col gap-2">
+      <label class="text-sm font-medium text-surface-800" for="signin-email">Email</label>
+      <input
+        pInputText
+        id="signin-email"
+        type="email"
+        placeholder="you@email.com"
+        autocomplete="email"
+        formControlName="email"
+        class="w-full"
+        [attr.aria-invalid]="fieldError('email') ? 'true' : null"
+        [attr.aria-describedby]="fieldError('email') ? 'signin-email-error' : null"
+      />
+      @if (fieldError('email'); as message) {
+        <p id="signin-email-error" class="text-sm text-red-700">{{ message }}</p>
+      }
+    </div>
+
+    <div class="flex flex-col gap-2">
+      <label class="text-sm font-medium text-surface-800" for="signin-password">Password</label>
+      <p-password
+        inputId="signin-password"
+        formControlName="password"
+        class="block w-full"
+        inputStyleClass="w-full"
+        placeholder="Your password"
+        autocomplete="current-password"
+        [feedback]="false"
+        [toggleMask]="true"
+      />
+      @if (fieldError('password'); as message) {
+        <p class="text-sm text-red-700">{{ message }}</p>
+      }
+    </div>
+
+    <div class="flex items-center justify-between gap-4">
+      <div class="flex items-center gap-2">
+        <p-checkbox inputId="signin-remember" formControlName="rememberMe" [binary]="true" />
+        <label class="cursor-pointer text-sm text-surface-600" for="signin-remember"
+          >Remember me</label
+        >
+      </div>
+      <a
+        routerLink="/auth/forgot-password"
+        class="text-sm font-medium text-surface-800 no-underline hover:text-primary"
+        >Forgot password?</a
+      >
+    </div>
+
+    <p-button
+      type="submit"
+      label="Sign in"
+      [fluid]="true"
+      [loading]="submitting()"
+      [disabled]="submitting()"
+    />
+  </form>
+
+  <p class="mt-6 text-center text-sm text-surface-600">
+    New to ClapOut?
+    <a
+      [routerLink]="signUpLink()"
+      [queryParams]="signUpQuery()"
+      class="font-medium text-primary underline underline-offset-2"
+      >Create an account</a
+    >
+  </p>
+</main>

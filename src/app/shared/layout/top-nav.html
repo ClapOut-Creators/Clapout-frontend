@@ -1,0 +1,30 @@
+<header class="sticky top-0 z-20 border-b border-surface-200 bg-surface-0">
+  <nav
+    aria-label="Primary"
+    class="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3"
+  >
+    <a routerLink="/campaigns" class="flex items-center text-surface-900 no-underline">
+      <!-- Same mark the landing navbar uses; the artwork carries its own wordmark. -->
+      <img src="/clapout-logo.png" alt="ClapOut" class="h-9 w-9 select-none" draggable="false" />
+    </a>
+
+    <div class="flex items-center gap-1 sm:gap-3">
+      <a
+        routerLink="/campaigns"
+        routerLinkActive="text-primary"
+        class="rounded-lg px-2 py-1 text-sm font-medium text-surface-600 no-underline hover:text-surface-900"
+        >Campaigns</a
+      >
+      <a
+        routerLink="/auth/sign-in"
+        class="rounded-lg px-2 py-1 text-sm font-medium text-surface-600 no-underline hover:text-surface-900"
+        >Sign in</a
+      >
+      <a
+        routerLink="/auth/sign-up"
+        class="rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-primary-contrast no-underline"
+        >Get started</a
+      >
+    </div>
+  </nav>
+</header>

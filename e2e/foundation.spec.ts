@@ -10,7 +10,7 @@ test.describe('foundation shell', () => {
       { width: 1920, height: 1080 },
     ]) {
       await page.setViewportSize(viewport);
-      await page.goto('/');
+      await page.goto('/foundation');
 
       await expect(page).toHaveTitle(/ClapOut Studio - Foundation/);
       await expect(page.getByRole('heading', { name: /frontend foundation/i })).toBeVisible();
@@ -20,7 +20,7 @@ test.describe('foundation shell', () => {
   });
 
   test('has no critical accessibility violations on the placeholder route', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/foundation');
 
     const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze();
     const criticalViolations = results.violations.filter(

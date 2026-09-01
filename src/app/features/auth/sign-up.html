@@ -1,0 +1,129 @@
+<main
+  class="flex min-h-[calc(100svh-3.75rem)] flex-col items-center justify-center px-4 py-10 lg:min-h-svh"
+>
+  <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary shadow-sm">
+    <img src="/clapout-logo.png" alt="" class="h-9 w-9 select-none" draggable="false" />
+  </div>
+
+  <h1 class="mt-4 text-center text-3xl font-semibold tracking-tight text-surface-900">
+    Create your creator account
+  </h1>
+  <p class="mt-2 max-w-sm text-center text-surface-600">
+    One account lets you apply to every ClapOut campaign and track your payouts.
+  </p>
+
+  @if (errorMessage()) {
+    <div class="mt-5 w-full max-w-md">
+      <p-message severity="error" [closable]="false">{{ errorMessage() }}</p-message>
+    </div>
+  }
+
+  <form
+    class="mt-7 flex w-full max-w-md flex-col gap-5"
+    [formGroup]="form"
+    (ngSubmit)="submit()"
+    novalidate
+  >
+    <div class="flex flex-col gap-2">
+      <label class="text-sm font-medium text-surface-800" for="signup-name">Full name</label>
+      <input
+        pInputText
+        id="signup-name"
+        type="text"
+        autocomplete="name"
+        formControlName="fullName"
+        class="w-full"
+        [attr.aria-invalid]="fieldError('fullName') ? 'true' : null"
+      />
+      @if (fieldError('fullName'); as message) {
+        <p class="text-sm text-red-700">{{ message }}</p>
+      }
+    </div>
+
+    <div class="flex flex-col gap-2">
+      <label class="text-sm font-medium text-surface-800" for="signup-email">Email</label>
+      <input
+        pInputText
+        id="signup-email"
+        type="email"
+        autocomplete="email"
+        formControlName="email"
+        class="w-full"
+        [attr.aria-invalid]="fieldError('email') ? 'true' : null"
+      />
+      @if (fieldError('email'); as message) {
+        <p class="text-sm text-red-700">{{ message }}</p>
+      }
+    </div>
+
+    <div class="flex flex-col gap-2">
+      <label class="text-sm font-medium text-surface-800" for="signup-password">Password</label>
+      <p-password
+        inputId="signup-password"
+        formControlName="password"
+        class="block w-full"
+        inputStyleClass="w-full"
+        autocomplete="new-password"
+        [feedback]="false"
+        [toggleMask]="true"
+      />
+      <p class="text-xs text-surface-500">At least 8 characters.</p>
+      @if (fieldError('password'); as message) {
+        <p class="text-sm text-red-700">{{ message }}</p>
+      }
+    </div>
+
+    <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+      <div class="flex flex-col gap-2">
+        <label class="text-sm font-medium text-surface-800" for="signup-whatsapp"
+          >WhatsApp username</label
+        >
+        <input
+          pInputText
+          id="signup-whatsapp"
+          type="text"
+          placeholder="@loverboy_12"
+          formControlName="whatsapp"
+          class="w-full"
+          [attr.aria-invalid]="fieldError('whatsapp') ? 'true' : null"
+        />
+        @if (fieldError('whatsapp'); as message) {
+          <p class="text-sm text-red-700">{{ message }}</p>
+        }
+      </div>
+      <div class="flex flex-col gap-2">
+        <label class="text-sm font-medium text-surface-800" for="signup-phone">Phone number</label>
+        <input
+          pInputText
+          id="signup-phone"
+          type="tel"
+          autocomplete="tel"
+          formControlName="phone"
+          class="w-full"
+          [attr.aria-invalid]="fieldError('phone') ? 'true' : null"
+        />
+        @if (fieldError('phone'); as message) {
+          <p class="text-sm text-red-700">{{ message }}</p>
+        }
+      </div>
+    </div>
+
+    <p-button
+      type="submit"
+      label="Create account"
+      [fluid]="true"
+      [loading]="submitting()"
+      [disabled]="submitting()"
+    />
+  </form>
+
+  <p class="mt-6 text-center text-sm text-surface-600">
+    Already have an account?
+    <a
+      [routerLink]="signInLink()"
+      [queryParams]="signInQuery()"
+      class="font-medium text-primary underline underline-offset-2"
+      >Sign in</a
+    >
+  </p>
+</main>
