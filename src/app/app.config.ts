@@ -12,6 +12,7 @@ import { providePrimeNG } from 'primeng/config';
 import { authInterceptor } from './core/auth/auth-interceptor';
 import { AuthService } from './core/auth/auth-service';
 import { provideAppConfiguration } from './core/config/app-environment';
+import { RUNTIME_API_BASE_URL } from './core/config/runtime-env';
 import { clapoutPreset } from './core/theme/clapout-preset';
 import { routes } from './app.routes';
 
@@ -40,10 +41,11 @@ export const appConfig: ApplicationConfig = {
     }),
     MessageService,
     ConfirmationService,
-    // TODO: swap `apiBaseUrl` for the deployed API origin when the backend is
-    // hosted (build-time replacement or a runtime config fetch).
+    // apiBaseUrl is baked in at build time from the API_BASE_URL env var
+    // (scripts/generate-runtime-env.mjs, run by the npm prebuild hook);
+    // local dev falls back to the localhost backend.
     provideAppConfiguration({
-      apiBaseUrl: 'http://localhost:4000/api/v1',
+      apiBaseUrl: RUNTIME_API_BASE_URL,
       apiReadiness: 'INTEGRATED',
       useMockAdapters: false,
     }),

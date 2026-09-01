@@ -8,6 +8,7 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
+    "prebuild": "node scripts/generate-runtime-env.mjs",
     "build": "ng build",
     "build:dev": "ng build --configuration development",
     "format": "prettier --write \"src/**/*.{ts,html,css}\" \"e2e/**/*.ts\" \"*.json\" \"*.md\" \"*.mjs\" \"*.ts\" \".*.json\" \".prettierrc\" \"docs/clapout-frontend-blueprint/phases/00-foundation.md\" \"docs/clapout-frontend-blueprint/phases/HANDOFF.md\"",
