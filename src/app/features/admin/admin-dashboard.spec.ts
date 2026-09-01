@@ -72,7 +72,18 @@ function nextTask(): Promise<void> {
 
 describe('AdminDashboard', () => {
   beforeAll(() => {
-    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null);
+    vi.stubGlobal(
+      'ResizeObserver',
+      class ResizeObserver {
+        observe(): void {}
+        unobserve(): void {}
+        disconnect(): void {}
+      },
+    );
+  });
+
+  afterAll(() => {
+    vi.unstubAllGlobals();
   });
 
   async function render(admin = repositoryDouble()) {
@@ -94,9 +105,15 @@ describe('AdminDashboard', () => {
   it('renders metrics, activity summary, attention items, and recent campaigns', async () => {
     const { element } = await render();
 
+    expect(element.querySelector('main')?.getAttribute('style')).toContain(
+      'background-color: #f9f9f9',
+    );
     expect(element.textContent).toContain('Published campaigns');
     expect(element.textContent).toContain('Total creators');
     expect(element.textContent).toContain('17 new registrations from 11 Aug to 13 Aug.');
+    expect(element.querySelector('[echarts][role="img"]')?.getAttribute('aria-label')).toContain(
+      'Bar chart of new registrations',
+    );
     expect(element.textContent).toContain('Need Attention');
     expect(element.textContent).toContain('Creator applications');
     expect(element.textContent).toContain('Pending budget');

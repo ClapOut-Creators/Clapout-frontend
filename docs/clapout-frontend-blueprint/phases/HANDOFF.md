@@ -307,16 +307,20 @@ those flows manually with `admin@clapoutcreators.com`.
 The signed-in application shell now uses the uploaded compact white icon rail across admin and
 creator workspaces. `/admin/dashboard` has been tightened toward the PDF/page-2 reference with a
 compact metric row, registration activity plus text summary, a `Need Attention` panel, and recent
-campaign cards.
+campaign cards. The dashboard canvas now uses the requested exact `#F9F9F9` background.
 
 ### Files and routes changed
 
 - `shared/layout/side-nav.*`: desktop signed-in nav changed from a 256px labelled sidebar to a
-  54px white icon rail with `#ECECEC` right border, PrimeIcons SVGs, PrimeNG tooltips, role-aware
-  destinations, settings coming-soon affordance, and an account menu with sign out.
+  54px white icon rail with `#ECECEC` right border, uploaded `public/icons/*.svg` assets, PrimeNG
+  tooltips, role-aware destinations, settings coming-soon affordance, and an account menu with sign
+  out.
+- `shared/charts/bar-chart.ts`: shared registration bar chart migrated from Chart.js to Apache
+  ECharts through `ngx-echarts`, using tree-shakeable ECharts core imports.
 - `features/admin/admin-dashboard.*`: dashboard composition updated for the metric/activity/
   attention/recent-campaign layout while preserving existing `/admin/stats` and `/admin/campaigns`
   repository calls.
+- `package.json` / `package-lock.json`: `chart.js` removed; `echarts` and `ngx-echarts@22` added.
 - `e2e/foundation.spec.ts`: stale foundation readiness assertion now accepts the rendered readiness
   marker instead of assuming `MOCKED`.
 - `package.json`: `verify:angular-defaults` now scans TypeScript files only, avoiding valid
@@ -324,14 +328,15 @@ campaign cards.
 
 ### Verification
 
-| Check                     | Result                                                                                                                                              |
-| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `npm run format:check`    | PASS with Node `v24.18.0`.                                                                                                                          |
-| `npm run lint`            | PASS.                                                                                                                                               |
-| `npm run test:unit`       | PASS: 4 files, 10 tests. Added side-nav role/accessibility coverage and admin-dashboard loading/ready/empty/error coverage.                         |
-| `npm run build`           | PASS unsandboxed. Initial total `812.55 kB`, over the `700 kB` warning budget and under the `850 kB` error budget.                                  |
-| `verify:angular-defaults` | PASS after narrowing the script to `.ts` files.                                                                                                     |
-| `npm run test:e2e`        | PASS unsandboxed: 2 Playwright foundation tests, including responsive widths and critical AXE check. Sandboxed run still fails with `listen EPERM`. |
+| Check                     | Result                                                                                                                                                                         |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `npm run format:check`    | PASS with Node `v24.18.0`.                                                                                                                                                     |
+| `npm run lint`            | PASS.                                                                                                                                                                          |
+| `npm run test:unit`       | PASS: 4 files, 10 tests. Added side-nav asset/accessibility coverage and admin-dashboard loading/ready/empty/error coverage.                                                   |
+| `npm run build`           | PASS unsandboxed. Initial total `803.30 kB`, over the `700 kB` warning budget and under the `850 kB` error budget. Admin dashboard lazy chunk includes ECharts at `537.46 kB`. |
+| `verify:angular-defaults` | PASS after narrowing the script to `.ts` files.                                                                                                                                |
+| `npm run test:e2e`        | PASS unsandboxed: 2 Playwright foundation tests, including responsive widths and critical AXE check. Sandboxed run still fails with `listen EPERM`.                            |
+| Chart.js source search    | PASS: no `chart.js`, `from 'chart.js'`, or `Chart.register` usage remains in `src`, `package.json`, or `package-lock.json`.                                                    |
 
 ### API readiness
 
@@ -345,14 +350,15 @@ campaign cards.
 
 ### Responsive and accessibility notes
 
-- Component tests verify icon-only rail accessible names, role-specific destinations, and account
-  menu exposure.
+- Component tests verify icon-only rail accessible names, uploaded SVG paths, role-specific
+  destinations, and account menu exposure.
 - Mobile keeps labelled drawer navigation instead of icon-only labels.
 - Existing Playwright responsive/AXE smoke passes for `/foundation`; authenticated
   `/admin/dashboard` visual/AXE verification still requires a signed-in admin session against the
   backend.
 - Pre-existing generated `src/app/core/config/runtime-env.ts` remains changed to
-  `https://clapout-backend.vercel.app/api/v1`; this phase did not hand-edit it.
+  `https://clapout-backend.vercel.app/api/v1`; build presteps briefly regenerate it, and it was
+  restored to the pre-existing value after verification.
 
 ### Next phase recommendation
 

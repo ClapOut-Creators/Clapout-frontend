@@ -1,23 +1,20 @@
-import {
-  afterNextRender,
-  Component,
-  DestroyRef,
-  effect,
-  ElementRef,
-  inject,
-  input,
-  viewChild,
-} from '@angular/core';
-import { BarController, BarElement, CategoryScale, Chart, LinearScale, Tooltip } from 'chart.js';
+import { Component, computed, input } from '@angular/core';
+import { BarChart as EchartsBarChart } from 'echarts/charts';
+import { GridComponent, TooltipComponent } from 'echarts/components';
+import * as echarts from 'echarts/core';
+import { EChartsCoreOption } from 'echarts/core';
+import { CanvasRenderer } from 'echarts/renderers';
+import { NgxEchartsDirective, provideEchartsCore } from 'ngx-echarts';
 
-// Register only what a plain bar chart needs; `chart.js/auto` pulls in every
-// controller, scale and plugin and roughly triples the bundle cost.
-Chart.register(BarController, BarElement, CategoryScale, LinearScale, Tooltip);
+echarts.use([EchartsBarChart, GridComponent, TooltipComponent, CanvasRenderer]);
 
 /** Brand orange, used when the theme variable is unreadable (SSR, tests). */
 const FALLBACK_BAR_COLOR = '#EC612C';
 
 function barColor(): string {
+  if (typeof document === 'undefined') {
+    return FALLBACK_BAR_COLOR;
+  }
   return (
     getComputedStyle(document.documentElement).getPropertyValue('--p-primary-color').trim() ||
     FALLBACK_BAR_COLOR
@@ -25,17 +22,23 @@ function barColor(): string {
 }
 
 /**
- * Minimal chart.js bar chart. The parent owns the size — give the element a
- * height (e.g. `<div class="h-64"><app-bar-chart …/></div>`) or the canvas
- * collapses.
- *
- * The chart is created once and then mutated in place, so changing `labels` or
- * `values` animates rather than tearing down the canvas.
+ * Minimal Apache ECharts bar chart. The parent owns the size — give the host a
+ * height (e.g. `<div class="h-52"><app-bar-chart …/></div>`) or the chart has
+ * no drawing area.
  */
 @Component({
+  imports: [NgxEchartsDirective],
+  providers: [provideEchartsCore({ echarts })],
   selector: 'app-bar-chart',
   template: `
-    <canvas #canvas role="img" class="block h-full w-full" [attr.aria-label]="ariaLabel()"></canvas>
+    <div
+      echarts
+      class="block h-full w-full"
+      role="img"
+      [attr.aria-label]="ariaLabel()"
+      [initOpts]="initOptions"
+      [options]="chartOptions()"
+    ></div>
   `,
   styles: `
     :host {
@@ -47,78 +50,57 @@ function barColor(): string {
 export class BarChart {
   readonly labels = input<string[]>([]);
   readonly values = input<number[]>([]);
-  /** Required for a11y: a canvas is otherwise an unlabelled graphic. */
+  /** Required for a11y: the chart region is otherwise an unlabelled graphic. */
   readonly ariaLabel = input('');
 
-  private readonly canvas = viewChild.required<ElementRef<HTMLCanvasElement>>('canvas');
-  private chart: Chart<'bar', number[], string> | null = null;
-
-  constructor() {
-    afterNextRender(() => this.create());
-
-    effect(() => {
-      // Read both inputs first so the effect tracks them even before the
-      // canvas exists and the early return below fires.
-      const labels = this.labels();
-      const values = this.values();
-      const chart = this.chart;
-      if (!chart) {
-        return;
-      }
-      chart.data.labels = labels;
-      chart.data.datasets[0].data = values;
-      chart.update();
-    });
-
-    inject(DestroyRef).onDestroy(() => {
-      this.chart?.destroy();
-      this.chart = null;
-    });
-  }
-
-  /** No-ops without a 2d context, which is how this stays SSR- and test-safe. */
-  private create(): void {
-    const context = this.canvas().nativeElement.getContext('2d');
-    if (!context) {
-      return;
-    }
-
-    this.chart = new Chart<'bar', number[], string>(context, {
-      type: 'bar',
-      data: {
-        labels: this.labels(),
-        datasets: [
-          {
-            data: this.values(),
-            backgroundColor: barColor(),
-            borderRadius: 4,
-            borderSkipped: false,
-            maxBarThickness: 14,
-          },
-        ],
+  protected readonly initOptions = { renderer: 'canvas' as const };
+  protected readonly chartOptions = computed<EChartsCoreOption>(() => ({
+    animation: false,
+    color: [barColor()],
+    grid: {
+      bottom: 28,
+      containLabel: true,
+      left: 8,
+      right: 8,
+      top: 16,
+    },
+    tooltip: {
+      appendToBody: true,
+      trigger: 'axis',
+      valueFormatter: (value: unknown) => `${value}`,
+    },
+    xAxis: {
+      axisLine: { show: false },
+      axisTick: { show: false },
+      axisLabel: {
+        color: '#777777',
+        fontSize: 11,
+        hideOverlap: true,
       },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          title: { display: false },
-          tooltip: { displayColors: false },
-        },
-        scales: {
-          x: {
-            grid: { display: false },
-            border: { display: false },
-            ticks: { maxRotation: 0, autoSkipPadding: 12 },
-          },
-          y: {
-            beginAtZero: true,
-            border: { display: false },
-            grid: { color: 'rgba(15, 23, 42, 0.06)' },
-            ticks: { precision: 0, maxTicksLimit: 5 },
-          },
+      data: this.labels(),
+      type: 'category',
+    },
+    yAxis: {
+      axisLine: { show: false },
+      axisLabel: { show: false },
+      axisTick: { show: false },
+      splitLine: {
+        lineStyle: {
+          color: '#ECECEC',
+          type: 'dashed',
         },
       },
-    });
-  }
+      type: 'value',
+    },
+    series: [
+      {
+        barMaxWidth: 8,
+        data: this.values(),
+        itemStyle: {
+          borderRadius: [4, 4, 4, 4],
+        },
+        type: 'bar',
+      },
+    ],
+  }));
 }
