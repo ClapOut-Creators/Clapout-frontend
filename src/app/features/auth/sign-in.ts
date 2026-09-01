@@ -74,8 +74,9 @@ export class SignIn {
     this.submitting.set(true);
     try {
       const { email, password, rememberMe } = this.form.getRawValue();
-      await this.auth.signIn({ email, password }, rememberMe);
-      await this.router.navigateByUrl(this.returnUrl() || '/creator/dashboard');
+      const user = await this.auth.signIn({ email, password }, rememberMe);
+      const home = user.role === 'ADMIN' ? '/admin/dashboard' : '/creator/dashboard';
+      await this.router.navigateByUrl(this.returnUrl() || home);
     } catch (error) {
       this.errorMessage.set(
         error instanceof ApiError

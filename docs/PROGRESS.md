@@ -84,14 +84,15 @@ joining the project can catch up fast. Companion doc: `INTEGRATION-PLAN.md`
 
 ## In progress
 
-- **Admin section — needs a live pass.** The UI is built and green on build /
-  lint / tests / format, and the `/admin/*` endpoints answer `401` correctly
-  when unauthenticated, but every flow behind an admin session is still
-  unverified against real data: the non-admin → `/forbidden` branch, the
-  clippers table with rows in it, the row status PATCH, and the wizard's
-  save-draft → publish round trip (including publish's `422 INCOMPLETE`
-  handling). Sign in as `admin@clapoutcreators.com` and walk them.
-- Out of scope this phase and still open: brands directory pages, payout
+- Nothing mid-flight. The admin section passed its full live pass on
+  2026-09-01: admin sign-in routes to `/admin/dashboard` (creators keep their
+  dashboard), stats render from real data, the clippers table shows live
+  registrations and its per-row status change persists (Submitted → Accepted
+  verified), a creator hitting `/admin/*` lands on `/forbidden`, and a
+  campaign created through the 8-step wizard ("ClapOut QA Test") published
+  straight onto the landing page's campaign list with no extra step. The QA
+  campaign is still live in the dev database — close or delete it whenever.
+- Out of scope so far and still open: brands directory pages, payout
   processing, view verification.
 
 ## Not started / later
