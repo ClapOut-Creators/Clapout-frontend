@@ -27,6 +27,8 @@ export class AuthService {
   readonly isRehydrating = this.rehydrating.asReadonly();
   readonly hasToken = computed(() => this.tokens.token() !== null);
   readonly isSignedIn = computed(() => this.tokens.token() !== null && this.currentUser() !== null);
+  /** Drives the admin guard and the role-aware side nav. */
+  readonly isAdmin = computed(() => this.isSignedIn() && this.currentUser()?.role === 'ADMIN');
 
   constructor() {
     // A 401 anywhere in the app clears the token (see authInterceptor); drop the

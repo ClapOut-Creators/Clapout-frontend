@@ -1,6 +1,7 @@
 /** Authenticated principal contract (`POST /auth/*`, `GET /me`). */
 
-export type UserRole = 'CREATOR';
+/** Sign-up always creates a CREATOR; admins are seeded server side. */
+export type UserRole = 'CREATOR' | 'ADMIN';
 
 export type PayoutMethod = 'MTN_MOMO' | 'TELECEL_CASH' | 'AT_MONEY';
 

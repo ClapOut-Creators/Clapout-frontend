@@ -3,7 +3,7 @@
   class="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-surface-200 bg-surface-0 lg:flex"
 >
   <a
-    routerLink="/campaigns"
+    [routerLink]="homeLink()"
     class="flex items-center gap-3 px-5 pb-4 pt-5 text-surface-900 no-underline"
   >
     <!-- Same mark the landing navbar uses; the artwork carries its own wordmark. -->
@@ -12,22 +12,22 @@
 
   <!-- Rendered for signed-in users only (see App's layout switch). -->
   <nav aria-label="Primary" class="flex flex-1 flex-col gap-1 px-3">
-    <a
-      routerLink="/campaigns"
-      routerLinkActive="bg-primary-50 !text-primary-700"
-      class="rounded-lg px-3 py-2 text-sm font-medium text-surface-600 no-underline hover:bg-surface-100 hover:text-surface-900"
-      >Campaigns</a
-    >
-    <a
-      routerLink="/creator/dashboard"
-      routerLinkActive="bg-primary-50 !text-primary-700"
-      class="rounded-lg px-3 py-2 text-sm font-medium text-surface-600 no-underline hover:bg-surface-100 hover:text-surface-900"
-      >Dashboard</a
-    >
+    @for (link of links(); track link.path) {
+      <a
+        [routerLink]="link.path"
+        routerLinkActive="bg-primary-50 !text-primary-700"
+        [routerLinkActiveOptions]="{ exact: link.exact }"
+        class="rounded-lg px-3 py-2 text-sm font-medium text-surface-600 no-underline hover:bg-surface-100 hover:text-surface-900"
+        >{{ link.label }}</a
+      >
+    }
   </nav>
 
   <div class="border-t border-surface-200 px-3 py-4">
     <p class="truncate px-3 pb-2 text-sm text-surface-500">{{ user()?.fullName }}</p>
+    @if (isAdmin()) {
+      <p class="px-3 pb-2 text-xs font-medium uppercase tracking-wide text-primary">Admin</p>
+    }
     <p-button
       label="Sign out"
       severity="secondary"
@@ -42,7 +42,7 @@
 <header
   class="sticky top-0 z-20 flex items-center justify-between border-b border-surface-200 bg-surface-0 px-4 py-3 lg:hidden"
 >
-  <a routerLink="/campaigns" class="flex items-center text-surface-900 no-underline">
+  <a [routerLink]="homeLink()" class="flex items-center text-surface-900 no-underline">
     <img src="/clapout-logo.png" alt="ClapOut" class="h-9 w-9 select-none" draggable="false" />
   </a>
   <button
@@ -73,21 +73,17 @@
   styleClass="!w-72"
 >
   <nav aria-label="Primary" class="flex flex-col gap-1">
-    <a
-      routerLink="/campaigns"
-      routerLinkActive="bg-primary-50 !text-primary-700"
-      class="rounded-lg px-3 py-2 text-sm font-medium text-surface-600 no-underline hover:bg-surface-100 hover:text-surface-900"
-      (click)="closeDrawer()"
-      >Campaigns</a
-    >
     @if (isSignedIn()) {
-      <a
-        routerLink="/creator/dashboard"
-        routerLinkActive="bg-primary-50 !text-primary-700"
-        class="rounded-lg px-3 py-2 text-sm font-medium text-surface-600 no-underline hover:bg-surface-100 hover:text-surface-900"
-        (click)="closeDrawer()"
-        >Dashboard</a
-      >
+      @for (link of links(); track link.path) {
+        <a
+          [routerLink]="link.path"
+          routerLinkActive="bg-primary-50 !text-primary-700"
+          [routerLinkActiveOptions]="{ exact: link.exact }"
+          class="rounded-lg px-3 py-2 text-sm font-medium text-surface-600 no-underline hover:bg-surface-100 hover:text-surface-900"
+          (click)="closeDrawer()"
+          >{{ link.label }}</a
+        >
+      }
       <p class="mt-4 truncate border-t border-surface-200 px-3 pt-4 text-sm text-surface-500">
         {{ user()?.fullName }}
       </p>
@@ -99,6 +95,13 @@
         (onClick)="signOut()"
       />
     } @else {
+      <a
+        routerLink="/campaigns"
+        routerLinkActive="bg-primary-50 !text-primary-700"
+        class="rounded-lg px-3 py-2 text-sm font-medium text-surface-600 no-underline hover:bg-surface-100 hover:text-surface-900"
+        (click)="closeDrawer()"
+        >Campaigns</a
+      >
       <a
         routerLink="/auth/sign-in"
         class="rounded-lg px-3 py-2 text-sm font-medium text-surface-600 no-underline hover:bg-surface-100 hover:text-surface-900"

@@ -130,12 +130,14 @@ export function openCountdownLabel(
 }
 
 const CAMPAIGN_STATUS_LABELS: Record<CampaignStatus, string> = {
+  DRAFT: 'Draft',
   UPCOMING: 'Upcoming',
   ACTIVE: 'Active',
   CLOSED: 'Closed',
 };
 
 const CAMPAIGN_STATUS_TONES: Record<CampaignStatus, TagTone> = {
+  DRAFT: 'contrast',
   UPCOMING: 'warn',
   ACTIVE: 'success',
   CLOSED: 'secondary',

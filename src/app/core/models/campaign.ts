@@ -9,10 +9,12 @@
 export type CampaignPlatform = 'tiktok' | 'x' | 'facebook' | 'instagram' | 'youtube';
 
 /**
- * `UPCOMING` campaigns are announced but not open yet: clients count down to
- * `startDate` and render the unannounced money fields as `${currency}—`.
+ * `DRAFT` campaigns exist only in the admin section — the public endpoints never
+ * return them. `UPCOMING` campaigns are announced but not open yet: clients
+ * count down to `startDate` and render unannounced money fields as
+ * `${currency}—`.
  */
-export type CampaignStatus = 'UPCOMING' | 'ACTIVE' | 'CLOSED';
+export type CampaignStatus = 'DRAFT' | 'UPCOMING' | 'ACTIVE' | 'CLOSED';
 
 export interface CampaignBrand {
   /** Brand display name, e.g. 'E-wale tech'. */

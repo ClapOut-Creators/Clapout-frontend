@@ -20,6 +20,11 @@ export class ApiError extends Error {
     readonly status: number,
     readonly code: string,
     message: string,
+    /**
+     * The raw `error` object from the envelope, for the few endpoints that
+     * attach structured detail (e.g. publish's `422 INCOMPLETE` field list).
+     */
+    readonly details: Record<string, unknown> = {},
   ) {
     super(message);
     this.name = 'ApiError';
@@ -42,17 +47,22 @@ export class ApiError extends Error {
   }
 }
 
-function readEnvelope(body: unknown): { code?: string; message?: string } {
+function readEnvelope(body: unknown): {
+  code?: string;
+  message?: string;
+  details: Record<string, unknown>;
+} {
   if (typeof body !== 'object' || body === null) {
-    return {};
+    return { details: {} };
   }
   const envelope = (body as ApiErrorEnvelope).error;
   if (typeof envelope !== 'object' || envelope === null) {
-    return {};
+    return { details: {} };
   }
   return {
     code: typeof envelope.code === 'string' ? envelope.code : undefined,
     message: typeof envelope.message === 'string' ? envelope.message : undefined,
+    details: envelope as Record<string, unknown>,
   };
 }
 
@@ -70,11 +80,12 @@ export function toApiError(error: unknown): ApiError {
         'We could not reach the ClapOut API. Check your connection and try again.',
       );
     }
-    const { code, message } = readEnvelope(error.error);
+    const { code, message, details } = readEnvelope(error.error);
     return new ApiError(
       error.status,
       code ?? UNKNOWN_ERROR,
       message ?? error.message ?? 'Something went wrong. Please try again.',
+      details,
     );
   }
 

@@ -217,3 +217,83 @@ was entered).
 Incidental fix: the remember-me `<label>` in `sign-in.html` wrapped the `p-checkbox` without a `for`,
 failing `@angular-eslint/template/label-has-associated-control` and leaving the control unlabelled
 for assistive tech. It now associates with `for="signin-remember"`.
+
+## Admin section (added 2026-09-01 — Figma nodes 175:719 / 175:720)
+
+Adds the whole `/admin` area behind a role guard, plus `role ADMIN` and the `DRAFT`
+campaign status.
+
+### Routes (all lazy, all `canActivate: [adminGuard]`)
+
+| Route                         | Page                                                               |
+| ----------------------------- | ------------------------------------------------------------------ |
+| `/admin/dashboard`            | 5 stat cards, 21-day registration activity chart, recent campaigns |
+| `/admin/registrations`        | Registered Clippers table across every campaign                    |
+| `/admin/campaigns`            | status tabs + search + campaign card grid                          |
+| `/admin/campaigns/new`        | 8-step creation wizard                                             |
+| `/admin/campaigns/:slug/edit` | same wizard, loaded from an existing draft                         |
+| `/admin/campaigns/:slug`      | admin detail + performance overview + that campaign's clippers     |
+| `/forbidden`                  | signed-in non-admins land here instead of a sign-in loop           |
+
+### Auth plumbing
+
+`UserRole` widens to `'CREATOR' \| 'ADMIN'`; `AuthService.isAdmin` is a computed over the
+rehydrated profile. `adminGuard` sends anonymous visitors to
+`/auth/sign-in?returnUrl=…` and signed-in non-admins to `/forbidden`. The side nav is
+role-aware: admins get Dashboard / Campaigns / Clippers, creators keep Campaigns /
+Dashboard.
+
+### Registered Clippers table
+
+`shared/admin/clippers-table.ts` is one component used twice — standalone at
+`/admin/registrations` and embedded on a campaign page with `campaignSlug` preset, which
+also hides the campaign filter so an embedded table can never widen its own scope.
+Columns: Clipper, Email, WhatsApp, Phone, Social (platform linking to the account URL),
+Payment (method · number · name, `—` when the creator has no payout on file), Status tag,
+Applied, and a per-row status select that PATCHes and toasts. Search/campaign/status
+filters are server side and debounced 300 ms; CSV export is client side over exactly the
+rows on screen, RFC 4180 quoted, with a formula-injection guard on leading `=+-@`.
+
+### Verification
+
+| Check                  | Result                                                                                                                                                     |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run build`        | PASS. Initial 764.04 kB — over the 700 kB warning budget, under the 850 kB error budget.                                                                   |
+| `npx eslint .`         | PASS (clean)                                                                                                                                               |
+| `npm run test:unit`    | PASS (2 files, 3 tests)                                                                                                                                    |
+| `npm run format:check` | PASS                                                                                                                                                       |
+| Live probe             | `/api/v1/admin/{stats,registrations,campaigns}` all answer `401 UNAUTHORIZED` unauthenticated — endpoints exist and the error envelope matches `ApiError`. |
+| Guard (anonymous)      | `/admin/dashboard` → `/auth/sign-in?returnUrl=%2Fadmin%2Fdashboard` ✓                                                                                      |
+| `/forbidden`           | renders ✓                                                                                                                                                  |
+
+### Contract deviations and assumptions
+
+- **No `GET /admin/campaigns/:slug` in the contract.** `AdminRepository.campaignBySlug()`
+  fetches the admin list and filters client side, because the public detail endpoint never
+  returns DRAFT campaigns. A dedicated endpoint would remove that over-fetch.
+- **Dashboard trend pills omitted.** The Figma shows `+7.4% ↑` badges; `AdminStats` carries
+  no prior-period data, so they are not rendered rather than fabricated. Same for the
+  "Old / New Registration" totals inside the activity card, and "Total Creators" renders a
+  count (the mock shows `72%`, but the field is an integer).
+- **Publish `422 INCOMPLETE` field list**: the contract says the response "lists missing
+  fields" without specifying where. The wizard reads `error.missing` or `error.fields` when
+  present and otherwise scans the message for known field names, then jumps to the earliest
+  step that owns one.
+- **Wizard requires more than the draft endpoint does.** `POST /admin/campaigns` accepts a
+  sparse draft, but the wizard gates each step on the fields publish will demand, so the
+  Save-draft/Publish pair on the preview step can never produce a draft that cannot publish.
+  Content requirement is required (the design marks it `*`); resource label/link are left
+  optional because not every campaign has one.
+- **Icons**: the Figma uses an icon rail and inline glyphs. The `primeicons` font package is
+  not installed (only `@primeicons/angular`), so `pi pi-*` classes would render nothing —
+  all admin UI uses text labels, matching the rest of the app. Installing `primeicons` is a
+  separate decision.
+- **Images** are `data:` URLs capped at 500 KB, or a pasted https URL. Real object storage
+  (Supabase Storage) remains future work.
+
+### Still needs live verification
+
+Everything behind an admin session: the guard's non-admin → `/forbidden` branch, the table
+against real rows, status PATCH, the wizard's save/publish round trip, and publish's 422
+handling. Signing in requires entering the seeded admin password, which I don't do — run
+those flows manually with `admin@clapoutcreators.com`.

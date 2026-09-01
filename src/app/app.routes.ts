@@ -17,6 +17,16 @@ export const routes: Routes = [
       import('./features/creator/creator.routes').then((module) => module.CREATOR_ROUTES),
   },
   {
+    path: 'admin',
+    loadChildren: () =>
+      import('./features/admin/admin.routes').then((module) => module.ADMIN_ROUTES),
+  },
+  {
+    path: 'forbidden',
+    loadComponent: () => import('./features/forbidden/forbidden').then((route) => route.Forbidden),
+    title: 'No access - ClapOut Studio',
+  },
+  {
     path: 'foundation',
     loadComponent: () =>
       import('./features/foundation/foundation-home').then((route) => route.FoundationHome),
