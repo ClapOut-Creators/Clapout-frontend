@@ -5,11 +5,11 @@ import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { SkeletonModule } from 'primeng/skeleton';
-import { ApiError } from '../../core/api/api-error';
-import { AdminRepository } from '../../core/data/admin-repository';
-import { CampaignStatus, PublicCampaign } from '../../core/models/campaign';
-import { CampaignCompactCard } from '../../shared/components/campaign-compact-card';
-import { PageHeader } from '../../shared/components/page-header';
+import { ApiError } from '../../../../core/api/api-error';
+import { CampaignsAdminRepository } from '../../data-access/campaigns-admin-repository';
+import { CampaignStatus, PublicCampaign } from '../../models/campaign';
+import { CampaignCompactCard } from '../../../../shared/components/campaign-compact-card';
+import { PageHeader } from '../../../../shared/components/page-header';
 
 type ListState = 'loading' | 'ready' | 'error';
 /** 'ALL' is the absent-`?status=` default rather than a backend status. */
@@ -53,7 +53,7 @@ export class AdminCampaigns {
   /** Bound from `?status=` via `withComponentInputBinding()`. */
   readonly status = input<string>();
 
-  private readonly admin = inject(AdminRepository);
+  private readonly admin = inject(CampaignsAdminRepository);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
 

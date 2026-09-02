@@ -1,8 +1,8 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import { toApiError } from '../api/api-error';
-import { APP_ENVIRONMENT } from '../config/app-environment';
+import { toApiError } from '../../../core/api/api-error';
+import { APP_ENVIRONMENT } from '../../../core/config/app-environment';
 import { PublicCampaign } from '../models/campaign';
 
 /** Typed HTTP access to the public campaign endpoints (no auth required). */

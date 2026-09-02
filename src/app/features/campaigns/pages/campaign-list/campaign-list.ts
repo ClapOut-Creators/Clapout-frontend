@@ -6,11 +6,11 @@ import { CheckboxModule } from 'primeng/checkbox';
 import { MessageModule } from 'primeng/message';
 import { PopoverModule } from 'primeng/popover';
 import { SkeletonModule } from 'primeng/skeleton';
-import { ApiError } from '../../core/api/api-error';
-import { CampaignsRepository } from '../../core/data/campaigns-repository';
-import { CampaignPlatform, CampaignStatus, PublicCampaign } from '../../core/models/campaign';
-import { campaignStatusLabel, platformLabel } from '../../shared/utils/campaign-format';
-import { PublicCampaignCard } from '../../shared/public/public-campaign-card';
+import { ApiError } from '../../../../core/api/api-error';
+import { CampaignsRepository } from '../../data-access/campaigns-repository';
+import { CampaignPlatform, CampaignStatus, PublicCampaign } from '../../models/campaign';
+import { campaignStatusLabel, platformLabel } from '../../../../shared/utils/campaign-format';
+import { PublicCampaignCard } from '../../components/public-campaign-card';
 
 type ListState = 'loading' | 'ready' | 'error';
 

@@ -12,9 +12,10 @@ import { ConfirmationService, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { MessageModule } from 'primeng/message';
 import { SkeletonModule } from 'primeng/skeleton';
-import { ApiError } from '../../core/api/api-error';
-import { AdminRepository } from '../../core/data/admin-repository';
-import { PublicCampaign } from '../../core/models/campaign';
+import { ApiError } from '../../../../core/api/api-error';
+import { AdminRepository } from '../../../../core/data/admin-repository';
+import { CampaignsAdminRepository } from '../../data-access/campaigns-admin-repository';
+import { PublicCampaign } from '../../models/campaign';
 import {
   budgetPercent,
   campaignStatusLabel,
@@ -23,12 +24,12 @@ import {
   hasBudget,
   NOT_ANNOUNCED,
   platformLabel,
-} from '../../shared/utils/campaign-format';
-import { BrandLogoTile } from '../../shared/components/brand-logo-tile';
-import { campaignStatusPillClass } from '../../shared/components/campaign-compact-card';
-import { ClippersTable } from '../../shared/components/clippers-table';
-import { PageHeader } from '../../shared/components/page-header';
-import { ShareCampaignButton } from '../../shared/public/share-campaign-button';
+} from '../../../../shared/utils/campaign-format';
+import { BrandLogoTile } from '../../../../shared/components/brand-logo-tile';
+import { campaignStatusPillClass } from '../../../../shared/components/campaign-compact-card';
+import { ClippersTable } from '../../../../shared/components/clippers-table';
+import { PageHeader } from '../../../../shared/components/page-header';
+import { ShareCampaignButton } from '../../components/share-campaign-button';
 
 type DetailState = 'loading' | 'ready' | 'not-found' | 'error';
 
@@ -64,6 +65,7 @@ export class AdminCampaignDetail {
   readonly slug = input.required<string>();
 
   private readonly admin = inject(AdminRepository);
+  private readonly campaignsAdmin = inject(CampaignsAdminRepository);
   private readonly router = inject(Router);
   private readonly messages = inject(MessageService);
   private readonly confirmations = inject(ConfirmationService);
@@ -142,7 +144,7 @@ export class AdminCampaignDetail {
     this.working.set(true);
     this.actionMessage.set('');
     try {
-      const updated = await this.admin.publishCampaign(this.slug());
+      const updated = await this.campaignsAdmin.publishCampaign(this.slug());
       this.campaign.set(updated);
       this.messages.add({
         severity: 'success',
@@ -184,7 +186,7 @@ export class AdminCampaignDetail {
     this.working.set(true);
     this.actionMessage.set('');
     try {
-      const updated = await this.admin.reopenCampaign(this.slug());
+      const updated = await this.campaignsAdmin.reopenCampaign(this.slug());
       this.campaign.set(updated);
       this.messages.add({
         severity: 'success',
@@ -207,7 +209,7 @@ export class AdminCampaignDetail {
     this.working.set(true);
     this.actionMessage.set('');
     try {
-      const updated = await this.admin.closeCampaign(this.slug());
+      const updated = await this.campaignsAdmin.closeCampaign(this.slug());
       this.campaign.set(updated);
       this.messages.add({
         severity: 'success',
@@ -228,7 +230,7 @@ export class AdminCampaignDetail {
     this.actionMessage.set('');
     this.acceptedCount.set(null);
     try {
-      const campaign = await this.admin.campaignBySlug(slug);
+      const campaign = await this.campaignsAdmin.campaignBySlug(slug);
       if (!campaign) {
         this.state.set('not-found');
         this.campaign.set(null);

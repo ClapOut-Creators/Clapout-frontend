@@ -7,7 +7,7 @@ import { Tiktok } from '@primeicons/angular/tiktok';
 import { Twitter } from '@primeicons/angular/twitter';
 import { Wallet } from '@primeicons/angular/wallet';
 import { Youtube } from '@primeicons/angular/youtube';
-import { CampaignStatus, PublicCampaign } from '../../core/models/campaign';
+import { CampaignStatus, PublicCampaign } from '../../features/campaigns/models/campaign';
 import {
   budgetPercent,
   campaignStatusLabel,
@@ -18,7 +18,7 @@ import {
   platformLabel,
   TagTone,
 } from '../utils/campaign-format';
-import { ShareCampaignButton } from '../public/share-campaign-button';
+import { ShareCampaignButton } from '../../features/campaigns/components/share-campaign-button';
 import { BrandLogoTile } from './brand-logo-tile';
 
 /**

@@ -6,15 +6,15 @@ import { Tiktok } from '@primeicons/angular/tiktok';
 import { Twitter } from '@primeicons/angular/twitter';
 import { User } from '@primeicons/angular/user';
 import { Youtube } from '@primeicons/angular/youtube';
-import { PublicCampaign } from '../../core/models/campaign';
+import { PublicCampaign } from '../models/campaign';
 import {
   budgetPercent,
   formatMoneyExact,
   hasBudget,
   NOT_ANNOUNCED,
   platformLabel,
-} from '../utils/campaign-format';
-import { BrandLogoTile } from '../components/brand-logo-tile';
+} from '../../../shared/utils/campaign-format';
+import { BrandLogoTile } from '../../../shared/components/brand-logo-tile';
 
 /** Largest unit first so the first match wins. */
 const MONEY_UNITS: readonly (readonly [number, string])[] = [

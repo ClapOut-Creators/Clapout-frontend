@@ -2,7 +2,8 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { AdminRepository } from '../../core/data/admin-repository';
 import { AdminStats } from '../../core/models/admin';
-import { PublicCampaign } from '../../core/models/campaign';
+import { CampaignsAdminRepository } from '../campaigns/data-access/campaigns-admin-repository';
+import { PublicCampaign } from '../campaigns/models/campaign';
 import { AdminDashboard } from './admin-dashboard';
 
 const stats: AdminStats = {
@@ -62,6 +63,12 @@ const pendingBudgetCampaign: PublicCampaign = {
 function repositoryDouble(overrides: Partial<AdminRepository> = {}) {
   return {
     stats: vi.fn().mockResolvedValue(stats),
+    ...overrides,
+  };
+}
+
+function campaignsAdminDouble(overrides: Partial<CampaignsAdminRepository> = {}) {
+  return {
     campaigns: vi.fn().mockResolvedValue([activeCampaign, pendingBudgetCampaign]),
     ...overrides,
   };
@@ -87,10 +94,14 @@ describe('AdminDashboard', () => {
     vi.unstubAllGlobals();
   });
 
-  async function render(admin = repositoryDouble()) {
+  async function render(admin = repositoryDouble(), campaignsAdmin = campaignsAdminDouble()) {
     await TestBed.configureTestingModule({
       imports: [AdminDashboard],
-      providers: [provideRouter([]), { provide: AdminRepository, useValue: admin }],
+      providers: [
+        provideRouter([]),
+        { provide: AdminRepository, useValue: admin },
+        { provide: CampaignsAdminRepository, useValue: campaignsAdmin },
+      ],
     }).compileComponents();
 
     const fixture = TestBed.createComponent(AdminDashboard);
@@ -98,7 +109,7 @@ describe('AdminDashboard', () => {
     await fixture.whenStable();
     await nextTask();
     fixture.detectChanges();
-    return { admin, element: fixture.nativeElement as HTMLElement, fixture };
+    return { admin, campaignsAdmin, element: fixture.nativeElement as HTMLElement, fixture };
   }
 
   afterEach(() => TestBed.resetTestingModule());
@@ -135,7 +146,11 @@ describe('AdminDashboard', () => {
 
     await TestBed.configureTestingModule({
       imports: [AdminDashboard],
-      providers: [provideRouter([]), { provide: AdminRepository, useValue: admin }],
+      providers: [
+        provideRouter([]),
+        { provide: AdminRepository, useValue: admin },
+        { provide: CampaignsAdminRepository, useValue: campaignsAdminDouble() },
+      ],
     }).compileComponents();
 
     const fixture = TestBed.createComponent(AdminDashboard);
@@ -151,7 +166,8 @@ describe('AdminDashboard', () => {
 
   it('renders an empty campaign state', async () => {
     const { element } = await render(
-      repositoryDouble({ campaigns: vi.fn().mockResolvedValue([]) }),
+      repositoryDouble(),
+      campaignsAdminDouble({ campaigns: vi.fn().mockResolvedValue([]) }),
     );
 
     expect(element.textContent).toContain('No campaigns yet');

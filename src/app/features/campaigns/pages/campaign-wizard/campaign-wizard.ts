@@ -28,11 +28,12 @@ import { MessageModule } from 'primeng/message';
 import { SelectModule } from 'primeng/select';
 import { SkeletonModule } from 'primeng/skeleton';
 import { TextareaModule } from 'primeng/textarea';
-import { ApiError } from '../../core/api/api-error';
-import { AdminRepository } from '../../core/data/admin-repository';
-import { CampaignDraftInput } from '../../core/models/admin';
-import { Brand } from '../../core/models/brand';
-import { CampaignBrand, CampaignPlatform, PublicCampaign } from '../../core/models/campaign';
+import { ApiError } from '../../../../core/api/api-error';
+import { AdminRepository } from '../../../../core/data/admin-repository';
+import { CampaignsAdminRepository } from '../../data-access/campaigns-admin-repository';
+import { CampaignDraftInput } from '../../models/campaign-admin';
+import { Brand } from '../../../../core/models/brand';
+import { CampaignBrand, CampaignPlatform, PublicCampaign } from '../../models/campaign';
 import {
   CAMPAIGN_CATEGORY_OPTIONS,
   CAMPAIGN_TAG_OPTIONS,
@@ -42,12 +43,12 @@ import {
   estimatedViews,
   INDUSTRY_OPTIONS,
   Option,
-} from '../../shared/constants/admin-options';
-import { formatDate, formatMoney, platformLabel } from '../../shared/utils/campaign-format';
-import { BrandLogoTile } from '../../shared/components/brand-logo-tile';
-import { WizardShell } from '../../shared/components/wizard-shell';
-import { firstErrorMessage, httpUrlValidator } from '../../shared/components/form-errors';
-import { ShareCampaignButton } from '../../shared/public/share-campaign-button';
+} from '../../../../shared/constants/admin-options';
+import { formatDate, formatMoney, platformLabel } from '../../../../shared/utils/campaign-format';
+import { BrandLogoTile } from '../../../../shared/components/brand-logo-tile';
+import { WizardShell } from '../../../../shared/components/wizard-shell';
+import { firstErrorMessage, httpUrlValidator } from '../../../../shared/components/form-errors';
+import { ShareCampaignButton } from '../../components/share-campaign-button';
 
 type WizardState = 'loading' | 'form' | 'published' | 'error';
 
@@ -260,6 +261,7 @@ export class CampaignWizard {
   readonly brandId = input<string>();
 
   private readonly admin = inject(AdminRepository);
+  private readonly campaignsAdmin = inject(CampaignsAdminRepository);
   private readonly confirmations = inject(ConfirmationService);
   private readonly formBuilder = inject(NonNullableFormBuilder);
   private readonly messages = inject(MessageService);
@@ -700,7 +702,7 @@ export class CampaignWizard {
     this.missingFields.set([]);
     try {
       const saved = await this.persist();
-      await this.admin.publishCampaign(saved.slug);
+      await this.campaignsAdmin.publishCampaign(saved.slug);
       this.state.set('published');
     } catch (error) {
       this.handlePublishError(error);
@@ -714,8 +716,8 @@ export class CampaignWizard {
     const existingSlug = this.savedSlug() ?? this.slug();
     const payload = this.buildPayload();
     const campaign = existingSlug
-      ? await this.admin.updateCampaign(existingSlug, payload)
-      : await this.admin.createCampaign(payload);
+      ? await this.campaignsAdmin.updateCampaign(existingSlug, payload)
+      : await this.campaignsAdmin.createCampaign(payload);
     this.savedSlug.set(campaign.slug);
     this.loadedCampaign.set(campaign);
     return campaign;
@@ -817,7 +819,7 @@ export class CampaignWizard {
   private async loadExisting(slug: string): Promise<void> {
     this.state.set('loading');
     try {
-      const campaign = await this.admin.campaignBySlug(slug);
+      const campaign = await this.campaignsAdmin.campaignBySlug(slug);
       if (!campaign) {
         this.loadErrorMessage.set(`No campaign matches "${slug}".`);
         this.state.set('error');

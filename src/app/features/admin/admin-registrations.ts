@@ -2,6 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { MessageModule } from 'primeng/message';
 import { ApiError } from '../../core/api/api-error';
 import { AdminRepository } from '../../core/data/admin-repository';
+import { CampaignsAdminRepository } from '../campaigns/data-access/campaigns-admin-repository';
 import { ClippersTable } from '../../shared/components/clippers-table';
 import { PageHeader } from '../../shared/components/page-header';
 
@@ -24,6 +25,7 @@ interface CampaignOption {
 })
 export class AdminRegistrations {
   private readonly admin = inject(AdminRepository);
+  private readonly campaignsAdmin = inject(CampaignsAdminRepository);
 
   protected readonly campaignOptions = signal<CampaignOption[]>([]);
   /** Set only when the campaign lookup fails; the table itself still works. */
@@ -39,7 +41,7 @@ export class AdminRegistrations {
    */
   private async loadCampaignOptions(): Promise<void> {
     try {
-      const campaigns = await this.admin.campaigns();
+      const campaigns = await this.campaignsAdmin.campaigns();
       this.campaignOptions.set(
         campaigns
           .map((campaign) => ({

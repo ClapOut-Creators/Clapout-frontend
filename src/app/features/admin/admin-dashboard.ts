@@ -15,8 +15,9 @@ import { SkeletonModule } from 'primeng/skeleton';
 import { TagModule } from 'primeng/tag';
 import { ApiError } from '../../core/api/api-error';
 import { AdminRepository } from '../../core/data/admin-repository';
+import { CampaignsAdminRepository } from '../campaigns/data-access/campaigns-admin-repository';
 import { AdminStats } from '../../core/models/admin';
-import { PublicCampaign } from '../../core/models/campaign';
+import { PublicCampaign } from '../campaigns/models/campaign';
 import {
   budgetPercent,
   campaignStatusLabel,
@@ -116,6 +117,7 @@ function endsWithinDays(campaign: PublicCampaign, days: number): boolean {
 })
 export class AdminDashboard {
   private readonly admin = inject(AdminRepository);
+  private readonly campaignsAdmin = inject(CampaignsAdminRepository);
   private readonly router = inject(Router);
 
   protected readonly state = signal<DashboardState>('loading');
@@ -259,7 +261,10 @@ export class AdminDashboard {
     this.state.set('loading');
     this.errorMessage.set('');
     try {
-      const [stats, campaigns] = await Promise.all([this.admin.stats(), this.admin.campaigns()]);
+      const [stats, campaigns] = await Promise.all([
+        this.admin.stats(),
+        this.campaignsAdmin.campaigns(),
+      ]);
       this.stats.set(stats);
       this.campaigns.set(campaigns);
       this.state.set('ready');

@@ -1,4 +1,4 @@
-import { CampaignPlatform, CampaignStatus } from '../../core/models/campaign';
+import { CampaignPlatform, CampaignStatus } from '../../features/campaigns/models/campaign';
 import { RegistrationStatus } from '../../core/models/registration';
 
 /** Severities accepted by `p-tag` / `p-message`. */

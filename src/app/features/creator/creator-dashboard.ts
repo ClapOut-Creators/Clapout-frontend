@@ -15,7 +15,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { ApiError } from '../../core/api/api-error';
 import { AuthService } from '../../core/auth/auth-service';
 import { RegistrationsRepository } from '../../core/data/registrations-repository';
-import { PublicCampaign } from '../../core/models/campaign';
+import { PublicCampaign } from '../campaigns/models/campaign';
 import { Registration, registrationCampaign } from '../../core/models/registration';
 import { SocialAccount } from '../../core/models/user';
 import {
@@ -25,7 +25,7 @@ import {
   registrationStatusTone,
 } from '../../shared/utils/campaign-format';
 import { StatCard } from '../../shared/components/stat-card';
-import { PublicCampaignCard } from '../../shared/public/public-campaign-card';
+import { PublicCampaignCard } from '../campaigns/components/public-campaign-card';
 import { SocialsDialog } from './socials-dialog';
 
 type DashboardState = 'loading' | 'ready' | 'error';

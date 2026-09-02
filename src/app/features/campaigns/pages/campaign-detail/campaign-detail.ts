@@ -13,12 +13,12 @@ import { ButtonModule } from 'primeng/button';
 import { MessageModule } from 'primeng/message';
 import { SkeletonModule } from 'primeng/skeleton';
 import { TagModule } from 'primeng/tag';
-import { ApiError } from '../../core/api/api-error';
-import { AuthService } from '../../core/auth/auth-service';
-import { CampaignsRepository } from '../../core/data/campaigns-repository';
-import { RegistrationsRepository } from '../../core/data/registrations-repository';
-import { PublicCampaign } from '../../core/models/campaign';
-import { Registration } from '../../core/models/registration';
+import { ApiError } from '../../../../core/api/api-error';
+import { AuthService } from '../../../../core/auth/auth-service';
+import { CampaignsRepository } from '../../data-access/campaigns-repository';
+import { RegistrationsRepository } from '../../../../core/data/registrations-repository';
+import { PublicCampaign } from '../../models/campaign';
+import { Registration } from '../../../../core/models/registration';
 import {
   budgetPercent,
   campaignStatusLabel,
@@ -31,11 +31,11 @@ import {
   openCountdownLabel,
   platformLabel,
   registrationStatusLabel,
-} from '../../shared/utils/campaign-format';
-import { BrandLogoTile } from '../../shared/components/brand-logo-tile';
-import { ShareCampaignButton } from '../../shared/public/share-campaign-button';
-import { LinkifiedText } from '../../shared/text/linkified-text';
-import { createNowSignal } from '../../shared/components/clock';
+} from '../../../../shared/utils/campaign-format';
+import { BrandLogoTile } from '../../../../shared/components/brand-logo-tile';
+import { ShareCampaignButton } from '../../components/share-campaign-button';
+import { LinkifiedText } from '../../utils/linkified-text';
+import { createNowSignal } from '../../../../shared/components/clock';
 
 type DetailState = 'loading' | 'ready' | 'not-found' | 'error';
 

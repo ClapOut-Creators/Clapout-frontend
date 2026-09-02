@@ -10,9 +10,9 @@ import { SelectModule } from 'primeng/select';
 import { SkeletonModule } from 'primeng/skeleton';
 import { TextareaModule } from 'primeng/textarea';
 import { ApiError } from '../../core/api/api-error';
-import { CampaignsRepository } from '../../core/data/campaigns-repository';
+import { CampaignsRepository } from '../campaigns/data-access/campaigns-repository';
 import { RegistrationsRepository } from '../../core/data/registrations-repository';
-import { CampaignPlatform, PublicCampaign } from '../../core/models/campaign';
+import { CampaignPlatform, PublicCampaign } from '../campaigns/models/campaign';
 import {
   formatDate,
   formatDateTime,

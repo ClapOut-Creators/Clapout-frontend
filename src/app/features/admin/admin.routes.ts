@@ -42,30 +42,14 @@ export const ADMIN_ROUTES: Routes = [
     loadComponent: () => import('./admin-brand-detail').then((module) => module.AdminBrandDetail),
     title: 'Brand - ClapOut Studio',
   },
+  /**
+   * The campaigns domain owns and guards its own admin routes now (see
+   * features/campaigns/campaigns.routes.ts#CAMPAIGN_ADMIN_ROUTES) — this file
+   * just mounts them at /admin/campaigns.
+   */
   {
     path: 'campaigns',
-    pathMatch: 'full',
-    canActivate: [adminGuard],
-    loadComponent: () => import('./admin-campaigns').then((module) => module.AdminCampaigns),
-    title: 'Campaigns - ClapOut Studio',
-  },
-  {
-    path: 'campaigns/new',
-    canActivate: [adminGuard],
-    loadComponent: () => import('./campaign-wizard').then((module) => module.CampaignWizard),
-    title: 'Create campaign - ClapOut Studio',
-  },
-  {
-    path: 'campaigns/:slug/edit',
-    canActivate: [adminGuard],
-    loadComponent: () => import('./campaign-wizard').then((module) => module.CampaignWizard),
-    title: 'Edit campaign - ClapOut Studio',
-  },
-  {
-    path: 'campaigns/:slug',
-    canActivate: [adminGuard],
-    loadComponent: () =>
-      import('./admin-campaign-detail').then((module) => module.AdminCampaignDetail),
-    title: 'Campaign - ClapOut Studio',
+    loadChildren: () =>
+      import('../campaigns/campaigns.routes').then((module) => module.CAMPAIGN_ADMIN_ROUTES),
   },
 ];
