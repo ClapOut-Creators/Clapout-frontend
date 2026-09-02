@@ -1,0 +1,42 @@
+[
+ {
+  "id": "344:1182",
+  "name": "Campaigns list — desktop",
+  "file": "campaigns-list-desktop-344-1182"
+ },
+ {
+  "id": "344:1295",
+  "name": "Campaigns list — mobile",
+  "file": "campaigns-list-mobile-344-1295"
+ },
+ {
+  "id": "344:2763",
+  "name": "Campaign details — desktop",
+  "file": "campaign-details-desktop-344-2763"
+ },
+ {
+  "id": "344:2929",
+  "name": "Campaign details — mobile (380)",
+  "file": "campaign-details-mobile-380-344-2929"
+ },
+ {
+  "id": "353:184",
+  "name": "Campaign details — mobile (402)",
+  "file": "campaign-details-mobile-402-353-184"
+ },
+ {
+  "id": "349:3128",
+  "name": "Sign A",
+  "file": "sign-a-349-3128"
+ },
+ {
+  "id": "349:3159",
+  "name": "Sign B",
+  "file": "sign-b-349-3159"
+ },
+ {
+  "id": "349:3267",
+  "name": "Clipper dashboard",
+  "file": "clipper-dashboard-349-3267"
+ }
+]

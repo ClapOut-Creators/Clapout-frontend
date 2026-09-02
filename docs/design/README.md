@@ -16,3 +16,9 @@ Source: Figma file "Clapout" (key `9N8Lkrbn3JycpBbOktX0qH`), page **Admin**. Des
 
 Rule of the house: admin screens match these designs 1:1, verified by screenshotting the app at
 1728px and comparing against the PNGs — not from memory.
+
+## Clipper (creator) surfaces — `figma-clippers/`
+
+Same format, from the Figma page **"Web App - clippers"** (node 140:2972): public campaigns list
+(desktop 1728 + mobile 402), public campaign detail (desktop + mobile), sign-in ("Sign A"),
+create-account ("Sign B"), and the clipper dashboard. See `figma-clippers/_README.md`.
