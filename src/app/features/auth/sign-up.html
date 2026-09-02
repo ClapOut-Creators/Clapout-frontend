@@ -1,133 +1,192 @@
-<main
-  class="flex min-h-[calc(100svh-3.75rem)] flex-col items-center justify-center px-4 py-10 lg:min-h-svh"
->
+<main class="flex min-h-svh flex-col items-center justify-center bg-white px-4 py-10">
   <div class="flex h-[66px] w-[66px] items-center justify-center rounded-[20px] bg-primary p-2">
     <img
-      src="/logo/clapout-hand.png"
+      src="/logo/clapout-logo.png"
       alt=""
-      class="h-[50px] w-[50px] select-none"
+      class="h-[50px] w-[50px] object-contain select-none"
       draggable="false"
     />
   </div>
 
-  <h1 class="mt-4 text-center text-3xl font-semibold tracking-tight text-surface-900">
-    Create your creator account
+  <h1 class="mt-[5px] text-center text-[32px] leading-[34px] font-semibold text-black/80">
+    Create Account
   </h1>
-  <p class="mt-2 max-w-sm text-center text-surface-600">
+  <p class="mt-3 max-w-[456px] text-center text-[18px] leading-[21px] text-[#464646]">
     One account lets you apply to every ClapOut campaign and track your payouts.
   </p>
 
   @if (errorMessage()) {
-    <div class="mt-5 w-full max-w-md">
+    <div class="mt-4 w-full max-w-[456px]">
       <p-message severity="error" [closable]="false">{{ errorMessage() }}</p-message>
     </div>
   }
 
   <form
-    class="mt-7 flex w-full max-w-md flex-col gap-5"
+    class="mt-4 flex w-full max-w-[456px] flex-col gap-3"
     [formGroup]="form"
     (ngSubmit)="submit()"
     novalidate
   >
     <div class="flex flex-col gap-2">
-      <label class="text-sm font-medium text-surface-800" for="signup-name">Full name</label>
+      <label class="text-[18px] leading-[21px] font-medium text-[#0C0C0C]" for="signup-name"
+        >Full name</label
+      >
       <input
         pInputText
         id="signup-name"
         type="text"
+        placeholder="Your name"
         autocomplete="name"
         formControlName="fullName"
-        class="w-full"
+        class="h-[50px] w-full rounded-xl border border-[#D7D7D7] bg-white px-[18px] text-[18px] placeholder:text-[#DFDFDF]"
         [attr.aria-invalid]="fieldError('fullName') ? 'true' : null"
+        [attr.aria-describedby]="fieldError('fullName') ? 'signup-name-error' : null"
       />
       @if (fieldError('fullName'); as message) {
-        <p class="text-sm text-red-700">{{ message }}</p>
+        <p id="signup-name-error" class="text-sm text-red-700">{{ message }}</p>
       }
     </div>
 
     <div class="flex flex-col gap-2">
-      <label class="text-sm font-medium text-surface-800" for="signup-email">Email</label>
+      <label class="text-[18px] leading-[21px] font-medium text-[#0C0C0C]" for="signup-email"
+        >Email</label
+      >
       <input
         pInputText
         id="signup-email"
         type="email"
+        placeholder="Your email"
         autocomplete="email"
         formControlName="email"
-        class="w-full"
+        class="h-[50px] w-full rounded-xl border border-[#D7D7D7] bg-white px-[18px] text-[18px] placeholder:text-[#DFDFDF]"
         [attr.aria-invalid]="fieldError('email') ? 'true' : null"
+        [attr.aria-describedby]="fieldError('email') ? 'signup-email-error' : null"
       />
       @if (fieldError('email'); as message) {
-        <p class="text-sm text-red-700">{{ message }}</p>
+        <p id="signup-email-error" class="text-sm text-red-700">{{ message }}</p>
       }
     </div>
 
     <div class="flex flex-col gap-2">
-      <label class="text-sm font-medium text-surface-800" for="signup-password">Password</label>
+      <label class="text-[18px] leading-[21px] font-medium text-[#0C0C0C]" for="signup-password"
+        >Password</label
+      >
       <p-password
         inputId="signup-password"
         formControlName="password"
         class="block w-full"
-        inputStyleClass="w-full"
+        inputStyleClass="h-[50px] w-full rounded-xl border border-[#D7D7D7] bg-white pl-[18px] pr-[52px] text-[18px] placeholder:text-[#DFDFDF]"
+        placeholder="Your password"
         autocomplete="new-password"
         [feedback]="false"
         [toggleMask]="true"
-      />
-      <p class="text-xs text-surface-500">At least 8 characters.</p>
+      >
+        <ng-template #showicon let-iconClass="class">
+          <svg
+            data-p-icon="lock"
+            aria-hidden="true"
+            [size]="22"
+            [class]="iconClass + ' !mt-[-11px] !right-[16px] !h-[22px] !w-[22px] !text-[#888888]'"
+          ></svg>
+        </ng-template>
+      </p-password>
       @if (fieldError('password'); as message) {
         <p class="text-sm text-red-700">{{ message }}</p>
       }
     </div>
 
-    <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
-      <div class="flex flex-col gap-2">
-        <label class="text-sm font-medium text-surface-800" for="signup-whatsapp"
-          >WhatsApp username</label
+    <div class="flex flex-col gap-2">
+      <label class="text-[18px] leading-[21px] font-medium text-[#0C0C0C]" for="signup-whatsapp"
+        >Whatsapp username</label
+      >
+      <input
+        pInputText
+        id="signup-whatsapp"
+        type="text"
+        placeholder="@"
+        formControlName="whatsapp"
+        class="h-[50px] w-full rounded-xl border border-[#D7D7D7] bg-white px-[18px] text-[18px] placeholder:text-[#DFDFDF]"
+        [attr.aria-invalid]="fieldError('whatsapp') ? 'true' : null"
+        [attr.aria-describedby]="fieldError('whatsapp') ? 'signup-whatsapp-error' : null"
+      />
+      @if (fieldError('whatsapp'); as message) {
+        <p id="signup-whatsapp-error" class="text-sm text-red-700">{{ message }}</p>
+      }
+    </div>
+
+    <div class="flex flex-col gap-2">
+      <label class="text-[18px] leading-[21px] font-medium text-[#0C0C0C]" for="signup-phone"
+        >Phone number</label
+      >
+      <div
+        class="flex h-[50px] w-full items-center gap-[6px] rounded-xl border border-[#D7D7D7] bg-white px-[18px]"
+      >
+        <p-select
+          ariaLabel="Country dialling code"
+          formControlName="phoneCountry"
+          optionLabel="label"
+          optionValue="iso"
+          class="shrink-0 !border-0 !bg-transparent !shadow-none [&_.p-select-dropdown]:!w-6 [&_.p-select-label]:!px-0 [&_.p-select-label]:!py-0 [&_.p-select-label]:!text-[18px] [&_.p-select-label]:!text-[#5A5A5A]"
+          [options]="phoneCodes"
         >
-        <input
-          pInputText
-          id="signup-whatsapp"
-          type="text"
-          placeholder="@loverboy_12"
-          formControlName="whatsapp"
-          class="w-full"
-          [attr.aria-invalid]="fieldError('whatsapp') ? 'true' : null"
-        />
-        @if (fieldError('whatsapp'); as message) {
-          <p class="text-sm text-red-700">{{ message }}</p>
-        }
-      </div>
-      <div class="flex flex-col gap-2">
-        <label class="text-sm font-medium text-surface-800" for="signup-phone">Phone number</label>
+          <ng-template #selectedItem let-option>{{ option?.dialCode }}</ng-template>
+        </p-select>
         <input
           pInputText
           id="signup-phone"
           type="tel"
-          autocomplete="tel"
+          inputmode="tel"
+          placeholder="020 123 4567"
+          autocomplete="tel-national"
           formControlName="phone"
-          class="w-full"
+          class="h-full min-w-0 flex-1 !rounded-none !border-0 !bg-transparent !px-0 !shadow-none text-[18px] placeholder:text-[#DFDFDF]"
           [attr.aria-invalid]="fieldError('phone') ? 'true' : null"
+          [attr.aria-describedby]="fieldError('phone') ? 'signup-phone-error' : null"
         />
-        @if (fieldError('phone'); as message) {
-          <p class="text-sm text-red-700">{{ message }}</p>
-        }
       </div>
+      @if (fieldError('phone'); as message) {
+        <p id="signup-phone-error" class="text-sm text-red-700">{{ message }}</p>
+      }
+    </div>
+
+    <div class="flex flex-col gap-2">
+      <div class="flex items-start gap-[6px]">
+        <p-checkbox
+          inputId="signup-terms"
+          formControlName="terms"
+          class="mt-[2px] [&_.p-checkbox-box]:!h-4 [&_.p-checkbox-box]:!w-4 [&_.p-checkbox-box]:!rounded-[4px] [&_.p-checkbox-box]:!border-[#D7D7D7]"
+          [binary]="true"
+        />
+        <span class="text-[18px] leading-[21px] text-[#464646]">
+          <label class="cursor-pointer" for="signup-terms">I agree to Clapout&nbsp;</label>
+          <a
+            routerLink="/terms"
+            class="font-semibold text-[#464646] no-underline underline-offset-2 hover:underline"
+            >Terms and Condition</a
+          >
+        </span>
+      </div>
+      @if (fieldError('terms'); as message) {
+        <p class="text-sm text-red-700">{{ message }}</p>
+      }
     </div>
 
     <p-button
       type="submit"
       label="Create account"
+      styleClass="!h-[50px] !w-full !justify-center !rounded-xl !bg-primary !border-primary !text-[18px] !shadow-none"
       [fluid]="true"
       [loading]="submitting()"
       [disabled]="submitting()"
     />
   </form>
 
-  <p class="mt-6 text-center text-sm text-surface-600">
-    Already have an account?
+  <p class="mt-4 text-center text-[18px] leading-[21px] text-[#464646]">
+    I already have an account?
     <a
       [routerLink]="signInLink()"
       [queryParams]="signInQuery()"
-      class="font-medium text-primary underline underline-offset-2"
+      class="font-semibold text-[#1A9BFB] no-underline hover:underline"
       >Sign in</a
     >
   </p>

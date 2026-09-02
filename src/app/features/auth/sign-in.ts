@@ -1,6 +1,7 @@
 import { Component, inject, input, signal } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { Lock } from '@primeicons/angular/lock';
 import { ButtonModule } from 'primeng/button';
 import { CheckboxModule } from 'primeng/checkbox';
 import { InputTextModule } from 'primeng/inputtext';
@@ -23,6 +24,7 @@ const MESSAGES: Record<string, Record<string, string>> = {
     ButtonModule,
     CheckboxModule,
     InputTextModule,
+    Lock,
     MessageModule,
     PasswordModule,
     ReactiveFormsModule,
