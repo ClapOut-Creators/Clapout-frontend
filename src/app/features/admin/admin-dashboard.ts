@@ -3,6 +3,7 @@ import { Router, RouterLink } from '@angular/router';
 import { ArrowDown } from '@primeicons/angular/arrow-down';
 import { ArrowUp } from '@primeicons/angular/arrow-up';
 import { ChevronRight } from '@primeicons/angular/chevron-right';
+import { Clock } from '@primeicons/angular/clock';
 import { File as FileIcon } from '@primeicons/angular/file';
 import { Home } from '@primeicons/angular/home';
 import { Megaphone } from '@primeicons/angular/megaphone';
@@ -99,6 +100,7 @@ function endsWithinDays(campaign: PublicCampaign, days: number): boolean {
     BarChart,
     ButtonModule,
     ChevronRight,
+    Clock,
     FileIcon,
     Home,
     Megaphone,
