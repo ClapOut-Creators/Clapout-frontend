@@ -29,4 +29,11 @@ export const ADMIN_ROUTES: Routes = [
     loadChildren: () =>
       import('../campaigns/campaigns.routes').then((module) => module.CAMPAIGN_ADMIN_ROUTES),
   },
+  {
+    path: 'partnerships',
+    loadChildren: () =>
+      import('../partnerships/partnerships.routes').then(
+        (module) => module.PARTNERSHIP_ADMIN_ROUTES,
+      ),
+  },
 ];

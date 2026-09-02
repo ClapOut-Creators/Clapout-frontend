@@ -1,6 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { Clipboard } from '@primeicons/angular/clipboard';
+import { Briefcase } from '@primeicons/angular/briefcase';
 import { Cog } from '@primeicons/angular/cog';
 import { Compass } from '@primeicons/angular/compass';
 import { Home } from '@primeicons/angular/home';
@@ -17,7 +18,7 @@ interface NavLink {
   path: string;
   /** Exact matching for parents whose children have their own entries. */
   exact: boolean;
-  icon: 'clipboard' | 'compass' | 'home' | 'shop';
+  icon: 'briefcase' | 'clipboard' | 'compass' | 'home' | 'shop';
 }
 
 // Figma (clipper dashboard rail): home first, then discovery.
@@ -32,6 +33,7 @@ const ADMIN_LINKS: NavLink[] = [
   { label: 'Dashboard', path: '/admin/dashboard', exact: false, icon: 'home' },
   { label: 'Brands', path: '/admin/brands', exact: false, icon: 'shop' },
   { label: 'Campaigns', path: '/admin/campaigns', exact: false, icon: 'clipboard' },
+  { label: 'Partnerships', path: '/admin/partnerships', exact: false, icon: 'briefcase' },
   { label: 'Registrations', path: '/admin/registrations', exact: false, icon: 'compass' },
 ];
 
@@ -43,6 +45,7 @@ const ADMIN_LINKS: NavLink[] = [
 @Component({
   imports: [
     ButtonModule,
+    Briefcase,
     Clipboard,
     Cog,
     Compass,

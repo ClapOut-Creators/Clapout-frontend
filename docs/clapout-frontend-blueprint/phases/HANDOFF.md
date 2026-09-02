@@ -439,6 +439,57 @@ headroom under the old error budget. No further code splitting was done.
 
 ### Round-2 design review fixes
 
+## Admin partnerships CRM workflow (2026-09-02)
+
+Adds the admin-only Partnership Requests management workflow as a lightweight CRM pipeline. Submitted
+inquiries stay separate from Brand and Campaign records; conversion creates or links a brand and can
+optionally create a campaign draft, but never publishes a campaign.
+
+### Routes and navigation
+
+- `/admin/partnerships` lists submitted inquiries with pipeline metrics, filters, and a PrimeNG table.
+- `/admin/partnerships/:inquiryId` opens a two-column inquiry workspace with contact details,
+  management fields, activity history, operational actions, and a conversion dialog.
+- The admin sidebar adds `Partnerships` using the existing PrimeIcon rail style. The original sidebar
+  icon rendering and initials account button remain in place.
+
+### Contract and API readiness
+
+| Capability                    | Status     | Notes                                                                                                      |
+| ----------------------------- | ---------- | ---------------------------------------------------------------------------------------------------------- |
+| Inquiry list/detail/mutations | MOCKED     | `PartnershipsRepository` is deterministic frontend state; no backend inquiry endpoint is assumed.          |
+| Activity history and notes    | MOCKED     | Stored in the frontend mock repository for the MVP workflow.                                               |
+| Brand conversion              | INTEGRATED | Conversion uses existing `BrandsRepository` when creating or loading brands.                               |
+| Campaign draft conversion     | INTEGRATED | Optional draft creation uses existing `CampaignsAdminRepository.createCampaign`; drafts are not published. |
+
+### Verification
+
+| Check                                | Result                                                                                                           |
+| ------------------------------------ | ---------------------------------------------------------------------------------------------------------------- |
+| `npm run format:check`               | PASS with Node `v24.18.0`.                                                                                       |
+| `npm run lint`                       | PASS.                                                                                                            |
+| `npm run test:unit -- --watch=false` | PASS: 7 files, 25 tests. Added partnerships overview/detail coverage plus sidebar nav coverage.                  |
+| `npm run verify:angular-defaults`    | PASS.                                                                                                            |
+| `npm run build`                      | PASS unsandboxed. Initial total `878.39 kB`, over the `850 kB` warning budget and under the `1 MB` error budget. |
+| `npm run test:e2e`                   | PASS unsandboxed: 2 Playwright foundation tests. Sandboxed run still fails with `listen EPERM`.                  |
+
+### Responsive and accessibility notes
+
+- Overview uses a desktop table and switches to inquiry cards on smaller viewports.
+- Detail uses a two-column desktop layout and stacks on mobile.
+- Icon-only copy/open controls have accessible names and tooltips; custom select fields use visible
+  labels plus programmatic labels.
+- Authenticated `/admin/partnerships` and `/admin/partnerships/:inquiryId` browser/AXE checks still
+  need a signed-in admin session against the backend.
+
+### Next phase recommendation
+
+`HOLD`
+
+Reason: the mocked partnerships workflow is complete and statically verified, but the admin-only
+browser pass should be run with a real admin session before treating the new CRM workflow as release
+ready.
+
 - **Clippers table fits without scrolling at 1728.** Column widths now follow the
   Figma table's proportions and sum to the 1400px min-width; with
   `table-layout: fixed` they scale up to fill the panel at the design width and

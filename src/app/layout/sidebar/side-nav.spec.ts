@@ -63,6 +63,9 @@ describe('SideNav', () => {
     expect(element.querySelector('.co-shell-rail')).toBeTruthy();
     expect(element.querySelector('a[aria-label="Dashboard"]')).toBeTruthy();
     expect(element.querySelector('a[aria-label="Campaigns"]')).toBeTruthy();
+    expect(element.querySelector('a[aria-label="Partnerships"]')?.getAttribute('href')).toBe(
+      '/admin/partnerships',
+    );
     expect(element.querySelector('a[aria-label="Registrations"]')).toBeTruthy();
     expect(element.querySelector('button[aria-label="Settings coming soon"]')).toBeTruthy();
     expect(element.querySelector('button[aria-haspopup="menu"]')).toBeTruthy();

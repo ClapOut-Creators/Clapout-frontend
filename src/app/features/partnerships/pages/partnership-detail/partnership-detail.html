@@ -1,0 +1,469 @@
+<main class="min-h-screen bg-[#F9F9F9]">
+  <div class="mx-auto w-full">
+    <button
+      pButton
+      type="button"
+      severity="secondary"
+      text
+      label="Back to partnerships"
+      class="mb-4"
+      (click)="backToList()"
+    >
+      <svg data-p-icon="arrow-left" [size]="16"></svg>
+    </button>
+
+    @if (state() === 'loading') {
+      <p-message severity="info">Loading partnership inquiry...</p-message>
+    } @else if (state() === 'not-found') {
+      <section class="rounded-xl border border-[#ECECEC] bg-white p-8 text-center">
+        <h1 class="text-2xl font-semibold text-surface-950">Inquiry not found</h1>
+        <p class="mt-2 text-surface-600">This partnership request may have been removed.</p>
+        <a pButton routerLink="/admin/partnerships" class="mt-4">Back to partnerships</a>
+      </section>
+    } @else if (state() === 'error') {
+      <p-message severity="error">{{ errorMessage() }}</p-message>
+    } @else if (inquiry(); as row) {
+      <app-page-header
+        breadcrumb="Partnerships"
+        [breadcrumbTrail]="row.company"
+        [title]="row.company"
+        [subtitle]="row.promoting"
+      >
+        <button
+          pButton
+          type="button"
+          [disabled]="row.status === 'CONVERTED'"
+          (click)="openConversion()"
+        >
+          Convert opportunity
+        </button>
+      </app-page-header>
+
+      @if (actionMessage()) {
+        <p-message severity="success" styleClass="mt-4">{{ actionMessage() }}</p-message>
+      }
+
+      <div class="mt-6 grid gap-5 xl:grid-cols-[minmax(0,1fr)_24rem]">
+        <section class="space-y-5">
+          <article class="rounded-xl border border-[#ECECEC] bg-white p-5">
+            <h2 class="text-xl font-semibold text-surface-950">Inquiry information</h2>
+            <dl class="mt-5 grid gap-4 md:grid-cols-2">
+              <div>
+                <dt class="text-xs font-semibold uppercase text-surface-500">Contact</dt>
+                <dd class="mt-1 font-medium text-surface-950">{{ row.contactName }}</dd>
+              </div>
+              <div>
+                <dt class="text-xs font-semibold uppercase text-surface-500">Company</dt>
+                <dd class="mt-1 font-medium text-surface-950">{{ row.company }}</dd>
+              </div>
+              <div>
+                <dt class="text-xs font-semibold uppercase text-surface-500">Email</dt>
+                <dd class="mt-1 flex items-center gap-2">
+                  <span>{{ row.email }}</span>
+                  <button
+                    pButton
+                    type="button"
+                    text
+                    aria-label="Copy email"
+                    pTooltip="Copy email"
+                    (click)="copy(row.email)"
+                  >
+                    <svg data-p-icon="copy" [size]="14"></svg>
+                  </button>
+                </dd>
+              </div>
+              <div>
+                <dt class="text-xs font-semibold uppercase text-surface-500">Phone</dt>
+                <dd class="mt-1 flex items-center gap-2">
+                  <span>{{ row.phone ?? 'Not provided' }}</span>
+                  @if (row.phone) {
+                    <button
+                      pButton
+                      type="button"
+                      text
+                      aria-label="Copy phone number"
+                      pTooltip="Copy phone number"
+                      (click)="copy(row.phone)"
+                    >
+                      <svg data-p-icon="copy" [size]="14"></svg>
+                    </button>
+                  }
+                </dd>
+              </div>
+              <div>
+                <dt class="text-xs font-semibold uppercase text-surface-500">
+                  What they are promoting
+                </dt>
+                <dd class="mt-1 font-medium text-surface-950">{{ row.promoting }}</dd>
+              </div>
+              <div>
+                <dt class="text-xs font-semibold uppercase text-surface-500">Website or social</dt>
+                <dd class="mt-1">
+                  @if (row.websiteUrl) {
+                    <button
+                      pButton
+                      type="button"
+                      text
+                      label="Open submitted link"
+                      data-testid="open-submitted-link"
+                      (click)="openSubmittedLink()"
+                    >
+                      <svg data-p-icon="external-link" [size]="14"></svg>
+                    </button>
+                  } @else {
+                    Not provided
+                  }
+                </dd>
+              </div>
+              <div>
+                <dt class="text-xs font-semibold uppercase text-surface-500">Content type</dt>
+                <dd class="mt-1">{{ row.contentType }}</dd>
+              </div>
+              <div>
+                <dt class="text-xs font-semibold uppercase text-surface-500">Platforms</dt>
+                <dd class="mt-1">{{ row.platforms.join(', ') }}</dd>
+              </div>
+              <div>
+                <dt class="text-xs font-semibold uppercase text-surface-500">Budget range</dt>
+                <dd class="mt-1">{{ row.budgetRange }}</dd>
+              </div>
+              <div>
+                <dt class="text-xs font-semibold uppercase text-surface-500">Timeline</dt>
+                <dd class="mt-1">{{ row.timeline }}</dd>
+              </div>
+              <div>
+                <dt class="text-xs font-semibold uppercase text-surface-500">Submitted</dt>
+                <dd class="mt-1">{{ formattedDate(row.submittedAt) }}</dd>
+              </div>
+              <div>
+                <dt class="text-xs font-semibold uppercase text-surface-500">Source</dt>
+                <dd class="mt-1">{{ row.source }}</dd>
+              </div>
+            </dl>
+            <div class="mt-5">
+              <h3 class="text-sm font-semibold text-surface-950">Additional message</h3>
+              <p class="mt-2 rounded-lg bg-surface-50 p-4 text-sm leading-6 text-surface-700">
+                {{ row.message }}
+              </p>
+            </div>
+          </article>
+
+          <article class="rounded-xl border border-[#ECECEC] bg-white p-5">
+            <h2 class="text-xl font-semibold text-surface-950">Activity history</h2>
+            <ol class="mt-4 space-y-3">
+              @for (activity of row.activity; track activity.id) {
+                <li class="rounded-lg border border-surface-200 p-3">
+                  <p class="font-medium text-surface-900">{{ activity.message }}</p>
+                  <p class="mt-1 text-xs text-surface-500">
+                    {{ activity.createdBy }} · {{ formattedDate(activity.createdAt) }}
+                  </p>
+                </li>
+              }
+            </ol>
+          </article>
+        </section>
+
+        <aside class="space-y-5">
+          <section class="rounded-xl border border-[#ECECEC] bg-white p-5">
+            <h2 class="text-lg font-semibold text-surface-950">Admin management</h2>
+            <div class="mt-4 grid gap-4">
+              <div class="grid gap-1 text-sm font-medium text-surface-700">
+                <span>Current status</span>
+                <p-select
+                  ariaLabel="Current status"
+                  fluid
+                  [options]="statusOptions"
+                  [ngModel]="selectedStatus()"
+                  (ngModelChange)="selectedStatus.set($event)"
+                />
+              </div>
+              <div class="grid gap-1 text-sm font-medium text-surface-700">
+                <span>Assigned team member</span>
+                <p-select
+                  ariaLabel="Assigned team member"
+                  fluid
+                  [options]="owners()"
+                  [ngModel]="selectedOwner()"
+                  (ngModelChange)="selectedOwner.set($event)"
+                />
+              </div>
+              <div class="grid gap-1 text-sm font-medium text-surface-700">
+                <span id="partnership-follow-up-label">Next follow-up date</span>
+                <p-datepicker
+                  inputId="partnership-follow-up-date"
+                  ariaLabelledBy="partnership-follow-up-label"
+                  dateFormat="yy-mm-dd"
+                  dataType="string"
+                  fluid
+                  showButtonBar
+                  showIcon
+                  [ngModel]="followUpDate()"
+                  (ngModelChange)="followUpDate.set($event)"
+                />
+              </div>
+              <div class="grid gap-1 text-sm font-medium text-surface-700">
+                <span>Qualification result</span>
+                <p-select
+                  ariaLabel="Qualification result"
+                  fluid
+                  [options]="qualificationOptions"
+                  [ngModel]="qualification()"
+                  (ngModelChange)="qualification.set($event)"
+                />
+              </div>
+              <div class="grid gap-1 text-sm font-medium text-surface-700">
+                <span>Internal priority</span>
+                <p-select
+                  ariaLabel="Internal priority"
+                  fluid
+                  [options]="priorityOptions"
+                  [ngModel]="priority()"
+                  (ngModelChange)="priority.set($event)"
+                />
+              </div>
+              <div class="grid gap-1 text-sm font-medium text-surface-700">
+                <span>Internal notes</span>
+                <textarea
+                  pTextarea
+                  aria-label="Internal notes"
+                  class="w-full"
+                  rows="5"
+                  [ngModel]="internalNotes()"
+                  (ngModelChange)="internalNotes.set($event)"
+                ></textarea>
+              </div>
+              <button pButton type="button" (click)="saveManagement()">Save management</button>
+            </div>
+          </section>
+
+          <section class="rounded-xl border border-[#ECECEC] bg-white p-5">
+            <h2 class="text-lg font-semibold text-surface-950">Admin actions</h2>
+            <div class="mt-4 grid gap-2">
+              <button
+                pButton
+                type="button"
+                severity="secondary"
+                data-testid="mark-reviewing"
+                (click)="markStatus('REVIEWING')"
+              >
+                Mark as reviewing
+              </button>
+              <button
+                pButton
+                type="button"
+                severity="secondary"
+                (click)="markStatus('AWAITING_FOLLOW_UP', 'Follow-up scheduled.')"
+              >
+                Schedule follow-up
+              </button>
+              <button pButton type="button" severity="secondary" (click)="markStatus('SPAM')">
+                Mark spam
+              </button>
+              <button pButton type="button" severity="secondary" (click)="markStatus('DUPLICATE')">
+                Mark duplicate
+              </button>
+              <input
+                pInputText
+                placeholder="Close reason"
+                aria-label="Close reason"
+                [ngModel]="closeReason()"
+                (ngModelChange)="closeReason.set($event)"
+              />
+              <button pButton type="button" severity="secondary" (click)="markStatus('NOT_A_FIT')">
+                Mark not a fit
+              </button>
+              <button pButton type="button" severity="secondary" (click)="markStatus('CLOSED')">
+                Close inquiry
+              </button>
+            </div>
+            <div class="mt-4 grid gap-1 text-sm font-medium text-surface-700">
+              <span>Note or contact outcome</span>
+              <textarea
+                pTextarea
+                aria-label="Note or contact outcome"
+                rows="3"
+                [ngModel]="activityMessage()"
+                (ngModelChange)="activityMessage.set($event)"
+              ></textarea>
+            </div>
+            <div class="mt-3 flex flex-wrap gap-2">
+              <button pButton type="button" severity="secondary" (click)="addNote()">
+                Add note
+              </button>
+              <button pButton type="button" severity="secondary" (click)="logContact()">
+                Log contact attempt
+              </button>
+            </div>
+            <label class="mt-4 grid gap-1 text-sm font-medium text-surface-700">
+              Proposal link
+              <input
+                pInputText
+                [ngModel]="proposalLink()"
+                (ngModelChange)="proposalLink.set($event)"
+              />
+            </label>
+            <button
+              pButton
+              type="button"
+              class="mt-3"
+              severity="secondary"
+              (click)="attachProposal()"
+            >
+              Attach proposal
+            </button>
+          </section>
+        </aside>
+      </div>
+    }
+  </div>
+</main>
+
+<p-dialog
+  header="Convert opportunity"
+  [modal]="true"
+  [visible]="conversionOpen()"
+  (visibleChange)="conversionOpen.set($event)"
+  styleClass="w-[min(92vw,46rem)]"
+>
+  @if (conversionError()) {
+    <p-message severity="error" styleClass="mb-4">{{ conversionError() }}</p-message>
+  }
+
+  <p class="mb-4 text-sm font-semibold text-surface-500">Step {{ conversionStep() }} of 4</p>
+
+  @switch (conversionStep()) {
+    @case (1) {
+      <div class="grid gap-4">
+        <div class="grid gap-1 text-sm font-medium text-surface-700">
+          <span>Brand matching</span>
+          <p-select
+            ariaLabel="Brand matching"
+            [options]="conversionModes"
+            [ngModel]="conversionMode()"
+            (ngModelChange)="conversionMode.set($event)"
+          />
+        </div>
+        @if (conversionMode() === 'existing') {
+          <div class="grid gap-1 text-sm font-medium text-surface-700">
+            <span>Existing brand</span>
+            <p-select
+              ariaLabel="Existing brand"
+              [options]="brandOptions()"
+              [ngModel]="existingBrandId()"
+              (ngModelChange)="existingBrandId.set($event)"
+            />
+          </div>
+        }
+      </div>
+    }
+    @case (2) {
+      <div class="grid gap-3 md:grid-cols-2">
+        <label class="grid gap-1 text-sm font-medium text-surface-700"
+          >Brand name
+          <input pInputText [ngModel]="brandName()" (ngModelChange)="brandName.set($event)"
+        /></label>
+        <label class="grid gap-1 text-sm font-medium text-surface-700"
+          >Website
+          <input pInputText [ngModel]="brandWebsite()" (ngModelChange)="brandWebsite.set($event)"
+        /></label>
+        <label class="grid gap-1 text-sm font-medium text-surface-700"
+          >Industry
+          <input pInputText [ngModel]="brandIndustry()" (ngModelChange)="brandIndustry.set($event)"
+        /></label>
+        <label class="grid gap-1 text-sm font-medium text-surface-700"
+          >Location
+          <input pInputText [ngModel]="brandCity()" (ngModelChange)="brandCity.set($event)"
+        /></label>
+        <label class="grid gap-1 text-sm font-medium text-surface-700"
+          >Primary contact
+          <input pInputText [ngModel]="brandContact()" (ngModelChange)="brandContact.set($event)"
+        /></label>
+        <label class="grid gap-1 text-sm font-medium text-surface-700"
+          >Email
+          <input pInputText [ngModel]="brandEmail()" (ngModelChange)="brandEmail.set($event)"
+        /></label>
+        <label class="grid gap-1 text-sm font-medium text-surface-700 md:col-span-2"
+          >Phone
+          <input pInputText [ngModel]="brandPhone()" (ngModelChange)="brandPhone.set($event)"
+        /></label>
+      </div>
+    }
+    @case (3) {
+      <div class="grid gap-4">
+        <div class="grid gap-1 text-sm font-medium text-surface-700">
+          <span>Campaign draft</span>
+          <p-select
+            ariaLabel="Campaign draft"
+            [options]="draftOptions"
+            [ngModel]="createCampaignDraft()"
+            (ngModelChange)="createCampaignDraft.set($event)"
+          />
+        </div>
+        @if (createCampaignDraft()) {
+          <label class="grid gap-1 text-sm font-medium text-surface-700">
+            Campaign working title
+            <input
+              pInputText
+              [ngModel]="campaignTitle()"
+              (ngModelChange)="campaignTitle.set($event)"
+            />
+          </label>
+          <div class="grid gap-1 text-sm font-medium text-surface-700">
+            <span>Assigned campaign manager</span>
+            <p-select
+              ariaLabel="Assigned campaign manager"
+              [options]="owners()"
+              [ngModel]="assignedManager()"
+              (ngModelChange)="assignedManager.set($event)"
+            />
+          </div>
+        }
+      </div>
+    }
+    @default {
+      <div class="rounded-lg bg-surface-50 p-4 text-sm">
+        <p><strong>Brand:</strong> {{ brandName() }}</p>
+        <p><strong>Primary contact:</strong> {{ brandContact() }} · {{ brandEmail() }}</p>
+        <p>
+          <strong>Campaign draft:</strong>
+          {{ createCampaignDraft() ? campaignTitle() : 'No draft now' }}
+        </p>
+        <p><strong>Original inquiry:</strong> remains linked for audit history.</p>
+      </div>
+    }
+  }
+
+  <ng-template #footer>
+    <div class="flex justify-between gap-2">
+      <button
+        pButton
+        type="button"
+        severity="secondary"
+        [disabled]="conversionStep() === 1 || converting()"
+        (click)="previousConversionStep()"
+      >
+        Back
+      </button>
+      @if (conversionStep() < 4) {
+        <button
+          pButton
+          type="button"
+          data-testid="conversion-continue"
+          (click)="nextConversionStep()"
+        >
+          Continue
+        </button>
+      } @else {
+        <button
+          pButton
+          type="button"
+          data-testid="conversion-submit"
+          [loading]="converting()"
+          (click)="convert()"
+        >
+          Convert opportunity
+        </button>
+      }
+    </div>
+  </ng-template>
+</p-dialog>

@@ -15,11 +15,11 @@ ClapOut Studio must allow ClapOut to run the complete frontend campaign workflow
 
 ## MVP actors
 
-| Actor | Primary goal | MVP boundary |
-| --- | --- | --- |
-| Admin | Run campaign operations | Full access to brands, campaigns, registrations, review, verification, and payout preparation |
-| Brand user | Prepare campaigns and observe results | Own brand only; cannot approve or publish |
-| Creator | Find paid opportunities and complete work | Own profile, applications, submissions, and earnings only |
+| Actor      | Primary goal                              | MVP boundary                                                                                  |
+| ---------- | ----------------------------------------- | --------------------------------------------------------------------------------------------- |
+| Admin      | Run campaign operations                   | Full access to brands, campaigns, registrations, review, verification, and payout preparation |
+| Brand user | Prepare campaigns and observe results     | Own brand only; cannot approve or publish                                                     |
+| Creator    | Find paid opportunities and complete work | Own profile, applications, submissions, and earnings only                                     |
 
 ## Core product language
 
@@ -46,6 +46,7 @@ ClapOut Studio must allow ClapOut to run the complete frontend campaign workflow
 - Multi-step campaign builder, preview, save draft, submit, approve, publish, pause, close, edit, and duplicate
 - Campaign detail with performance summary and registrations
 - Brand directory, brand creation, brand detail, contacts, campaigns, and recent registrations
+- Partnership requests CRM with inquiry review, follow-up, qualification, and conversion to brand/campaign draft
 - Global registrations list and registration detail workspace
 - Registration status decisions and internal notes
 - Manual view verification and calculated payout preview
@@ -99,4 +100,3 @@ Accepted registrations may additionally expose participation states such as `CON
 ## Resulting frontend deliverable
 
 A deployable Angular single-page application with role-aware lazy routes, a reusable ClapOut design system, typed mock/HTTP data adapters, test coverage for critical workflows, and the complete admin path plus coherent brand and creator paths.
-

@@ -14,6 +14,8 @@
 /admin/campaigns/:campaignId/edit
 /admin/registrations
 /admin/registrations/:registrationId
+/admin/partnerships
+/admin/partnerships/:inquiryId
 /admin/brands
 /admin/brands/new
 /admin/brands/:brandId
@@ -42,27 +44,27 @@
 
 ## Permission matrix
 
-| Capability | Admin | Brand user | Creator |
-| --- | ---: | ---: | ---: |
-| View platform dashboard | Yes | No | No |
-| Manage brands | Yes | Own brand profile only | No |
-| Create campaign draft | Yes | Own brand | No |
-| Edit draft/changes-requested campaign | Yes | Own brand | No |
-| Approve or publish campaign | Yes | No | No |
-| Pause/close campaign | Yes | No | No |
-| View registrations | All | Own campaigns, read-only | Own only |
-| Change registration decision | Yes | No in MVP | No |
-| Add internal notes | Yes | No | No |
-| Submit application | No | No | Yes |
-| Submit content link | No | No | Accepted creator only |
-| Verify views | Yes | No | No |
-| View payout amount | Yes | Campaign summary only | Own amount only |
+| Capability                            | Admin |               Brand user |               Creator |
+| ------------------------------------- | ----: | -----------------------: | --------------------: |
+| View platform dashboard               |   Yes |                       No |                    No |
+| Manage brands                         |   Yes |   Own brand profile only |                    No |
+| Create campaign draft                 |   Yes |                Own brand |                    No |
+| Edit draft/changes-requested campaign |   Yes |                Own brand |                    No |
+| Approve or publish campaign           |   Yes |                       No |                    No |
+| Pause/close campaign                  |   Yes |                       No |                    No |
+| View registrations                    |   All | Own campaigns, read-only |              Own only |
+| Change registration decision          |   Yes |                No in MVP |                    No |
+| Add internal notes                    |   Yes |                       No |                    No |
+| Submit application                    |    No |                       No |                   Yes |
+| Submit content link                   |    No |                       No | Accepted creator only |
+| Verify views                          |   Yes |                       No |                    No |
+| View payout amount                    |   Yes |    Campaign summary only |       Own amount only |
 
 ## Navigation
 
 ### Admin
 
-Dashboard, Campaigns, Registrations, Brands, Profile, Settings
+Dashboard, Campaigns, Registrations, Partnerships, Brands, Profile, Settings
 
 ### Brand
 
@@ -84,4 +86,3 @@ Home, Discover, Applications, Earnings, Profile
 ## Route data
 
 Every protected route must declare permitted roles and a page title. Breadcrumb labels come from route configuration or resolved entity names, not duplicated strings inside pages.
-
