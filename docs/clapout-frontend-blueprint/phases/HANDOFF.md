@@ -436,3 +436,28 @@ headroom under the old error budget. No further code splitting was done.
   44px tall with 18px labels; compact-card headings are 24px.
 - A signed-in visitor hitting `/auth/sign-in` is redirected to their dashboard
   instead of `/`.
+
+### Round-2 design review fixes
+
+- **Clippers table fits without scrolling at 1728.** Column widths now follow the
+  Figma table's proportions and sum to the 1400px min-width; with
+  `table-layout: fixed` they scale up to fill the panel at the design width and
+  only scroll below ~1400px. Our two extra columns (Status tag + review select)
+  are merged into one trailing "Review" column, so eight columns occupy the space
+  the design gives seven. Both embeds (campaign detail, brand detail) inherit this
+  from the shared component.
+- **Brands list**: taller stat cards with 28px numbers, "Needs attention" in orange
+  via a new `tone` input on `app-stat-card`, the design's left-aligned pagination
+  with a page picker, and the search moved into the header row.
+- **Brand detail**: the page title is "Brand detail" (the name lives in the header
+  card only), buttons read "Pause Campaign" / "Edit", the campaign grid uses the
+  shared `app-campaign-compact-card`, and the clippers embed is toolbar-less with
+  Export driven from the panel header.
+
+### Known failing test (not ours)
+
+`admin-dashboard.spec.ts` asserts `<main>` carries an inline
+`background-color: #f9f9f9`, but `admin-dashboard.html` sets no inline style — the
+canvas colour comes from `app.html`. Both files are outside this workstream's
+boundary, so the assertion is left failing: 9/10 unit tests pass. It needs either
+the assertion dropped or the inline style added by the dashboard's owner.

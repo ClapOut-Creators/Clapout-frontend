@@ -1,6 +1,11 @@
 import { Component, computed, DestroyRef, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { AngleDoubleLeft } from '@primeicons/angular/angle-double-left';
+import { AngleDoubleRight } from '@primeicons/angular/angle-double-right';
+import { AngleLeft } from '@primeicons/angular/angle-left';
+import { AngleRight } from '@primeicons/angular/angle-right';
+import { ChevronDown } from '@primeicons/angular/chevron-down';
 import { Search } from '@primeicons/angular/search';
 import { Trash } from '@primeicons/angular/trash';
 import { ConfirmationService, MessageService } from 'primeng/api';
@@ -25,6 +30,12 @@ const SEARCH_DEBOUNCE_MS = 300;
 /** `409 BRAND_IN_USE` is the one delete failure with a specific remedy. */
 const BRAND_IN_USE = 'BRAND_IN_USE';
 
+/** Rows per page. The design paints no page-size control, so this is fixed. */
+const PAGE_SIZE = 10;
+
+/** How many numbered pages sit either side of the current one before an ellipsis. */
+const PAGE_WINDOW = 1;
+
 function formatCount(value: number): string {
   return Number.isFinite(value) ? value.toLocaleString('en-GB') : NOT_ANNOUNCED;
 }
@@ -40,8 +51,13 @@ function formatCount(value: number): string {
  */
 @Component({
   imports: [
+    AngleDoubleLeft,
+    AngleDoubleRight,
+    AngleLeft,
+    AngleRight,
     BrandLogoTile,
     ButtonModule,
+    ChevronDown,
     FormsModule,
     InputTextModule,
     MessageModule,
@@ -121,6 +137,63 @@ export class AdminBrands {
     return `${total} ${total === 1 ? 'brand' : 'brands'}`;
   });
 
+  /**
+   * Requested page, 1-based. Reads go through `currentPage()` so a shrinking
+   * result set (a delete, or a narrower search) can never strand the table on a
+   * page that no longer exists.
+   */
+  private readonly requestedPage = signal(1);
+
+  protected readonly totalPages = computed(() =>
+    Math.max(1, Math.ceil(this.brands().length / PAGE_SIZE)),
+  );
+
+  protected readonly currentPage = computed(() =>
+    Math.min(Math.max(1, this.requestedPage()), this.totalPages()),
+  );
+
+  /** The rows actually rendered: the table is fed one page at a time. */
+  protected readonly pagedBrands = computed(() => {
+    const start = (this.currentPage() - 1) * PAGE_SIZE;
+    return this.brands().slice(start, start + PAGE_SIZE);
+  });
+
+  /** Every page number, for the "Page [n] of N" jump control. */
+  protected readonly pageOptions = computed(() =>
+    Array.from({ length: this.totalPages() }, (_unused, index) => index + 1),
+  );
+
+  /**
+   * The `1 2 3 … 10` strip: first and last page always, a window around the
+   * current one, and `null` wherever the design draws an ellipsis.
+   */
+  protected readonly pageItems = computed<(number | null)[]>(() => {
+    const total = this.totalPages();
+    const windowSize = PAGE_WINDOW * 2 + 1;
+    if (total <= windowSize + 4) {
+      return this.pageOptions();
+    }
+    const current = this.currentPage();
+    const start = Math.min(Math.max(1, current - PAGE_WINDOW), total - windowSize + 1);
+    const items: (number | null)[] = [];
+    if (start > 1) {
+      items.push(1);
+    }
+    if (start > 2) {
+      items.push(null);
+    }
+    for (let page = start; page < start + windowSize; page += 1) {
+      items.push(page);
+    }
+    if (start + windowSize < total) {
+      items.push(null);
+    }
+    if (start + windowSize <= total) {
+      items.push(total);
+    }
+    return items;
+  });
+
   constructor() {
     effect(() => {
       // Re-query whenever the debounced term changes; the first pass runs with
@@ -155,6 +228,15 @@ export class AdminBrands {
 
   protected reload(): void {
     void this.load(this.search());
+  }
+
+  protected goToPage(page: number): void {
+    this.requestedPage.set(Math.min(Math.max(1, page), this.totalPages()));
+  }
+
+  /** True for the page the table is showing, so the strip can paint it filled. */
+  protected isCurrentPage(page: number): boolean {
+    return page === this.currentPage();
   }
 
   protected createBrand(): void {
@@ -234,6 +316,8 @@ export class AdminBrands {
     try {
       const rows = await this.admin.brands(term || undefined);
       this.brands.set(rows);
+      // A new result set is a new list; page 5 of the old one means nothing here.
+      this.requestedPage.set(1);
       if (!term) {
         this.allBrands.set(rows);
       }

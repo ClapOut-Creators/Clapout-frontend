@@ -1,39 +1,24 @@
-import { Component, computed, effect, inject, input, signal } from '@angular/core';
+import { Component, computed, effect, inject, input, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Download } from '@primeicons/angular/download';
 import { Router, RouterLink } from '@angular/router';
-import { Clock } from '@primeicons/angular/clock';
-import { Wallet } from '@primeicons/angular/wallet';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
-import { ProgressBarModule } from 'primeng/progressbar';
 import { SkeletonModule } from 'primeng/skeleton';
 import { ApiError } from '../../core/api/api-error';
 import { AuthService } from '../../core/auth/auth-service';
 import { AdminRepository } from '../../core/data/admin-repository';
 import { BrandDetail, BrandStatus } from '../../core/models/brand';
-import { PublicCampaign } from '../../core/models/campaign';
-import {
-  budgetPercent,
-  campaignStatusLabel,
-  daysLeftLabel,
-  formatMoney,
-  hasBudget,
-  NOT_ANNOUNCED,
-  platformLabel,
-} from '../../core/util/campaign-format';
+import { NOT_ANNOUNCED } from '../../core/util/campaign-format';
 import { BrandLogoTile } from '../../shared/admin/brand-logo-tile';
+import { CampaignCompactCard } from '../../shared/admin/campaign-compact-card';
 import { ClippersTable } from '../../shared/admin/clippers-table';
 import { PageHeader } from '../../shared/admin/page-header';
 import { StatCard } from '../../shared/admin/stat-card';
 
 type DetailState = 'loading' | 'ready' | 'not-found' | 'error';
-
-interface SelectOption<T> {
-  label: string;
-  value: T;
-}
 
 /**
  * ISO code shown in front of the symbol on the Revenue card, e.g. `GHS ₵ 40,000.00`.
@@ -48,14 +33,6 @@ const CURRENCY_CODES: Record<string, string> = {
 /** Fallback when a brand has no campaigns to borrow a currency symbol from. */
 const DEFAULT_CURRENCY = '₵';
 
-/** Pill colours for a campaign status, matching the compact card in the design. */
-const CAMPAIGN_STATUS_PILLS: Record<string, string> = {
-  ACTIVE: 'bg-[#C8FFC8] text-[#009100]',
-  UPCOMING: 'bg-[#FFEFD6] text-[#B45309]',
-  DRAFT: 'bg-[#ECECEC] text-[#525252]',
-  CLOSED: 'bg-[#FFDBDB] text-[#D00000]',
-};
-
 /**
  * One brand's account page: identity and contacts, its totals, the campaigns it
  * owns and the clippers who registered for them.
@@ -68,17 +45,16 @@ const CAMPAIGN_STATUS_PILLS: Record<string, string> = {
   imports: [
     BrandLogoTile,
     ButtonModule,
+    CampaignCompactCard,
     ClippersTable,
-    Clock,
+    Download,
     FormsModule,
     InputTextModule,
     MessageModule,
     PageHeader,
-    ProgressBarModule,
     RouterLink,
     SkeletonModule,
     StatCard,
-    Wallet,
   ],
   selector: 'app-admin-brand-detail',
   templateUrl: './admin-brand-detail.html',
@@ -91,6 +67,8 @@ export class AdminBrandDetail {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   private readonly messages = inject(MessageService);
+  /** The embedded table owns the rows, so Export delegates straight to it. */
+  private readonly clippers = viewChild(ClippersTable);
 
   protected readonly state = signal<DetailState>('loading');
   protected readonly brand = signal<BrandDetail | null>(null);
@@ -101,21 +79,17 @@ export class AdminBrandDetail {
   protected readonly skeletonCards = [0, 1, 2];
   protected readonly skeletonRows = [0, 1, 2];
 
-  protected readonly budgetPercent = budgetPercent;
-  protected readonly campaignStatusLabel = campaignStatusLabel;
-  protected readonly daysLeftLabel = daysLeftLabel;
-  protected readonly formatMoney = formatMoney;
-  protected readonly hasBudget = hasBudget;
-
   /** The signed-in admin doubles as the account manager the design shows. */
   protected readonly accountManager = computed(() => this.auth.user());
 
-  /** Header falls back to a generic title until the brand resolves. */
-  protected readonly headerTitle = computed(() => this.brand()?.name ?? 'Brand detail');
+  /** The brand name lives in the header card and the breadcrumb, never the h1. */
   protected readonly headerTrail = computed(() => this.brand()?.name);
 
   protected readonly isActive = computed(() => this.brand()?.status === 'ACTIVE');
-  protected readonly statusActionLabel = computed(() => (this.isActive() ? 'Pause' : 'Activate'));
+  /** Design copy. A paused brand offers the inverse action instead. */
+  protected readonly statusActionLabel = computed(() =>
+    this.isActive() ? 'Pause Campaign' : 'Activate',
+  );
 
   protected readonly campaigns = computed(() => this.brand()?.campaigns ?? []);
 
@@ -130,18 +104,6 @@ export class AdminBrandDetail {
       ),
     );
   });
-
-  /**
-   * The registrations contract has no `brandId` filter, so the embedded clippers
-   * table cannot be scoped to this brand from the outside. Handing it only this
-   * brand's campaigns at least lets an admin narrow to one of them.
-   */
-  protected readonly campaignOptions = computed<SelectOption<string>[]>(() =>
-    this.campaigns().map((campaign) => ({
-      label: campaign.title || campaign.slug,
-      value: campaign.slug,
-    })),
-  );
 
   protected readonly totalCampaignsLabel = computed(() =>
     this.formatCount(this.brand()?.stats.totalCampaigns),
@@ -173,12 +135,12 @@ export class AdminBrandDetail {
     this.campaignSearch.set('');
   }
 
-  protected campaignPillClass(status: string): string {
-    return CAMPAIGN_STATUS_PILLS[status] ?? CAMPAIGN_STATUS_PILLS['DRAFT'];
+  protected exportClippers(): void {
+    this.clippers()?.exportCsv();
   }
 
-  protected platformSummary(campaign: PublicCampaign): string {
-    return campaign.platforms.map(platformLabel).join(', ') || NOT_ANNOUNCED;
+  protected canExportClippers(): boolean {
+    return this.clippers()?.canExport() ?? false;
   }
 
   /** Stand-in for the avatar the design shows next to each person. */
@@ -242,14 +204,15 @@ export class AdminBrandDetail {
   private formatRevenue(revenue: number | null | undefined): string {
     const symbol = this.campaigns()[0]?.currency || DEFAULT_CURRENCY;
     if (revenue === null || revenue === undefined || !Number.isFinite(revenue)) {
-      return `${symbol}${NOT_ANNOUNCED}`;
+      return `${CURRENCY_CODES[symbol] ?? symbol} ${NOT_ANNOUNCED}`;
     }
     const amount = revenue.toLocaleString('en-GB', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     });
+    // Currency code OR symbol, never both ("GHS 2,000.00" / "₵ 2,000.00").
     const code = CURRENCY_CODES[symbol];
-    return code ? `${code} ${symbol} ${amount}` : `${symbol} ${amount}`;
+    return code ? `${code} ${amount}` : `${symbol}\u2009${amount}`;
   }
 
   private async load(id: string): Promise<void> {

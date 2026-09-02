@@ -106,65 +106,61 @@
       </div>
     } @else {
       <!--
-        Every column carries an explicit min-width so nine columns never squeeze
-        ("Phone number" used to wrap onto two lines), and the wrapper scrolls
-        horizontally instead of clipping the last three columns.
+        Column widths follow the Figma table's proportions and sum to the 1400px
+        min-width, so with `table-layout: fixed` they scale up to fill the panel
+        at the 1728 design width (no horizontal scroll) and only scroll below
+        ~1400px. Status and the review control share one trailing column so the
+        eight columns fit the same space the design gives seven.
       -->
       <div class="mt-4 overflow-x-auto rounded-[12.11px] bg-white">
-        <p-table [value]="rows()" [tableStyle]="{ 'min-width': '120rem' }">
+        <p-table [value]="rows()" [tableStyle]="{ 'min-width': '1400px', 'table-layout': 'fixed' }">
           <ng-template #header>
             <tr>
               <th
                 scope="col"
-                class="!min-w-[240px] !whitespace-nowrap !rounded-l-[12.11px] !border-0 !bg-[#F9F9F9] !px-6 !py-[22px] !text-[17.49px] !font-medium !text-[#171A1C]"
+                class="!w-[155px] !whitespace-nowrap !rounded-l-[12.11px] !border-0 !bg-[#F9F9F9] !px-6 !py-[22px] !text-[17.49px] !font-medium !text-[#171A1C]"
               >
                 Clippers
               </th>
               <th
                 scope="col"
-                class="!min-w-[260px] !whitespace-nowrap !border-0 !bg-[#F9F9F9] !px-6 !py-[22px] !text-[17.49px] !font-medium !text-[#171A1C]"
+                class="!w-[189px] !whitespace-nowrap !border-0 !bg-[#F9F9F9] !px-6 !py-[22px] !text-[17.49px] !font-medium !text-[#171A1C]"
               >
                 Email
               </th>
               <th
                 scope="col"
-                class="!min-w-[210px] !whitespace-nowrap !border-0 !bg-[#F9F9F9] !px-6 !py-[22px] !text-[17.49px] !font-medium !text-[#171A1C]"
+                class="!w-[167px] !whitespace-nowrap !border-0 !bg-[#F9F9F9] !px-6 !py-[22px] !text-[17.49px] !font-medium !text-[#171A1C]"
               >
                 WhatsApp
               </th>
               <th
                 scope="col"
-                class="!min-w-[190px] !whitespace-nowrap !border-0 !bg-[#F9F9F9] !px-6 !py-[22px] !text-[17.49px] !font-medium !text-[#171A1C]"
+                class="!w-[163px] !whitespace-nowrap !border-0 !bg-[#F9F9F9] !px-6 !py-[22px] !text-[17.49px] !font-medium !text-[#171A1C]"
               >
                 Phone number
               </th>
               <th
                 scope="col"
-                class="!min-w-[210px] !whitespace-nowrap !border-0 !bg-[#F9F9F9] !px-6 !py-[22px] !text-[17.49px] !font-medium !text-[#171A1C]"
+                class="!w-[159px] !whitespace-nowrap !border-0 !bg-[#F9F9F9] !px-6 !py-[22px] !text-[17.49px] !font-medium !text-[#171A1C]"
               >
                 Social
               </th>
               <th
                 scope="col"
-                class="!min-w-[300px] !whitespace-nowrap !border-0 !bg-[#F9F9F9] !px-6 !py-[22px] !text-[17.49px] !font-medium !text-[#171A1C]"
+                class="!w-[300px] !whitespace-nowrap !border-0 !bg-[#F9F9F9] !px-6 !py-[22px] !text-[17.49px] !font-medium !text-[#171A1C]"
               >
                 Payment
               </th>
               <th
                 scope="col"
-                class="!min-w-[150px] !whitespace-nowrap !border-0 !bg-[#F9F9F9] !px-6 !py-[22px] !text-right !text-[17.49px] !font-semibold !text-[#171A1C]"
+                class="!w-[117px] !whitespace-nowrap !border-0 !bg-[#F9F9F9] !px-6 !py-[22px] !text-right !text-[17.49px] !font-semibold !text-[#171A1C]"
               >
                 View/Amount
               </th>
               <th
                 scope="col"
-                class="!min-w-[150px] !whitespace-nowrap !border-0 !bg-[#F9F9F9] !px-6 !py-[22px] !text-[17.49px] !font-medium !text-[#171A1C]"
-              >
-                Status
-              </th>
-              <th
-                scope="col"
-                class="!min-w-[210px] !whitespace-nowrap !rounded-r-[12.11px] !border-0 !bg-[#F9F9F9] !px-6 !py-[22px] !text-[17.49px] !font-medium !text-[#171A1C]"
+                class="!w-[150px] !whitespace-nowrap !rounded-r-[12.11px] !border-0 !bg-[#F9F9F9] !px-6 !py-[22px] !text-[17.49px] !font-medium !text-[#171A1C]"
               >
                 Review
               </th>
@@ -274,24 +270,23 @@
               </td>
 
               <td class="!border-0 !px-6 !py-5">
-                <p-tag
-                  [value]="registrationStatusLabel(row.status)"
-                  [severity]="registrationStatusTone(row.status)"
-                  [rounded]="true"
-                />
-              </td>
-
-              <td class="!border-0 !px-6 !py-5">
-                <p-select
-                  class="w-40"
-                  optionLabel="label"
-                  optionValue="value"
-                  ariaLabel="Change review status"
-                  [options]="statusOptions"
-                  [ngModel]="row.status"
-                  [disabled]="isSaving(row.id)"
-                  (ngModelChange)="changeStatus(row, $event)"
-                />
+                <div class="flex flex-col items-start gap-2">
+                  <p-tag
+                    [value]="registrationStatusLabel(row.status)"
+                    [severity]="registrationStatusTone(row.status)"
+                    [rounded]="true"
+                  />
+                  <p-select
+                    class="w-full"
+                    optionLabel="label"
+                    optionValue="value"
+                    ariaLabel="Change review status"
+                    [options]="statusOptions"
+                    [ngModel]="row.status"
+                    [disabled]="isSaving(row.id)"
+                    (ngModelChange)="changeStatus(row, $event)"
+                  />
+                </div>
               </td>
             </tr>
           </ng-template>

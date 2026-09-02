@@ -5,11 +5,35 @@
       title="Brands"
       subtitle="Manage brand accounts, contacts and campaign activity."
     >
-      <p-button
-        label="Create Brands"
-        styleClass="!rounded-lg !bg-primary !border-primary !px-7 !py-2.5 !text-sm !shadow-none"
-        (onClick)="createBrand()"
-      />
+      <!--
+        The design has no search box. Behaviour is kept, but it rides compactly
+        in the header row next to the CTA rather than sitting above the table.
+      -->
+      <div class="flex w-full flex-wrap items-center justify-end gap-3 sm:w-auto">
+        <div class="relative w-full sm:w-60">
+          <label for="admin-brand-search" class="sr-only">Search brands</label>
+          <svg
+            data-p-icon="search"
+            [size]="14"
+            class="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-[#7B7B7B]"
+            aria-hidden="true"
+          ></svg>
+          <input
+            pInputText
+            id="admin-brand-search"
+            type="search"
+            class="!h-10 w-full !py-0 !pl-9 !text-sm"
+            placeholder="Search brands"
+            [ngModel]="searchInput()"
+            (ngModelChange)="onSearchInput($event)"
+          />
+        </div>
+        <p-button
+          label="Create Brands"
+          styleClass="!rounded-lg !bg-primary !border-primary !px-7 !py-2.5 !text-sm !shadow-none"
+          (onClick)="createBrand()"
+        />
+      </div>
     </app-page-header>
 
     @switch (state()) {
@@ -56,6 +80,7 @@
             <app-stat-card label="Active campaigns" [value]="activeCampaigns()" />
             <app-stat-card
               label="Needs attention"
+              tone="attention"
               [value]="needsAttention()"
               hint="Brands with no campaigns yet"
             />
@@ -66,30 +91,9 @@
           class="mt-3 rounded-[18.83px] border border-[#ECECEC] bg-[#FFFFFF] p-4"
           aria-labelledby="admin-brand-list-heading"
         >
-          <div class="flex flex-wrap items-center justify-between gap-3">
-            <h2 id="admin-brand-list-heading" class="text-lg font-semibold text-surface-950">
-              Brand list
-            </h2>
-
-            <div class="relative w-full sm:w-72">
-              <label for="admin-brand-search" class="sr-only">Search brands</label>
-              <svg
-                data-p-icon="search"
-                [size]="14"
-                class="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-[#7B7B7B]"
-                aria-hidden="true"
-              ></svg>
-              <input
-                pInputText
-                id="admin-brand-search"
-                type="search"
-                class="w-full !pl-9"
-                placeholder="Search brands"
-                [ngModel]="searchInput()"
-                (ngModelChange)="onSearchInput($event)"
-              />
-            </div>
-          </div>
+          <h2 id="admin-brand-list-heading" class="text-[22px] font-bold text-[#171A1C]">
+            Brand list
+          </h2>
 
           @if (brands().length === 0) {
             @if (hasSearch()) {
@@ -133,14 +137,12 @@
               [class.opacity-60]="refreshing()"
               [attr.aria-busy]="refreshing()"
             >
-              <p-table
-                dataKey="id"
-                [value]="brands()"
-                [tableStyle]="{ 'min-width': '68rem' }"
-                [paginator]="true"
-                [rows]="10"
-                [rowsPerPageOptions]="[10, 20, 50]"
-              >
+              <!--
+                No `[paginator]`: the design's pager is left-aligned with a page
+                jump on the right, so the rows are sliced here and the strip
+                below is drawn to spec.
+              -->
+              <p-table dataKey="id" [value]="pagedBrands()" [tableStyle]="{ 'min-width': '68rem' }">
                 <ng-template #header>
                   <tr>
                     <th
@@ -224,6 +226,116 @@
                 </ng-template>
               </p-table>
             </div>
+
+            <nav
+              class="mt-5 flex flex-wrap items-center justify-between gap-4"
+              aria-label="Brand list pages"
+            >
+              <ul class="m-0 flex list-none items-center gap-[5px] p-0">
+                <li>
+                  <button
+                    type="button"
+                    class="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border text-[13px] font-semibold disabled:cursor-not-allowed disabled:opacity-40 border-[#F1F1F1] bg-[#FFFFFF] text-[#333333]"
+                    [disabled]="currentPage() === 1"
+                    (click)="goToPage(1)"
+                  >
+                    <svg data-p-icon="angle-double-left" [size]="14" aria-hidden="true"></svg>
+                    <span class="sr-only">First page</span>
+                  </button>
+                </li>
+                <li>
+                  <button
+                    type="button"
+                    class="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border text-[13px] font-semibold disabled:cursor-not-allowed disabled:opacity-40 border-[#F1F1F1] bg-[#FFFFFF] text-[#333333]"
+                    [disabled]="currentPage() === 1"
+                    (click)="goToPage(currentPage() - 1)"
+                  >
+                    <svg data-p-icon="angle-left" [size]="14" aria-hidden="true"></svg>
+                    <span class="sr-only">Previous page</span>
+                  </button>
+                </li>
+
+                @for (item of pageItems(); track $index) {
+                  <li>
+                    @if (item === null) {
+                      <span
+                        class="flex h-8 w-8 items-center justify-center text-[13px] font-semibold text-[#333333]"
+                        aria-hidden="true"
+                        >…</span
+                      >
+                    } @else {
+                      <button
+                        type="button"
+                        class="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border text-[13px] font-semibold disabled:cursor-not-allowed disabled:opacity-40"
+                        [class]="
+                          isCurrentPage(item)
+                            ? 'border-[#2F80ED] bg-[#2F80ED] text-white'
+                            : 'border-[#F1F1F1] bg-[#FFFFFF] text-[#333333]'
+                        "
+                        [attr.aria-current]="isCurrentPage(item) ? 'page' : null"
+                        [attr.aria-label]="'Page ' + item"
+                        (click)="goToPage(item)"
+                      >
+                        {{ item }}
+                      </button>
+                    }
+                  </li>
+                }
+
+                <li>
+                  <button
+                    type="button"
+                    class="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border text-[13px] font-semibold disabled:cursor-not-allowed disabled:opacity-40 border-[#F1F1F1] bg-[#FFFFFF] text-[#333333]"
+                    [disabled]="currentPage() === totalPages()"
+                    (click)="goToPage(currentPage() + 1)"
+                  >
+                    <svg data-p-icon="angle-right" [size]="14" aria-hidden="true"></svg>
+                    <span class="sr-only">Next page</span>
+                  </button>
+                </li>
+                <li>
+                  <button
+                    type="button"
+                    class="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border text-[13px] font-semibold disabled:cursor-not-allowed disabled:opacity-40 border-[#F1F1F1] bg-[#FFFFFF] text-[#333333]"
+                    [disabled]="currentPage() === totalPages()"
+                    (click)="goToPage(totalPages())"
+                  >
+                    <svg data-p-icon="angle-double-right" [size]="14" aria-hidden="true"></svg>
+                    <span class="sr-only">Last page</span>
+                  </button>
+                </li>
+              </ul>
+
+              <div class="flex items-center gap-2.5">
+                <label for="admin-brand-page" class="text-sm font-semibold text-[#333333]">
+                  Page
+                </label>
+                <!--
+                  A native select, not `p-select`: this is a 70×32 page jump in
+                  the design's pager, and the platform control gives the exact
+                  box plus keyboard behaviour with no overlay to restyle.
+                -->
+                <span class="relative inline-flex">
+                  <select
+                    id="admin-brand-page"
+                    class="h-8 w-[70px] appearance-none rounded-lg border border-[#DDDDDD] bg-[#FFFFFF] pr-7 pl-[15px] text-sm font-semibold text-[#333333]"
+                    [ngModel]="currentPage()"
+                    (ngModelChange)="goToPage($event)"
+                  >
+                    @for (option of pageOptions(); track option) {
+                      <option [ngValue]="option">{{ option }}</option>
+                    }
+                  </select>
+                  <svg
+                    data-p-icon="chevron-down"
+                    [size]="14"
+                    class="pointer-events-none absolute top-1/2 right-2 -translate-y-1/2 text-[#333333]"
+                    aria-hidden="true"
+                  ></svg>
+                </span>
+                <span class="text-sm font-semibold text-[#333333]">of {{ totalPages() }}</span>
+              </div>
+            </nav>
           }
         </section>
       }

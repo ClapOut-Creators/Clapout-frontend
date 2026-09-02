@@ -3,7 +3,7 @@
     <app-page-header
       breadcrumb="Brands"
       [breadcrumbTrail]="headerTrail()"
-      [title]="headerTitle()"
+      title="Brand detail"
       subtitle="Brand account, contacts and campaign activity."
     >
       @if (brand()) {
@@ -183,7 +183,7 @@
             class="mt-3 rounded-[18.83px] border border-[#ECECEC] bg-[#FFFFFF] p-4"
             aria-labelledby="admin-brand-campaigns-heading"
           >
-            <h2 id="admin-brand-campaigns-heading" class="text-lg font-semibold text-surface-950">
+            <h2 id="admin-brand-campaigns-heading" class="text-[22px] font-bold text-[#171A1C]">
               Campaigns
             </h2>
 
@@ -247,77 +247,7 @@
             } @else {
               <ul class="mt-4 grid list-none grid-cols-1 gap-3 p-0 md:grid-cols-2 xl:grid-cols-3">
                 @for (campaign of visibleCampaigns(); track campaign.slug) {
-                  <li>
-                    <a
-                      [routerLink]="['/admin/campaigns', campaign.slug]"
-                      class="flex h-full flex-col rounded-[26.27px] border border-[#DDDDDD] bg-[#F8F8F8] p-4 no-underline transition-colors hover:border-surface-300 hover:bg-[#F1F1F1]"
-                    >
-                      <div class="flex items-start justify-between gap-3">
-                        <app-brand-logo-tile
-                          sizeClass="h-16 w-36 rounded-xl"
-                          [name]="campaign.brand.name"
-                          [logoUrl]="campaign.brand.logoUrl"
-                          [logoBg]="campaign.brand.logoBg"
-                          [logoFit]="campaign.brand.logoFit"
-                        />
-                        <span class="text-right">
-                          <span
-                            class="inline-flex items-center rounded-full px-3.5 py-1 text-xs"
-                            [class]="campaignPillClass(campaign.status)"
-                            >{{ campaignStatusLabel(campaign.status) }}</span
-                          >
-                          <span
-                            class="mt-2 flex items-center justify-end gap-1.5 text-xs text-[#7B7B7B]"
-                          >
-                            <svg data-p-icon="clock" [size]="13" aria-hidden="true"></svg>
-                            {{ daysLeftLabel(campaign.endDate) }}
-                          </span>
-                        </span>
-                      </div>
-
-                      <h3 class="mt-4 truncate text-xl font-semibold text-[#151515]">
-                        {{ campaign.title || campaign.brand.name }}
-                      </h3>
-
-                      <div class="mt-2 flex flex-wrap items-center gap-3 text-sm">
-                        <span class="text-[#666666]">Platform</span>
-                        <span class="text-[#1A1A1A]">{{ platformSummary(campaign) }}</span>
-                      </div>
-
-                      <div class="mt-4 flex items-end justify-between gap-3 text-sm">
-                        <span>
-                          <span class="flex items-center gap-1.5 text-[#666666]">
-                            <svg data-p-icon="wallet" [size]="14" aria-hidden="true"></svg>
-                            Paid Out
-                          </span>
-                          <span class="mt-1 block font-semibold text-[#151515]">
-                            {{ formatMoney(campaign.currency, campaign.budgetSpent) }}
-                            <span class="text-xs font-medium text-[#5E5E5E]"
-                              >/{{ formatMoney(campaign.currency, campaign.budgetTotal) }}</span
-                            >
-                          </span>
-                        </span>
-                        <span class="text-right">
-                          <span class="block text-[#7B7B7B]">CPM</span>
-                          <span class="mt-1 block font-semibold text-[#151515]">
-                            {{ formatMoney(campaign.currency, campaign.cpm) }}
-                            <span class="text-xs font-medium text-[#5E5E5E]">/ 1k views</span>
-                          </span>
-                        </span>
-                      </div>
-
-                      @if (hasBudget(campaign.budgetTotal)) {
-                        <div class="co-meter mt-auto pt-4">
-                          <p-progressbar
-                            [value]="budgetPercent(campaign.budgetSpent, campaign.budgetTotal)"
-                            [showValue]="false"
-                          />
-                        </div>
-                      } @else {
-                        <p class="mt-auto pt-4 text-xs text-[#7B7B7B]">Budget not announced yet</p>
-                      }
-                    </a>
-                  </li>
+                  <li><app-campaign-compact-card [campaign]="campaign" /></li>
                 }
               </ul>
             }
@@ -327,15 +257,22 @@
             class="mt-3 rounded-[18.83px] border border-[#ECECEC] bg-[#FFFFFF] p-4"
             aria-labelledby="admin-brand-clippers-heading"
           >
-            <h2 id="admin-brand-clippers-heading" class="text-lg font-semibold text-surface-950">
-              Recent Registered
-            </h2>
-            <p class="mt-1 text-sm text-surface-500">
-              Everyone who registered for a {{ brand.name }} campaign, with the details you need to
-              review and pay them.
-            </p>
-            <div class="mt-4">
-              <app-clippers-table [brandId]="brand.id" [campaignOptions]="campaignOptions()" />
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <h2 id="admin-brand-clippers-heading" class="text-[22px] font-bold text-[#171A1C]">
+                Recent Registered
+              </h2>
+              <button
+                type="button"
+                class="inline-flex cursor-pointer items-center gap-2 rounded-[10px] border-0 bg-[#ECECEC] px-[15px] py-2 text-[16px] text-[#525252] hover:bg-[#E2E2E2] disabled:cursor-not-allowed disabled:opacity-50"
+                [disabled]="!canExportClippers()"
+                (click)="exportClippers()"
+              >
+                <svg data-p-icon="download" [size]="14" aria-hidden="true"></svg>
+                <span>Export</span>
+              </button>
+            </div>
+            <div class="mt-5">
+              <app-clippers-table [brandId]="brand.id" [showToolbar]="false" />
             </div>
           </section>
         }
