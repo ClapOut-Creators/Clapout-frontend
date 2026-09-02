@@ -537,3 +537,38 @@ submit button reads "Create account" rather than the design's "Sign in".
   `registrationCampaign()`, which fills the gaps with the card's
   "not announced" states rather than zeros.
 - The public navbar collapses at `md`, not `lg`, matching the landing site.
+
+## Feature-first architecture migration — Phase 0 & 1 (2026-09-02)
+
+Restructuring the app from role-based folders (`features/admin/`,
+`features/creator/`) to the feature-first, per-domain shape now mandated in
+`AGENTS.md`, `CLAUDE.md`, and `docs/clapout-frontend-blueprint/docs/
+02-frontend-architecture.md`. Rolling out incrementally, one domain at a
+time, with a `tsc --noEmit` / `ng build` / `ng build:dev` / `ng test` /
+`eslint` / `prettier --check` gate and a commit after each phase. Full
+phase-by-phase plan and file-level mapping: see the migration commits on
+`code-restructure` starting at `5fae550`.
+
+- **Phase 0 (commit `5fae550`)** — new top-level `layout/` (the app shell
+  `app.ts` composes: `layout/sidebar/side-nav`, `layout/public/{public-navbar,
+  public-footer,public-links}`, previously under `shared/`). Promoted
+  `shared/admin/*` (page-header, stat-card, wizard-shell, clippers-table,
+  campaign-compact-card, brand-logo-tile), `clock`, and `form-errors` into
+  `shared/components/` — each has 2+ consumers across domains, so a
+  role-named `admin/` bucket was the wrong home per our own new rule.
+  `campaign-format.ts` / `admin-options.ts` moved out of `core/util` (feature-
+  flavored code doesn't belong in `core`) into `shared/utils` /
+  `shared/constants`.
+- **Phase 1 (commit `d92048f`)** — `features/campaigns/` reorganized into
+  `pages/{campaign-list,campaign-detail,admin-campaigns,admin-campaign-detail,
+  campaign-wizard}`, `components/`, `data-access/`, `models/`, `utils/`. Split
+  `core/data/admin-repository.ts`'s campaign methods into a new
+  `campaigns-admin-repository.ts` (same HTTP calls/paths/error handling, just
+  relocated) and `core/models/admin.ts`'s `CampaignDraftInput`/
+  `PublishIncompleteDetails` into `features/campaigns/models/campaign-admin.ts`.
+  `admin-dashboard.ts` and `admin-registrations.ts` (not yet migrated) now
+  inject `CampaignsAdminRepository` alongside `AdminRepository` for the one
+  method each borrows from campaigns. No URL or behavior changes.
+
+Remaining phases (brands, registrations, creators, auth, dashboard, cleanup)
+are queued — same pattern, same verification gate each time.
