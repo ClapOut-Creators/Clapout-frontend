@@ -253,6 +253,164 @@ Campaign changes:
   `brandName/brandLogo*` columns are dropped.
 - Publish gate: `brandId` present (replaces the `brand.name` check).
 
+### Submissions (added 2026-09-02 — clippers submit posted clips for manual verification)
+
+A submission is one posted clip from one ACCEPTED registration. Clippers submit the
+public post link plus a screenshot (proof of the post and/or its analytics); admins
+verify views by hand, approve with a verified view count (payout = verifiedViews / 1000
+× cpm, rounded to 2 dp and frozen at approval time) and later mark it PAID once the
+MoMo transfer is done. Marking PAID adds `payoutAmount` to `Campaign.budgetSpent`
+(moving away from PAID subtracts it again, floored at 0), so the "paid out" bar on the
+landing page and the platform tracks real payouts. Automated verification and the
+payment itself stay manual/out of scope.
+
+```ts
+type SubmissionStatus = 'SUBMITTED' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED' | 'PAID';
+
+interface Submission {
+  id: string;
+  registrationId: string;
+  status: SubmissionStatus;
+  platform: Platform;            // copied from the registration at submit time
+  postUrl: string;               // https URL of the published clip
+  screenshotUrl: string;         // data:image/* (client-resized, <= ~700 KB) — proof
+  caption: string | null;        // optional title/caption of the clip
+  claimedViews: number | null;   // views the clipper reports when submitting
+  postedAt: string | null;       // 'YYYY-MM-DD' the clip went live
+  note: string | null;           // anything for the reviewer
+  verifiedViews: number | null;  // admin-entered on approval
+  payoutAmount: number | null;   // verifiedViews / 1000 * cpm, 2 dp, frozen at approval
+  reviewNote: string | null;     // rejection reason / message to the clipper
+  reviewedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  campaign: {
+    slug: string; title: string; brandName: string; brandLogoUrl: string | null;
+    brandLogoBg: string; currency: string; cpm: number | null; avgReviewTime: string;
+  };
+}
+
+interface AdminSubmission extends Submission {
+  creator: {
+    id: string; fullName: string; email: string; whatsapp: string | null;
+    phone: string | null; payout: Me['payout'];
+  };
+  registration: { id: string; platform: Platform; accountUrl: string };
+}
+
+interface CreatorStats {
+  campaigns: number;             // registrations, any status
+  acceptedCampaigns: number;     // registrations with status ACCEPTED
+  submissions: number;           // all statuses
+  pendingSubmissions: number;    // SUBMITTED | UNDER_REVIEW
+  verifiedViews: number;         // sum of verifiedViews over APPROVED | PAID
+  earned: { currency: string; amount: number }[]; // sum payoutAmount over APPROVED | PAID, per currency
+  paid: { currency: string; amount: number }[];   // PAID only, per currency
+}
+```
+
+Creator endpoints (Bearer):
+
+- `POST /submissions` `{ registrationId, postUrl, screenshotUrl, caption?, claimedViews?, postedAt?, note? }`
+  → `201 { data: Submission }`
+  | `404 REGISTRATION_NOT_FOUND` (also when the registration belongs to someone else)
+  | `422 REGISTRATION_NOT_ACCEPTED` (registration is not ACCEPTED)
+  | `422 SUBMISSIONS_CLOSED` (campaign's effective status is not ACTIVE)
+  | `422 POST_URL_PLATFORM_MISMATCH` (URL host is not the registration's platform:
+    tiktok → tiktok.com; youtube → youtube.com | youtu.be; instagram → instagram.com;
+    facebook → facebook.com | fb.watch; x → x.com | twitter.com; any subdomain such as
+    `www.`, `vm.`, `m.` is fine)
+  | `409 DUPLICATE_SUBMISSION` (same postUrl already submitted for this campaign, by anyone;
+    compare after trimming, lower-casing the host and dropping the query string/fragment)
+  | `422 VALIDATION` (not an http(s) URL, screenshotUrl not `data:image/*` or > 700 000
+    chars, claimedViews not an integer ≥ 0, postedAt not `YYYY-MM-DD`, caption > 200,
+    note > 2000)
+- `GET /me/submissions?registrationId=` → `200 { data: Submission[] }` newest first
+- `DELETE /me/submissions/:id` → `204` while SUBMITTED; `409 SUBMISSION_LOCKED` once it
+  has been touched by a reviewer; `404 SUBMISSION_NOT_FOUND` when it is not the caller's
+- `GET /me/stats` → `200 { data: CreatorStats }`
+
+Admin endpoints (Bearer + role ADMIN):
+
+- `GET /admin/submissions?campaignSlug=&brandId=&registrationId=&status=&search=`
+  → `200 { data: AdminSubmission[] }` newest first; filters combine; `search` matches
+  creator full name / email and the postUrl (case-insensitive contains)
+- `PATCH /admin/submissions/:id` `{ status, verifiedViews?, reviewNote? }`
+  → `200 { data: AdminSubmission }` | `404 SUBMISSION_NOT_FOUND`
+  - `APPROVED` requires `verifiedViews` (integer ≥ 0, or an existing value on the row)
+    and sets `payoutAmount = round(verifiedViews / 1000 * campaign.cpm, 2)`;
+    `422 CAMPAIGN_CPM_MISSING` when the campaign has no cpm
+  - `PAID` requires the row to be APPROVED or already PAID → else `422 NOT_APPROVED`;
+    entering PAID adds `payoutAmount` to `Campaign.budgetSpent` (null → 0 first)
+  - leaving PAID for any other status subtracts `payoutAmount` from `budgetSpent` (min 0)
+  - `REJECTED`, `UNDER_REVIEW`: keep verifiedViews/payoutAmount as given or previously set
+  - `SUBMITTED`: allowed (undo), clears `reviewedAt`; every other transition sets
+    `reviewedAt = now`; `reviewNote` overwrites when present (empty string → null)
+- `GET /admin/stats` gains `pendingSubmissions` (SUBMITTED | UNDER_REVIEW count) and
+  `newInquiries` (see next section) — additive, existing fields unchanged
+
+Platform routes: `/creator/campaigns/:slug/submit` (guarded; needs an ACCEPTED
+registration for that campaign — other states get an explanatory panel),
+`/creator/submissions` (every clip the clipper submitted + a "Submit a clip" campaign
+picker), `/admin/submissions` (review table + review dialog with the screenshot, the post
+link, verified views, payout preview, note, Approve / Reject / Under review / Mark paid),
+plus a Submissions section on `/admin/campaigns/:slug`. Dashboard stats come from
+`GET /me/stats`.
+
+### Partnership inquiries (added 2026-09-02 — landing "Partnership Inquiry" form → admin)
+
+The landing form keeps emailing clapoutcreators@gmail.com through Web3Forms **and** now
+also posts the same fields to the backend, so admins see every brand inquiry at
+`/admin/inquiries`. The landing sends the email first, then calls the backend with
+`emailDelivered` reflecting whether Web3Forms accepted it; the visitor sees the success
+state if either call succeeded, and the error message only when both failed.
+
+```ts
+type InquiryStatus = 'NEW' | 'CONTACTED' | 'CONVERTED' | 'CLOSED';
+
+interface PartnershipInquiry {
+  id: string;
+  name: string;
+  email: string;
+  company: string | null;
+  phone: string;                 // international, e.g. '+233201234567'
+  promoting: string;             // "What are you promoting"
+  link: string;                  // website / socials / app link (free text, not validated as a URL)
+  contentType: string;           // 'TikTok' | 'Instagram Reels' | 'YouTube Shorts' | 'Mixed' (free text)
+  timeline: string;              // 'ASAP' | 'Within 2 weeks' | 'Within a month' | 'Flexible' (free text)
+  budget: string;                // 'GH₵2,000 – 5,000' … (free text)
+  notes: string | null;
+  source: 'landing';
+  emailDelivered: boolean;       // Web3Forms accepted the notification email
+  status: InquiryStatus;
+  adminNote: string | null;
+  brandId: string | null;        // set once converted into a Brand
+  createdAt: string;
+  updatedAt: string;
+}
+```
+
+- `POST /public/partnership-inquiries` (no auth)
+  `{ name, email, company?, phone, promoting, link, contentType, timeline, budget, notes?, emailDelivered?, website? }`
+  → `201 { data: { id, createdAt } }` | `422 VALIDATION` | `429 RATE_LIMITED`.
+  `website` is a honeypot: when non-empty the API answers `201` with a random id and
+  stores nothing. Limits: name/company ≤ 120, email ≤ 160 (must be an email),
+  phone ≤ 40, promoting/link ≤ 500, contentType/timeline/budget ≤ 80, notes ≤ 4000;
+  `emailDelivered` defaults to false. Best-effort in-memory per-IP limit of 10 posts per
+  10 minutes.
+- `GET /admin/partnership-inquiries?status=&search=` → `200 { data: PartnershipInquiry[] }`
+  newest first (`search`: name / email / company / promoting, case-insensitive contains)
+- `GET /admin/partnership-inquiries/:id` → `200 { data }` | `404 INQUIRY_NOT_FOUND`
+- `PATCH /admin/partnership-inquiries/:id` `{ status?, adminNote?, brandId? }` → `200 { data }`
+  (`422 BRAND_NOT_FOUND` for an unknown brandId; a `brandId` sent without a `status`
+  moves NEW/CONTACTED → CONVERTED; `adminNote` empty string → null)
+
+Platform: `/admin/inquiries` (stat cards New / Contacted / Converted, status + search
+filters, table, detail drawer with every field, admin note and status, and a "Create
+brand from inquiry" action → `/admin/brands/new?inquiryId=` prefilled with
+company → name, link → website, name/email/phone → primary contact; saving that brand
+patches the inquiry to CONVERTED with the new `brandId`).
+
 ### Misc
 
 - `GET /health` → `200 { ok: true }`
@@ -323,5 +481,7 @@ Loading/empty/error/retry states on every page per repo CLAUDE.md.
 
 ## Out of scope (this slice)
 
-Admin/brand workspaces, payouts, email verification, password reset, content
-submission, view verification, production deployment wiring (envs are ready for it).
+Automated view verification, the payout transfer itself (admins mark submissions PAID
+by hand after sending MoMo), email verification. Admin/brand workspaces, password
+reset, content submission and partnership inquiries were added in later slices — see
+the dated sections above.

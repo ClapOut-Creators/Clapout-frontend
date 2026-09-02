@@ -4,10 +4,16 @@ import { firstValueFrom } from 'rxjs';
 import { toApiError } from '../api/api-error';
 import { APP_ENVIRONMENT } from '../config/app-environment';
 import {
+  AdminInquiryQuery,
+  AdminInquiryUpdate,
   AdminRegistration,
   AdminRegistrationQuery,
   AdminStats,
+  AdminSubmission,
+  AdminSubmissionQuery,
+  AdminSubmissionUpdate,
   CampaignDraftInput,
+  PartnershipInquiry,
 } from '../models/admin';
 import { Brand, BrandDetail, BrandInput } from '../models/brand';
 import { PublicCampaign } from '../models/campaign';
@@ -234,6 +240,112 @@ export class AdminRepository {
       await firstValueFrom(
         this.http.delete<void>(`${this.baseUrl}/brands/${encodeURIComponent(id)}`),
       );
+    } catch (error) {
+      throw toApiError(error);
+    }
+  }
+
+  // ----------------------------------------------------------- submissions
+
+  /** `GET /admin/submissions` — newest first. Filters are applied server side. */
+  async submissions(query: AdminSubmissionQuery = {}): Promise<AdminSubmission[]> {
+    let params = new HttpParams();
+    if (query.campaignSlug) {
+      params = params.set('campaignSlug', query.campaignSlug);
+    }
+    if (query.brandId) {
+      params = params.set('brandId', query.brandId);
+    }
+    if (query.registrationId) {
+      params = params.set('registrationId', query.registrationId);
+    }
+    if (query.status) {
+      params = params.set('status', query.status);
+    }
+    if (query.search) {
+      params = params.set('search', query.search);
+    }
+
+    try {
+      const response = await firstValueFrom(
+        this.http.get<{ data: AdminSubmission[] }>(`${this.baseUrl}/submissions`, { params }),
+      );
+      return response.data ?? [];
+    } catch (error) {
+      throw toApiError(error);
+    }
+  }
+
+  /**
+   * `PATCH /admin/submissions/:id` — moves a clip through review. APPROVED
+   * needs `verifiedViews` and a campaign CPM (`422 CAMPAIGN_CPM_MISSING`);
+   * PAID needs the row to be APPROVED already (`422 NOT_APPROVED`).
+   */
+  async updateSubmission(id: string, body: AdminSubmissionUpdate): Promise<AdminSubmission> {
+    try {
+      const response = await firstValueFrom(
+        this.http.patch<{ data: AdminSubmission }>(
+          `${this.baseUrl}/submissions/${encodeURIComponent(id)}`,
+          body,
+        ),
+      );
+      return response.data;
+    } catch (error) {
+      throw toApiError(error);
+    }
+  }
+
+  // ------------------------------------------------------------- inquiries
+
+  /** `GET /admin/partnership-inquiries` — newest first. */
+  async inquiries(query: AdminInquiryQuery = {}): Promise<PartnershipInquiry[]> {
+    let params = new HttpParams();
+    if (query.status) {
+      params = params.set('status', query.status);
+    }
+    if (query.search) {
+      params = params.set('search', query.search);
+    }
+
+    try {
+      const response = await firstValueFrom(
+        this.http.get<{ data: PartnershipInquiry[] }>(`${this.baseUrl}/partnership-inquiries`, {
+          params,
+        }),
+      );
+      return response.data ?? [];
+    } catch (error) {
+      throw toApiError(error);
+    }
+  }
+
+  /** `GET /admin/partnership-inquiries/:id` — `404 INQUIRY_NOT_FOUND`. */
+  async inquiry(id: string): Promise<PartnershipInquiry> {
+    try {
+      const response = await firstValueFrom(
+        this.http.get<{ data: PartnershipInquiry }>(
+          `${this.baseUrl}/partnership-inquiries/${encodeURIComponent(id)}`,
+        ),
+      );
+      return response.data;
+    } catch (error) {
+      throw toApiError(error);
+    }
+  }
+
+  /**
+   * `PATCH /admin/partnership-inquiries/:id` — status, admin note and the
+   * brand a converted inquiry became (`422 BRAND_NOT_FOUND` when unknown).
+   */
+  async updateInquiry(id: string, body: AdminInquiryUpdate): Promise<PartnershipInquiry> {
+    try {
+      const response = await firstValueFrom(
+        this.http.patch<{ data: PartnershipInquiry }>(
+          `${this.baseUrl}/partnership-inquiries/${encodeURIComponent(id)}`,
+          body,
+        ),
+      );
+      return response.data;
     } catch (error) {
       throw toApiError(error);
     }
