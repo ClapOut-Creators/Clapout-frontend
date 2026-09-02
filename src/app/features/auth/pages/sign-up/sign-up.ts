@@ -8,16 +8,16 @@ import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { PasswordModule } from 'primeng/password';
 import { SelectModule } from 'primeng/select';
-import { ApiError } from '../../core/api/api-error';
-import { AuthService } from '../../core/auth/auth-service';
-import { SignUpPayload } from '../../core/models/user';
+import { ApiError } from '../../../../core/api/api-error';
+import { AuthService } from '../../../../core/auth/auth-service';
+import { SignUpPayload } from '../../../../core/models/user';
 import {
   DEFAULT_PHONE_ISO,
   PHONE_CODES,
   dialCodeFor,
   toInternationalPhone,
-} from '../../core/util/phone-codes';
-import { firstErrorMessage } from '../../shared/components/form-errors';
+} from '../../utils/phone-codes';
+import { firstErrorMessage } from '../../../../shared/components/form-errors';
 
 /**
  * Digits with the punctuation people actually type. The country code lives in

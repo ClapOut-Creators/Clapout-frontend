@@ -4,9 +4,9 @@ import { RouterLink } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
-import { ApiError } from '../../core/api/api-error';
-import { AuthService } from '../../core/auth/auth-service';
-import { firstErrorMessage } from '../../shared/components/form-errors';
+import { ApiError } from '../../../../core/api/api-error';
+import { AuthService } from '../../../../core/auth/auth-service';
+import { firstErrorMessage } from '../../../../shared/components/form-errors';
 
 const MESSAGES: Record<string, string> = {
   required: 'Enter the email address you signed up with.',

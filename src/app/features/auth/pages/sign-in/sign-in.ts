@@ -7,9 +7,9 @@ import { CheckboxModule } from 'primeng/checkbox';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { PasswordModule } from 'primeng/password';
-import { ApiError } from '../../core/api/api-error';
-import { AuthService } from '../../core/auth/auth-service';
-import { firstErrorMessage } from '../../shared/components/form-errors';
+import { ApiError } from '../../../../core/api/api-error';
+import { AuthService } from '../../../../core/auth/auth-service';
+import { firstErrorMessage } from '../../../../shared/components/form-errors';
 
 const MESSAGES: Record<string, Record<string, string>> = {
   email: {
