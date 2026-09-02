@@ -20,9 +20,10 @@ interface NavLink {
   icon: 'clipboard' | 'compass' | 'home' | 'shop';
 }
 
+// Figma (clipper dashboard rail): home first, then discovery.
 const CREATOR_LINKS: NavLink[] = [
-  { label: 'Campaigns', path: '/campaigns', exact: false, icon: 'compass' },
   { label: 'Dashboard', path: '/creator/dashboard', exact: false, icon: 'home' },
+  { label: 'Campaigns', path: '/campaigns', exact: false, icon: 'compass' },
 ];
 
 // Order and glyphs follow the Figma rail: home → brands (shop) → campaigns

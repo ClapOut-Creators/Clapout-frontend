@@ -1,13 +1,16 @@
-import { Component, computed, effect, input, signal } from '@angular/core';
+import { Component, computed, effect, ElementRef, input, signal, viewChild } from '@angular/core';
 
 /** Beyond this width:height ratio a logo is a wordmark, not a square mark. */
 const WIDE_ASPECT_RATIO = 1.2;
+/** At or below this edge length a cover-crop shows almost none of the mark. */
+const SMALL_TILE_PX = 40;
 
 /** The brand swatch used on cards, tables and headers. */
 @Component({
   selector: 'app-brand-logo-tile',
   template: `
     <span
+      #tile
       class="flex shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[#ECECEC]"
       [class]="sizeClass()"
       [style.background-color]="logoBg()"
@@ -33,20 +36,29 @@ export class BrandLogoTile {
   /** Tailwind sizing, e.g. 'h-16 w-28' for cards or 'h-10 w-10' for tables. */
   readonly sizeClass = input<string>('h-16 w-28');
 
+  private readonly tile = viewChild.required<ElementRef<HTMLElement>>('tile');
+
   /** Set once the image loads and turns out to be a wide wordmark. */
   private readonly wideImage = signal(false);
+  /** Set from the rendered box, since `sizeClass` is an opaque class string. */
+  private readonly smallTile = signal(false);
 
   /**
-   * `cover` crops a wide wordmark to its middle ("E-WALE" became "-WALE" in the
-   * square table tiles), so a wide image falls back to `contain` on the brand
-   * background with a small inset — the whole mark shows, as it does in Figma.
-   * Square and tall images keep `cover` so they fill the tile.
+   * `cover` crops a wide wordmark to its middle ("E-WALE" became "-WALE"), and on
+   * a small badge it can crop away the mark entirely — a 24px tile showed as a
+   * bare blue square. So a wide image, or any tile at or below 40px, falls back
+   * to `contain` on the brand background. Small tiles get a tighter inset so the
+   * mark still fills the badge, as it does in Figma.
    */
-  protected readonly imageClass = computed(() =>
-    this.logoFit() === 'contain' || this.wideImage()
-      ? 'h-full w-full object-contain p-[12%]'
-      : 'h-full w-full object-cover',
-  );
+  protected readonly imageClass = computed(() => {
+    const contain = this.logoFit() === 'contain' || this.wideImage() || this.smallTile();
+    if (!contain) {
+      return 'h-full w-full object-cover';
+    }
+    return this.smallTile()
+      ? 'h-full w-full object-contain p-[10%]'
+      : 'h-full w-full object-contain p-[12%]';
+  });
 
   constructor() {
     // Instances are reused across rows, so a new source starts unmeasured
@@ -54,6 +66,21 @@ export class BrandLogoTile {
     effect(() => {
       this.logoUrl();
       this.wideImage.set(false);
+    });
+
+    // The tile's size comes from a Tailwind class, so measure the box rather
+    // than trying to parse it. ResizeObserver also catches responsive changes.
+    effect((onCleanup) => {
+      const element = this.tile().nativeElement;
+      const measure = () =>
+        this.smallTile.set(element.getBoundingClientRect().width <= SMALL_TILE_PX);
+      measure();
+      if (typeof ResizeObserver === 'undefined') {
+        return;
+      }
+      const observer = new ResizeObserver(measure);
+      observer.observe(element);
+      onCleanup(() => observer.disconnect());
     });
   }
 

@@ -74,12 +74,12 @@ describe('SideNav', () => {
     const links = Array.from(element.querySelectorAll('.co-shell-rail nav a'));
     expect(links).toHaveLength(2);
     expect(links.map((link) => link.getAttribute('aria-label'))).toEqual([
-      'Campaigns',
       'Dashboard',
+      'Campaigns',
     ]);
     expect(links.map((link) => link.getAttribute('href'))).toEqual([
-      '/campaigns',
       '/creator/dashboard',
+      '/campaigns',
     ]);
   });
 
