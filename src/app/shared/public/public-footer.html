@@ -1,99 +1,71 @@
-<footer class="relative mt-16 overflow-hidden bg-[#0C0C0C]">
-  <div class="mx-auto max-w-[1410px] px-6 pb-10 pt-[84px] lg:px-0">
-    <div class="grid grid-cols-1 gap-12 lg:grid-cols-[minmax(0,446px)_1fr_1fr_1fr]">
-      <div>
+<footer class="overflow-hidden bg-[#0C0C0C]">
+  <div class="mx-auto max-w-6xl px-5 pt-16 sm:px-8 md:px-10 md:pt-24">
+    <div class="grid gap-x-8 gap-y-12 md:grid-cols-12">
+      <div class="md:col-span-4">
         <img
           src="/logo/clapout-logo.png"
-          alt="ClapOut"
-          class="h-20 w-20 select-none"
+          alt="Clapout logo"
+          class="h-16 w-auto select-none sm:h-[72px]"
           draggable="false"
         />
-        <p class="mt-4 max-w-[446px] text-[19px] leading-relaxed text-[#D7E2EA]/70">
-          A creator distribution platform connecting brands with micro-influencers who make content
-          travel — and get paid for verified performance.
+        <p class="mt-5 max-w-sm text-[13px] leading-relaxed text-white/70">
+          A creator distribution platform connecting brands with micro&#8209;influencers who make
+          content travel &mdash; and get paid for verified performance.
         </p>
       </div>
 
-      <div>
-        <h2 class="text-[11px] font-medium uppercase tracking-[0.18em] text-[#D7E2EA]/40">
-          Explore
-        </h2>
-        <ul class="mt-4 flex list-none flex-col gap-[15px] p-0">
-          @for (link of explore; track link.label) {
-            <li>
-              @if (isInternal(link.href)) {
-                <a
-                  [routerLink]="link.href"
-                  class="text-[19px] text-[#D7E2EA]/70 no-underline hover:text-white"
-                  >{{ link.label }}</a
-                >
-              } @else {
-                <a
-                  [href]="link.href"
-                  class="text-[19px] text-[#D7E2EA]/70 no-underline hover:text-white"
-                  >{{ link.label }}</a
-                >
-              }
-            </li>
-          }
-        </ul>
-      </div>
-
-      <div>
-        <h2 class="text-[11px] font-medium uppercase tracking-[0.18em] text-[#D7E2EA]/40">Legal</h2>
-        <ul class="mt-4 flex list-none flex-col gap-[15px] p-0">
-          @for (link of legal; track link.label) {
-            <li>
-              <a
-                [routerLink]="link.href"
-                class="text-[19px] text-[#D7E2EA]/70 no-underline hover:text-white"
-                >{{ link.label }}</a
-              >
-            </li>
-          }
-        </ul>
-      </div>
-
-      <div>
-        <h2 class="text-[11px] font-medium uppercase tracking-[0.18em] text-[#D7E2EA]/40">
-          Contact
-        </h2>
-        <ul class="mt-4 flex list-none flex-col gap-[15px] p-0">
-          @for (link of contact; track link.label) {
-            <li>
-              @if (!link.href) {
-                <span class="text-[19px] text-[#D7E2EA]/70">{{ link.label }}</span>
-              } @else if (isInternal(link.href)) {
-                <a
-                  [routerLink]="link.href"
-                  class="text-[19px] text-[#D7E2EA]/70 no-underline hover:text-white"
-                  >{{ link.label }}</a
-                >
-              } @else {
-                <a
-                  [href]="link.href"
-                  class="text-[19px] text-[#D7E2EA]/70 no-underline hover:text-white"
-                  >{{ link.label }}</a
-                >
-              }
-            </li>
-          }
-        </ul>
-      </div>
+      @for (column of columns; track column.title; let first = $first) {
+        <!-- The logo block spans 4 of the 12 columns, so the first list starts at 5. -->
+        <div [class]="first ? 'md:col-span-2 md:col-start-5' : 'md:col-span-2'">
+          <h2 class="mb-6 text-[11px] font-medium uppercase tracking-[0.3em] text-white/40">
+            {{ column.title }}
+          </h2>
+          <ul class="m-0 flex list-none flex-col gap-3.5 p-0">
+            @for (link of column.links; track link.label) {
+              <li>
+                <!-- `lg:` restores the design's single-line labels once the column is wide
+                     enough for them; below that the global break-word default keeps the
+                     contact address from being clipped by the footer's `overflow-hidden`. -->
+                @if (!link.href) {
+                  <span class="text-[13px] text-white/70 lg:[overflow-wrap:normal]">{{
+                    link.label
+                  }}</span>
+                } @else if (isInternal(link.href)) {
+                  <a
+                    [routerLink]="link.href"
+                    class="text-[13px] text-white/70 no-underline transition-colors duration-200 hover:text-white lg:[overflow-wrap:normal]"
+                    >{{ link.label }}</a
+                  >
+                } @else {
+                  <a
+                    [href]="link.href"
+                    class="text-[13px] text-white/70 no-underline transition-colors duration-200 hover:text-white lg:[overflow-wrap:normal]"
+                    >{{ link.label }}</a
+                  >
+                }
+              </li>
+            }
+          </ul>
+        </div>
+      }
     </div>
 
     <div
-      class="mt-16 flex flex-col gap-3 border-t border-[#D7E2EA]/10 pt-6 text-[16px] text-[#D7E2EA]/40 sm:flex-row sm:items-center sm:justify-between"
+      class="mt-16 flex flex-col items-center justify-between gap-2 border-t border-white/10 py-6 sm:flex-row md:mt-20"
     >
-      <span>&copy; {{ year }} Clapout. All rights reserved.</span>
-      <span>Create. Post. Get Paid.</span>
+      <p class="m-0 text-xs tracking-widest text-white/40">
+        &copy; {{ year }} Clapout. All rights reserved.
+      </p>
+      <p class="m-0 text-xs uppercase tracking-widest text-white/40">Create. Post. Get Paid.</p>
     </div>
   </div>
 
-  <!-- Oversized wordmark bleeding off the bottom edge. -->
-  <span
-    aria-hidden="true"
-    class="pointer-events-none block select-none text-center text-[18vw] font-black leading-[0.75] tracking-tight text-[#D7E2EA]/[0.06]"
-    >CLAPOUT</span
-  >
+  <!-- Giant wordmark bleeding off the bottom edge. -->
+  <div aria-hidden="true" class="pointer-events-none flex justify-center overflow-hidden">
+    <span
+      class="select-none whitespace-nowrap font-bold uppercase leading-none text-white/[0.06] [font-family:var(--clapout-font-heading)]"
+      style="font-size: clamp(6rem, 26vw, 26rem); margin-bottom: -0.12em"
+      >Clapout</span
+    >
+  </div>
 </footer>

@@ -1,69 +1,87 @@
-<!-- Desktop: the floating pill (Figma 344:1182 — 1537x96, r=79.3, inset 36px). -->
-<header class="px-4 pt-4 lg:px-0 lg:pt-9">
-  <nav
-    aria-label="Primary"
-    class="mx-auto flex h-[72px] max-w-[1537px] items-center justify-between rounded-[79.3px] border border-white/20 bg-[#B4B4B4]/10 px-6 backdrop-blur lg:h-24 lg:px-[23.78px]"
-  >
-    <a routerLink="/campaigns" class="flex items-center">
-      <img
-        src="/logo/clapout-logo.png"
-        alt="ClapOut"
-        class="h-14 w-14 select-none lg:h-20 lg:w-20"
-        draggable="false"
-      />
-    </a>
-
-    <!-- Centre links (desktop only) -->
-    <div class="hidden items-center gap-[29.72px] lg:flex">
-      <button
-        type="button"
-        class="flex cursor-pointer items-center gap-2.5 border-0 bg-transparent p-0 text-[20px] text-[#383838]"
-        (click)="productMenu.toggle($event)"
-      >
-        Product
-        <svg data-p-icon="chevron-down" [size]="16" aria-hidden="true"></svg>
-      </button>
-      <p-popover #productMenu>
-        <ul class="m-0 flex list-none flex-col gap-1 p-0">
-          @for (link of productLinks; track link.href) {
-            <li>
-              <a
-                [href]="link.href"
-                class="block rounded-lg px-3 py-2 text-sm text-surface-700 no-underline hover:bg-surface-100"
-                >{{ link.label }}</a
-              >
-            </li>
-          }
-        </ul>
-      </p-popover>
-
-      <a routerLink="/campaigns" class="text-[20px] text-[#383838] no-underline">Campaigns</a>
-      <a [href]="landingUrl + '/#contact'" class="text-[20px] text-[#383838] no-underline"
-        >Contact</a
-      >
-    </div>
-
-    <!-- Right actions (desktop) -->
-    <div class="hidden items-center gap-2.5 lg:flex">
-      <a routerLink="/auth/sign-in" class="px-2 text-[20px] text-[#383838] no-underline">Sign in</a>
-      <a
-        routerLink="/auth/sign-up"
-        class="flex h-[52px] items-center rounded-[69.3px] bg-[#EC612C] px-[27.74px] text-[23.8px] font-medium text-white no-underline"
-        >Get Started</a
-      >
-    </div>
-
-    <!-- Mobile: orange round hamburger -->
-    <button
-      type="button"
-      class="flex h-12 w-12 cursor-pointer items-center justify-center rounded-full border-0 bg-[#EC612C] text-white lg:hidden"
-      aria-label="Open menu"
-      [attr.aria-expanded]="drawerOpen()"
-      (click)="drawerOpen.set(true)"
+<!--
+  The landing site's floating pill, ported from clapoutcreators.com
+  (`src/components/layout/Navbar.tsx`): a white pill inset by 190px from `md`
+  up, 14px Poppins links, and the orange round hamburger below `md`. The
+  breakpoint matters — the studio used to collapse to the hamburger at `lg`,
+  so a 1000px window showed a phone menu next to the landing's full nav.
+-->
+<header class="flex justify-center px-4 pt-4 md:px-0 md:pt-9">
+  <div class="w-full md:w-[calc(100%-190px)] md:max-w-[1537px]">
+    <nav
+      aria-label="Primary"
+      class="flex items-center justify-between gap-4 rounded-full border border-black/5 bg-white/95 px-5 py-2.5 shadow-sm backdrop-blur md:px-6 md:py-3"
     >
-      <svg data-p-icon="bars" [size]="20" aria-hidden="true"></svg>
-    </button>
-  </nav>
+      <a routerLink="/campaigns" class="flex shrink-0 items-center gap-2">
+        <img
+          src="/logo/clapout-logo.png"
+          alt="ClapOut"
+          class="h-9 w-9 select-none md:h-12 md:w-12"
+          draggable="false"
+        />
+      </a>
+
+      <!-- Centre links (md and up) -->
+      <div class="hidden items-center gap-8 md:flex">
+        <button
+          type="button"
+          class="flex cursor-pointer items-center gap-1 border-0 bg-transparent p-0 text-sm text-[#383838] transition-colors hover:text-black"
+          (click)="productMenu.toggle($event)"
+        >
+          Product
+          <svg data-p-icon="chevron-down" [size]="16" aria-hidden="true"></svg>
+        </button>
+        <p-popover #productMenu>
+          <ul class="m-0 flex list-none flex-col gap-1 p-0">
+            @for (link of productLinks; track link.href) {
+              <li>
+                <a
+                  [href]="link.href"
+                  class="block rounded-lg px-3 py-2 text-sm text-surface-700 no-underline hover:bg-surface-100"
+                  >{{ link.label }}</a
+                >
+              </li>
+            }
+          </ul>
+        </p-popover>
+
+        <a
+          routerLink="/campaigns"
+          class="text-sm text-[#383838] no-underline transition-colors hover:text-black"
+          >Campaigns</a
+        >
+        <a
+          [href]="landingUrl + '/#contact'"
+          class="text-sm text-[#383838] no-underline transition-colors hover:text-black"
+          >Contact</a
+        >
+      </div>
+
+      <div class="flex shrink-0 items-center gap-3">
+        <!-- Right actions (md and up) -->
+        <a
+          routerLink="/auth/sign-in"
+          class="hidden text-sm text-[#383838] no-underline transition-colors hover:text-black md:block"
+          >Sign in</a
+        >
+        <a
+          routerLink="/auth/sign-up"
+          class="hidden rounded-full bg-[#EC612C] px-8 py-2.5 text-sm font-medium text-white no-underline md:block"
+          >Get Started</a
+        >
+
+        <!-- Below md: orange round hamburger -->
+        <button
+          type="button"
+          class="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-full border-0 bg-[#EC612C] text-white md:hidden"
+          aria-label="Open menu"
+          [attr.aria-expanded]="drawerOpen()"
+          (click)="drawerOpen.set(true)"
+        >
+          <svg data-p-icon="bars" [size]="20" aria-hidden="true"></svg>
+        </button>
+      </div>
+    </nav>
+  </div>
 </header>
 
 <p-drawer
