@@ -341,6 +341,17 @@
               <p class="m-0 text-center text-[14px] leading-6 text-[#7B7B7B]">
                 Registration opens {{ formatDateTime(campaign.startDate) }}.
               </p>
+            } @else if (canSubmitContent()) {
+              <!-- Accepted on a live campaign: the next step is a clip, not the
+                   dashboard, so the CTA slot becomes the submit action. -->
+              <a
+                [routerLink]="submitUrl()"
+                class="flex h-10 w-full items-center justify-center rounded-xl bg-[#EC612C] text-[18px] font-medium text-white no-underline"
+                >Submit content</a
+              >
+              <p class="m-0 text-center text-[14px] leading-6 text-[#7B7B7B]">
+                You are accepted on this campaign — paste the link to a clip you posted.
+              </p>
             } @else if (existingRegistration(); as registration) {
               <div class="rounded-[20px] border border-[#DDDDDD] bg-[#F8F8F8] p-5 text-center">
                 <p class="m-0 text-[18px] font-medium text-[#151515]">Already applied</p>

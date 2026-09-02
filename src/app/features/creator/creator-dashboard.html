@@ -208,29 +208,67 @@
 
         <li class="flex flex-wrap items-center justify-between gap-4">
           <div class="flex min-w-0 items-center gap-4">
-            <span
-              class="flex size-14 shrink-0 items-center justify-center rounded-full bg-[#EEEEEE]"
-            >
-              <svg data-p-icon="video" [size]="24" class="text-[#787878]" aria-hidden="true"></svg>
-            </span>
+            @if (submissionsDone()) {
+              <span
+                class="flex size-14 shrink-0 items-center justify-center rounded-full bg-[#EC612C]"
+              >
+                <span class="flex size-6 items-center justify-center rounded-full bg-white">
+                  <svg
+                    data-p-icon="check"
+                    [size]="13"
+                    class="text-[#EC612C]"
+                    aria-hidden="true"
+                  ></svg>
+                </span>
+              </span>
+            } @else {
+              <span
+                class="flex size-14 shrink-0 items-center justify-center rounded-full bg-[#EEEEEE]"
+              >
+                <svg
+                  data-p-icon="video"
+                  [size]="24"
+                  class="text-[#787878]"
+                  aria-hidden="true"
+                ></svg>
+              </span>
+            }
             <div class="min-w-0">
-              <p class="m-0 text-[18px] leading-[26px] font-medium text-[#2B2B2B]">
+              <p
+                class="m-0 text-[18px] leading-[26px] font-medium"
+                [class]="submissionsDone() ? 'text-[#767676]' : 'text-[#2B2B2B]'"
+              >
                 Submit your first video
               </p>
               <p class="m-0 text-[16px] leading-[26px] text-[#808080]">
-                Upload the link to the content.
+                {{ submissionsSubtitle() }}
               </p>
             </div>
           </div>
-          <span class="inline-flex shrink-0" pTooltip="Coming soon" tooltipPosition="top">
-            <button
-              type="button"
-              disabled
-              class="inline-flex h-[50px] cursor-not-allowed items-center justify-center rounded-[34px] bg-[#EEEEEE] px-[27.74px] text-[18px] leading-[23.8px] font-medium text-[#2B2B2B] opacity-60"
+          <!-- Clips can only be attached to a campaign that has accepted the
+               clipper, so the step stays closed until one has. -->
+          @if (canSubmit()) {
+            <a
+              [routerLink]="submitLink()"
+              class="inline-flex h-[50px] shrink-0 items-center justify-center rounded-[34px] bg-[#EEEEEE] px-[27.74px] text-[18px] leading-[23.8px] font-medium text-[#2B2B2B] no-underline transition-colors hover:bg-[#E4E4E4]"
             >
-              Submit content
-            </button>
-          </span>
+              {{ submissionsDone() ? 'Submit another clip' : 'Submit content' }}
+            </a>
+          } @else {
+            <span
+              class="inline-flex shrink-0"
+              pTooltip="Available once a campaign accepts you"
+              tooltipPosition="top"
+            >
+              <button
+                type="button"
+                disabled
+                class="inline-flex h-[50px] cursor-not-allowed items-center justify-center rounded-[34px] bg-[#EEEEEE] px-[27.74px] text-[18px] leading-[23.8px] font-medium text-[#2B2B2B] opacity-60"
+              >
+                Submit content
+              </button>
+            </span>
+          }
         </li>
       </ul>
     </section>
@@ -238,10 +276,10 @@
     <section aria-labelledby="creator-stats-heading">
       <h2 id="creator-stats-heading" class="sr-only">Your totals</h2>
       <dl class="m-0 grid grid-cols-1 gap-[15px] sm:grid-cols-2 xl:grid-cols-4">
-        <app-stat-card label="Earned" [value]="earnedValue" />
-        <app-stat-card label="Views" [value]="viewsValue" />
+        <app-stat-card label="Earned" [value]="earnedValue()" />
+        <app-stat-card label="Views" [value]="viewsValue()" />
         <app-stat-card label="Campaigns" [value]="campaignsValue()" />
-        <app-stat-card label="Submissions" [value]="submissionsValue" />
+        <app-stat-card label="Submissions" [value]="submissionsValue()" />
       </dl>
     </section>
 
@@ -321,7 +359,7 @@
                 class="mt-[22px] grid list-none grid-cols-1 gap-x-[18px] gap-y-[10px] p-0 sm:grid-cols-2 2xl:grid-cols-3"
               >
                 @for (application of applications(); track application.id) {
-                  <li class="relative flex">
+                  <li class="relative flex flex-col">
                     <app-public-campaign-card
                       class="flex w-full"
                       metaLabelPrefix="Applied"
@@ -335,6 +373,17 @@
                         [rounded]="true"
                       />
                     </span>
+                    <!-- The card is one big link, so the submit action lives in a
+                         footer row beneath it rather than nested inside it. -->
+                    @if (application.status === 'ACCEPTED') {
+                      <span class="mt-[8px] flex">
+                        <a
+                          [routerLink]="submitLinkFor(application)"
+                          class="inline-flex h-[38px] items-center justify-center rounded-[34px] bg-[#EEEEEE] px-[18px] text-[15px] font-medium text-[#2B2B2B] no-underline transition-colors hover:bg-[#E4E4E4]"
+                          >Submit clip</a
+                        >
+                      </span>
+                    }
                   </li>
                 }
               </ul>

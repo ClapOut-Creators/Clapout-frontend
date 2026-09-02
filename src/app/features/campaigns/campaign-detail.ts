@@ -90,6 +90,15 @@ export class CampaignDetail {
   protected readonly isSignedIn = this.auth.isSignedIn;
 
   protected readonly isUpcoming = computed(() => this.campaign()?.status === 'UPCOMING');
+
+  /**
+   * Only an ACCEPTED clipper on a live campaign can submit; every other
+   * registration state keeps the "Already applied" panel.
+   */
+  protected readonly canSubmitContent = computed(
+    () =>
+      this.existingRegistration()?.status === 'ACCEPTED' && this.campaign()?.status === 'ACTIVE',
+  );
   private readonly now = createNowSignal({ enabled: this.isUpcoming });
 
   /** 'HH:MM:SS' until registration opens, or null once it has (or if unknown). */
@@ -143,6 +152,11 @@ export class CampaignDetail {
   /** Where the register CTA sends the visitor once they have an account. */
   protected applyUrl(): string {
     return `/creator/campaigns/${this.slug()}/apply`;
+  }
+
+  /** Where an accepted clipper goes to submit a clip for this campaign. */
+  protected submitUrl(): string {
+    return `/creator/campaigns/${this.slug()}/submit`;
   }
 
   protected register(): void {

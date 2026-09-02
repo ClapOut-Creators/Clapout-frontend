@@ -11,9 +11,22 @@ export const CREATOR_ROUTES: Routes = [
     title: 'Your dashboard - ClapOut Studio',
   },
   {
+    path: 'submissions',
+    canActivate: [creatorGuard],
+    loadComponent: () =>
+      import('./creator-submissions').then((module) => module.CreatorSubmissions),
+    title: 'Your submissions - ClapOut Studio',
+  },
+  {
     path: 'campaigns/:slug/apply',
     canActivate: [creatorGuard],
     loadComponent: () => import('./campaign-apply').then((module) => module.CampaignApply),
     title: 'Apply to campaign - ClapOut Studio',
+  },
+  {
+    path: 'campaigns/:slug/submit',
+    canActivate: [creatorGuard],
+    loadComponent: () => import('./submit-clip').then((module) => module.SubmitClip),
+    title: 'Submit your clip - ClapOut Studio',
   },
 ];

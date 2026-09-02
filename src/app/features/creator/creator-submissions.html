@@ -1,0 +1,188 @@
+<main class="flex flex-col gap-[15px]">
+  <div class="flex flex-wrap items-start justify-between gap-3 pb-2">
+    <p
+      class="m-0 inline-flex items-center gap-2 rounded-[26px] bg-[#F1F1F1] px-2.5 py-1.5 text-[14px] leading-[17px] text-[#464646]"
+    >
+      <svg data-p-icon="video" [size]="14" class="text-[#585858]" aria-hidden="true"></svg>
+      <span class="h-[17px] w-px bg-[#D5D5D5]" aria-hidden="true"></span>
+      <span>Submissions</span>
+    </p>
+  </div>
+
+  <header class="flex flex-wrap items-end justify-between gap-4">
+    <div>
+      <h1 class="m-0 text-[30px] leading-[45px] font-semibold tracking-tight text-[#171A1C]">
+        Your submissions
+      </h1>
+      <p class="mt-1 mb-0 text-[20px] leading-6 text-[#464646]">
+        Every clip you sent in, and where it is in review.
+      </p>
+    </div>
+
+    <span
+      class="inline-flex shrink-0"
+      [attr.title]="canSubmit() ? null : 'Available once a campaign accepts you'"
+    >
+      <button
+        type="button"
+        class="inline-flex h-[50px] items-center justify-center rounded-[28px] bg-gradient-to-r from-[#EC612C] to-[#FFC93C] px-[27.74px] text-[18px] leading-[23.8px] font-medium text-white disabled:cursor-not-allowed disabled:opacity-60"
+        [disabled]="!canSubmit()"
+        (click)="startSubmission()"
+      >
+        Submit a clip
+      </button>
+    </span>
+  </header>
+
+  <section aria-labelledby="creator-submission-stats-heading">
+    <h2 id="creator-submission-stats-heading" class="sr-only">Your totals</h2>
+    <dl class="m-0 grid grid-cols-1 gap-[15px] sm:grid-cols-2 xl:grid-cols-4">
+      <app-stat-card label="Submissions" [value]="submissionsValue()" />
+      <app-stat-card label="Pending" [value]="pendingValue()" tone="attention" />
+      <app-stat-card label="Verified views" [value]="viewsValue()" />
+      <app-stat-card label="Earned" [value]="earnedValue()" />
+    </dl>
+    @if (statsError(); as message) {
+      <p class="mt-2 mb-0 text-[14px] leading-5 text-[#808080]">
+        {{ message }} Your totals are unavailable right now.
+      </p>
+    }
+  </section>
+
+  <section
+    class="rounded-[18.8px] border border-[#ECECEC] bg-white"
+    aria-labelledby="creator-submissions-heading"
+  >
+    <h2 id="creator-submissions-heading" class="sr-only">Submitted clips</h2>
+
+    @switch (state()) {
+      @case ('loading') {
+        <div class="flex flex-col gap-[10px] p-[30px]" aria-busy="true" aria-live="polite">
+          <span class="sr-only">Loading your submissions</span>
+          @for (row of skeletonRows; track row) {
+            <p-skeleton width="100%" height="7rem" borderRadius="18.8px" />
+          }
+        </div>
+      }
+
+      @case ('error') {
+        <div class="p-[30px]">
+          <p-message severity="error" [closable]="false">{{ errorMessage() }}</p-message>
+          <p class="mt-3 mb-0 text-[16px] leading-[26px] text-[#808080]">
+            Nothing was lost — your clips are still with us.
+          </p>
+          <p-button label="Try again" size="small" styleClass="mt-4" (onClick)="load()" />
+        </div>
+      }
+
+      @default {
+        @if (submissions().length === 0) {
+          <div
+            class="flex min-h-[424px] flex-col items-center justify-center px-6 py-12 text-center"
+          >
+            <span
+              class="flex size-[75px] items-center justify-center rounded-full bg-gradient-to-br from-[#EC612C] to-[#FFC93C]"
+            >
+              <svg data-p-icon="video" [size]="34" class="text-white" aria-hidden="true"></svg>
+            </span>
+            <p
+              class="mt-[13px] mb-0 text-[20px] leading-6 font-medium text-[#2B2B2B] [font-family:var(--clapout-font-body)]"
+            >
+              No clips submitted yet
+            </p>
+            <p class="mt-[5px] mb-0 text-[16px] leading-[19px] text-[#808080]">
+              Clips you submit will appear here with their review status
+            </p>
+            @if (canSubmit()) {
+              <button
+                type="button"
+                class="mt-[22px] inline-flex h-[50px] items-center justify-center rounded-[28px] bg-gradient-to-r from-[#EC612C] to-[#FFC93C] px-[27.74px] text-[18px] leading-[23.8px] font-medium text-white"
+                (click)="startSubmission()"
+              >
+                Submit a clip
+              </button>
+            } @else {
+              <a
+                routerLink="/campaigns"
+                class="mt-[22px] inline-flex h-[50px] items-center justify-center rounded-[34px] bg-[#EEEEEE] px-[27.74px] text-[18px] leading-[23.8px] font-medium text-[#2B2B2B] no-underline transition-colors hover:bg-[#E4E4E4]"
+                >Browse campaigns</a
+              >
+            }
+          </div>
+        } @else {
+          <div class="p-[30px]">
+            <p
+              class="m-0 text-[20px] leading-6 font-medium text-[#2B2B2B] [font-family:var(--clapout-font-body)]"
+            >
+              Submitted clips
+            </p>
+            <p class="mt-[9px] mb-[16px] text-[16px] leading-6 text-[#808080]">
+              {{ submissions().length }}
+              {{ submissions().length === 1 ? 'clip' : 'clips' }}, newest first.
+            </p>
+
+            <app-submission-list
+              [submissions]="submissions()"
+              [showCampaign]="true"
+              [busyIds]="withdrawingIds()"
+              (withdraw)="confirmWithdraw($event)"
+            />
+          </div>
+        }
+      }
+    }
+  </section>
+</main>
+
+<p-dialog
+  header="Which campaign?"
+  [visible]="pickerOpen()"
+  (visibleChange)="pickerOpen.set($event)"
+  [modal]="true"
+  [draggable]="false"
+  [dismissableMask]="true"
+  [style]="{ width: '30rem' }"
+  [breakpoints]="{ '640px': '92vw' }"
+>
+  <p class="mt-0 mb-4 text-[16px] leading-6 text-[#808080]">
+    Pick the campaign this clip was posted for.
+  </p>
+
+  <ul class="m-0 flex list-none flex-col gap-[10px] p-0">
+    @for (campaign of accepted(); track campaign.slug) {
+      <li>
+        <button
+          type="button"
+          class="flex w-full items-center gap-3 rounded-[16px] border border-[#ECECEC] bg-white px-[14px] py-[12px] text-left transition-colors hover:bg-[#F7F7F7]"
+          (click)="chooseCampaign(campaign.slug)"
+        >
+          <app-brand-logo-tile
+            class="shrink-0"
+            [name]="campaign.brandName"
+            [logoUrl]="campaign.logoUrl"
+            [logoBg]="campaign.logoBg"
+            sizeClass="h-[40px] w-[40px]"
+          />
+          <span class="min-w-0 flex-1">
+            <span class="block truncate text-[16px] leading-6 font-medium text-[#2B2B2B]">{{
+              campaign.title
+            }}</span>
+            <span class="block truncate text-[14px] leading-5 text-[#808080]">{{
+              campaign.brandName
+            }}</span>
+          </span>
+          <svg
+            data-p-icon="chevron-right"
+            [size]="14"
+            class="shrink-0 text-[#808080]"
+            aria-hidden="true"
+          ></svg>
+        </button>
+      </li>
+    } @empty {
+      <li class="text-[16px] leading-6 text-[#808080]">
+        No campaign has accepted you yet, so there is nothing to submit to.
+      </li>
+    }
+  </ul>
+</p-dialog>

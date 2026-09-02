@@ -15,14 +15,18 @@ import { TooltipModule } from 'primeng/tooltip';
 import { ApiError } from '../../core/api/api-error';
 import { AuthService } from '../../core/auth/auth-service';
 import { RegistrationsRepository } from '../../core/data/registrations-repository';
+import { SubmissionsRepository } from '../../core/data/submissions-repository';
 import { PublicCampaign } from '../../core/models/campaign';
 import { Registration, registrationCampaign } from '../../core/models/registration';
+import { CreatorStats } from '../../core/models/submission';
 import { SocialAccount } from '../../core/models/user';
 import {
   formatMoneyExact,
+  HOME_CURRENCY,
   NOT_ANNOUNCED,
   registrationStatusLabel,
   registrationStatusTone,
+  totalsLabel,
 } from '../../core/util/campaign-format';
 import { StatCard } from '../../shared/admin/stat-card';
 import { PublicCampaignCard } from '../../shared/public/public-campaign-card';
@@ -88,6 +92,7 @@ function readJoinedCommunity(): boolean {
 })
 export class CreatorDashboard {
   private readonly registrations = inject(RegistrationsRepository);
+  private readonly submissions = inject(SubmissionsRepository);
   private readonly auth = inject(AuthService);
 
   private readonly user = this.auth.user;
@@ -106,10 +111,53 @@ export class CreatorDashboard {
   protected readonly skeletonCards = [0, 1, 2];
 
   protected readonly communityUrl = COMMUNITY_URL;
-  /** Nothing in the API reports earnings, views or submissions yet. */
-  protected readonly earnedValue = formatMoneyExact('GHS', 0);
-  protected readonly viewsValue = '0';
-  protected readonly submissionsValue = '0';
+  /** `GET /me/stats`; null until it answers, so the tiles read as unknown. */
+  protected readonly stats = signal<CreatorStats | null>(null);
+
+  /** Unknown until `GET /me/stats` answers, rather than a placeholder zero. */
+  protected readonly earnedValue = computed(() => {
+    const stats = this.stats();
+    return stats ? totalsLabel(stats.earned) : formatMoneyExact(HOME_CURRENCY, null);
+  });
+
+  protected readonly viewsValue = computed(() => {
+    const stats = this.stats();
+    return stats ? stats.verifiedViews.toLocaleString('en-GB') : NOT_ANNOUNCED;
+  });
+
+  protected readonly submissionsValue = computed(() => {
+    const stats = this.stats();
+    return stats ? String(stats.submissions) : NOT_ANNOUNCED;
+  });
+
+  /** Checklist step 5 is done as soon as one clip has been sent. */
+  protected readonly submissionsDone = computed(() => (this.stats()?.submissions ?? 0) > 0);
+
+  /** Campaigns that have accepted this clipper — the only ones that take clips. */
+  protected readonly acceptedApplications = computed(() =>
+    this.applications().filter((application) => application.status === 'ACCEPTED'),
+  );
+
+  protected readonly canSubmit = computed(() => this.acceptedApplications().length > 0);
+
+  /**
+   * One accepted campaign goes straight to its submit page; several land on the
+   * submissions page, which owns the campaign picker.
+   */
+  protected readonly submitLink = computed(() => {
+    const accepted = this.acceptedApplications();
+    return accepted.length === 1
+      ? `/creator/campaigns/${registrationCampaign(accepted[0].campaign).slug}/submit`
+      : '/creator/submissions';
+  });
+
+  protected readonly submissionsSubtitle = computed(() => {
+    const count = this.stats()?.submissions ?? 0;
+    if (count === 0) {
+      return 'Upload the link to the content.';
+    }
+    return count === 1 ? '1 clip submitted.' : `${count} clips submitted.`;
+  });
 
   protected readonly socials = computed(
     () => this.savedSocials() ?? this.user()?.socials ?? ([] as SocialAccount[]),
@@ -188,6 +236,11 @@ export class CreatorDashboard {
     return registrationCampaign(application.campaign);
   }
 
+  /** The submit page for one accepted campaign card. */
+  protected submitLinkFor(application: Registration): string {
+    return `/creator/campaigns/${registrationCampaign(application.campaign).slug}/submit`;
+  }
+
   /**
    * Takes the "26d ago" slot on the card, which the clipper does not need here.
    * Abbreviated because that slot is one line beside a truncating brand name.
@@ -218,6 +271,7 @@ export class CreatorDashboard {
 
   protected async load(): Promise<void> {
     this.state.set('loading');
+    void this.loadStats();
     try {
       this.applications.set(await this.registrations.listMine());
       this.state.set('ready');
@@ -227,6 +281,18 @@ export class CreatorDashboard {
         error instanceof ApiError ? error.message : 'We could not load your campaigns.',
       );
       this.state.set('error');
+    }
+  }
+
+  /**
+   * Headline numbers are decoration: a failure leaves em dashes in the tiles
+   * and an open checklist step, never an error screen over the dashboard.
+   */
+  private async loadStats(): Promise<void> {
+    try {
+      this.stats.set(await this.submissions.stats());
+    } catch {
+      this.stats.set(null);
     }
   }
 }
