@@ -572,3 +572,110 @@ campaign-wizard}`, `components/`, `data-access/`, `models/`, `utils/`. Split
 
 Remaining phases (brands, registrations, creators, auth, dashboard, cleanup)
 are queued — same pattern, same verification gate each time.
+
+## Feature-first architecture migration — Phases 2-7, complete (2026-09-02)
+
+Finished the migration begun in Phase 0/1 above. All 8 phases are done, the
+`AdminRepository` god-class and `core/models/admin.ts` god-model are fully
+dismantled, and every domain now owns its own `pages/components/data-access/
+models/utils`. No URL changed at any point in the migration; no behavior
+changed beyond pure relocation and the repository split (same HTTP calls,
+same paths, same error handling). Every phase passed the same gate before
+being committed: `tsc -p tsconfig.app.json --noEmit`, `ng build:dev`
+(sandboxed `ng build` hits an unrelated pre-existing `lightningcss` native-
+binary mismatch and a Google Fonts network 403 in this environment — both
+confirmed unrelated to the migration; a plain `npm run build` should be
+re-verified on a normal machine), `eslint`, `test:unit` (18/18 passing
+throughout), and `prettier --check`.
+
+- **Phase 2 — brands (commit `46dca3d`)**: `features/brands/` gets
+  `pages/{admin-brands,admin-brand-detail,brand-wizard}`, `data-access/
+brands-repository.ts` (new `BrandsRepository`, extracted from
+  `AdminRepository`'s brand section: `brands`, `brand`, `createBrand`,
+  `updateBrand`, `deleteBrand`), `brands.routes.ts` exporting
+  `BRAND_ADMIN_ROUTES`. `campaign-wizard.ts` drops its last `AdminRepository`
+  use (`brands()`/`createBrand()`) in favor of `BrandsRepository`.
+- **Phase 3 — registrations (commit `59e82b6`)**: `features/registrations/`
+  gets `data-access/registrations-admin-repository.ts` (new
+  `RegistrationsAdminRepository`: `registrations(query)`,
+  `updateRegistrationStatus`) and `models/registration-admin.ts`. The real
+  consumer turned out to be `shared/components/clippers-table.ts`, not
+  `admin-registrations.ts` — discovered via the `tsc` gate, not upfront
+  grep. `admin-campaign-detail.ts` drops its last `AdminRepository` use the
+  same way. A dead, unused `AdminRepository` injection in
+  `admin-registrations.ts` was removed outright (confirmed via grep that
+  nothing referenced it). `core/models/admin.ts` is now down to
+  `RegistrationActivityPoint` + `AdminStats` (dashboard-only).
+  `registrations.routes.ts` exports both `REGISTRATION_CREATOR_ROUTES`
+  (apply flow, spread into `features/creator/creator.routes.ts`) and
+  `REGISTRATION_ADMIN_ROUTES`.
+- **Phase 4 — creators (commit `45ad94a`)**: new `features/creators/`
+  (plural — the creator's own profile/dashboard, distinct from
+  `registrations`, preserving the Registration ≠ Creator distinction).
+  `pages/creator-dashboard`, `components/socials-dialog`.
+  `creators.routes.ts` exports `CREATOR_DASHBOARD_ROUTES`.
+- **Phase 5 — auth (commit `0010549`)**: `features/auth/` reshaped into
+  `pages/{sign-in,sign-up,forgot-password,reset-password}`,
+  `utils/phone-codes.ts` (moved from `core/util`, which is now empty and
+  removed). No `data-access/` — auth calls `core/auth/AuthService` directly,
+  correctly staying in `core` as app-wide session state.
+- **Phase 6 — dashboard, retires the god-class (commit `a8e6eb1`)**:
+  `features/dashboard/` gets `pages/admin-dashboard`,
+  `components/bar-chart` (moved from `shared/charts/`, single consumer),
+  `models/admin.ts` (the final home of `RegistrationActivityPoint`/
+  `AdminStats`). `core/data/admin-repository.ts` — by this point reduced to
+  just `stats()` — is renamed in place (not deleted and recreated, so `git
+log --follow` still finds its full history) to `features/dashboard/
+data-access/dashboard-repository.ts`, class `AdminRepository` →
+  `DashboardRepository`. `dashboard.routes.ts` exports
+  `DASHBOARD_ADMIN_ROUTES`. `core/data/` and `core/models/admin.ts` no
+  longer exist; `core/models/` now holds only `user.ts` (session state).
+- **Phase 7 — cleanup + docs (this commit)**: no source files needed moving —
+  every directory the plan named as "now-empty" (`core/data/`, `core/util/`,
+  `shared/admin/`, `shared/layout/`, `shared/public/`, `shared/time/`,
+  `shared/forms/`, `shared/export/`, `shared/text/`, `shared/charts/`) had
+  already been vacated and removed by `git mv` in earlier phases, so there
+  was nothing left to delete. `core/README.md`, `shared/README.md`,
+  `features/README.md` are rewritten to describe the finished structure, and
+  a new `layout/README.md` documents the app-shell boundary that Phase 0
+  introduced. `forbidden/`, `foundation/`, `legal/`, `not-found/` are noted
+  as an explicit, intentional exception to the full per-feature scaffold
+  (trivial single-file routes).
+
+### Deliberate deviation from the original plan text
+
+The plan said Phase 7 would delete `features/admin/admin.routes.ts` and
+`features/creator/creator.routes.ts` and collapse their routes directly into
+`app.routes.ts`. In practice, once every domain owned and guarded its own
+admin/creator routes (Phase 1 onward), keeping these two files as thin,
+page-less URL-prefix aggregators — `admin.routes.ts` mounts `dashboard/`,
+`registrations/`, `brands/`, `campaigns/` via `loadChildren`; `creator.routes.ts`
+redirects to `dashboard` and spreads in `CREATOR_DASHBOARD_ROUTES` +
+`REGISTRATION_CREATOR_ROUTES` — kept `app.routes.ts` itself completely
+unchanged by the whole migration and gave `/admin/*` and `/creator/*` one
+obvious place to look for "what mounts under this prefix." Both files hold
+no pages, components, or data-access of their own, so they don't violate the
+"role-based folder" problem the migration set out to fix — they're pure
+routing shells now, documented as such in `features/README.md`.
+
+### Final structure
+
+```
+src/app/
+  core/       auth, api, config, theme, models/user.ts — app-wide infra only
+  layout/     sidebar/, public/ — the app shell, no feature imports
+  shared/     components/, utils/, constants/ — 2+ domain consumers only
+  features/
+    admin/        thin routes-only aggregator (mounts dashboard/registrations/brands/campaigns)
+    auth/         pages/, utils/
+    brands/       pages/, components/, data-access/, models/
+    campaigns/    pages/, components/, data-access/, models/, utils/
+    creator/      thin routes-only aggregator (redirects to creators/dashboard, spreads registrations' apply routes)
+    creators/     pages/, components/
+    dashboard/    pages/, components/, data-access/, models/
+    registrations/ data-access/, models/
+    forbidden/, foundation/, legal/, not-found/  — exempt, single-file routes
+```
+
+Migration commits, in order: `5fae550` `d92048f` `46dca3d` `59e82b6`
+`45ad94a` `0010549` `a8e6eb1` and this Phase 7 commit.
