@@ -195,6 +195,58 @@ details → budget → timeline → platforms → requirements → brand → pre
 publish/save-draft → success), `/admin/campaigns/:slug` (detail + Registered Clippers
 + publish/close). Payout processing & view verification stay out of scope this phase.
 
+### Brands (added 2026-09-02 — Figma node 189:6412; campaigns are owned by a brand)
+
+Every campaign belongs to exactly one Brand. Creating a campaign now starts by
+selecting an existing brand or creating one inline (the wizard's first step);
+the old "Brand details" wizard step is gone — brand identity comes from the Brand.
+
+```ts
+interface Brand {
+  id: string;
+  slug: string;                 // kebab of name, unique
+  name: string;                 // "E-wale tech"
+  logoUrl: string | null;       // https:// or data:image/ (<= ~700 KB)
+  logoBg: string;               // '#0B51F0'
+  logoFit: 'cover' | 'contain';
+  website: string | null;       // "Website/social link"
+  industry: string | null;      // "Tech"
+  country: string | null;       // "Ghana"
+  city: string | null;          // "Accra"
+  contactName: string | null;   // primary contact
+  contactEmail: string | null;  // business email
+  contactPhone: string | null;
+  status: 'ACTIVE' | 'INACTIVE';
+  campaignCount: number;        // computed
+  createdAt: string; updatedAt: string;
+}
+interface BrandDetail extends Brand {
+  stats: { totalCampaigns: number; totalRegistrations: number; revenue: number };
+  campaigns: PublicCampaign[];  // all statuses incl. DRAFT, newest first
+}
+```
+
+Admin endpoints (Bearer + role ADMIN; 403 otherwise):
+
+- `GET /admin/brands?search=` → `200 { data: Brand[] }` (name asc)
+- `POST /admin/brands` `{ name, logoUrl?, logoBg?, logoFit?, website?, industry?,
+  country?, city?, contactName?, contactEmail?, contactPhone? }` → `201 { data: Brand }`
+  (`422 VALIDATION`; `409 BRAND_EXISTS` on a duplicate name, case-insensitive)
+- `GET /admin/brands/:id` → `200 { data: BrandDetail }` | `404 BRAND_NOT_FOUND`
+- `PATCH /admin/brands/:id` (partial; `status` included) → `200 { data: Brand }`
+- `DELETE /admin/brands/:id` → `204` | `409 BRAND_IN_USE` when campaigns reference it
+
+Campaign changes:
+
+- `Campaign.brandId` (FK, required). `POST /admin/campaigns` takes `brandId` instead
+  of an inline `brand` block (`422` when missing/unknown). `PATCH` may change `brandId`.
+- `PublicCampaign.brand` keeps its shape `{ name, logoUrl, logoBg, logoFit }` but is
+  served from the Brand relation; `PublicCampaign` gains `brandId: string`.
+- Migration: create one Brand per existing distinct `brandName` (E-wale tech →
+  "e-wale-tech", copying logo fields) and link the campaigns; then the inline
+  `brandName/brandLogo*` columns are dropped.
+- Publish gate: `brandId` present (replaces the `brand.name` check).
+
 ### Misc
 
 - `GET /health` → `200 { ok: true }`
