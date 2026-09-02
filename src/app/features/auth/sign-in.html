@@ -1,31 +1,36 @@
 <main
   class="flex min-h-[calc(100svh-3.75rem)] flex-col items-center justify-center px-4 py-10 lg:min-h-svh"
 >
-  <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary shadow-sm">
-    <img src="/logo/clapout-logo.png" alt="" class="h-9 w-9 select-none" draggable="false" />
+  <div class="flex h-[66px] w-[66px] items-center justify-center rounded-[20px] bg-primary p-2">
+    <img
+      src="/logo/clapout-logo.png"
+      alt=""
+      class="h-[50px] w-[50px] select-none"
+      draggable="false"
+    />
   </div>
 
-  <h1 class="mt-4 text-center text-3xl font-semibold tracking-tight text-surface-900">
+  <h1 class="mt-[5px] text-center text-[32px] font-semibold leading-tight text-black/80">
     Welcome back
   </h1>
-  <p class="mt-2 max-w-xs text-center text-surface-600">
+  <p class="mt-1 max-w-[456px] text-center text-[18px] text-[#464646]">
     Sign in to manage your campaigns, registrations and payouts
   </p>
 
   @if (errorMessage()) {
-    <div class="mt-5 w-full max-w-sm">
+    <div class="mt-5 w-full max-w-[423px]">
       <p-message severity="error" [closable]="false">{{ errorMessage() }}</p-message>
     </div>
   }
 
   <form
-    class="mt-7 flex w-full max-w-sm flex-col gap-5"
+    class="mt-[16px] flex w-full max-w-[423px] flex-col gap-6"
     [formGroup]="form"
     (ngSubmit)="submit()"
     novalidate
   >
     <div class="flex flex-col gap-2">
-      <label class="text-sm font-medium text-surface-800" for="signin-email">Email</label>
+      <label class="text-[18px] font-medium text-[#0C0C0C]" for="signin-email">Email</label>
       <input
         pInputText
         id="signin-email"
@@ -33,7 +38,7 @@
         placeholder="you@email.com"
         autocomplete="email"
         formControlName="email"
-        class="w-full"
+        class="h-[50px] w-full rounded-xl border border-[#D7D7D7] bg-white px-[18px] text-[18px] placeholder:text-[#DFDFDF]"
         [attr.aria-invalid]="fieldError('email') ? 'true' : null"
         [attr.aria-describedby]="fieldError('email') ? 'signin-email-error' : null"
       />
@@ -43,12 +48,12 @@
     </div>
 
     <div class="flex flex-col gap-2">
-      <label class="text-sm font-medium text-surface-800" for="signin-password">Password</label>
+      <label class="text-[18px] font-medium text-[#0C0C0C]" for="signin-password">Password</label>
       <p-password
         inputId="signin-password"
         formControlName="password"
         class="block w-full"
-        inputStyleClass="w-full"
+        inputStyleClass="h-[50px] w-full rounded-xl border border-[#D7D7D7] bg-white px-[18px] text-[18px] placeholder:text-[#DFDFDF]"
         placeholder="Your password"
         autocomplete="current-password"
         [feedback]="false"
@@ -62,13 +67,13 @@
     <div class="flex items-center justify-between gap-4">
       <div class="flex items-center gap-2">
         <p-checkbox inputId="signin-remember" formControlName="rememberMe" [binary]="true" />
-        <label class="cursor-pointer text-sm text-surface-600" for="signin-remember"
+        <label class="cursor-pointer text-[18px] text-[#464646]" for="signin-remember"
           >Remember me</label
         >
       </div>
       <a
         routerLink="/auth/forgot-password"
-        class="text-sm font-medium text-surface-800 no-underline hover:text-primary"
+        class="text-[18px] text-[#321104] no-underline hover:text-primary"
         >Forgot password?</a
       >
     </div>
@@ -76,6 +81,7 @@
     <p-button
       type="submit"
       label="Sign in"
+      styleClass="!h-[50px] !w-full !justify-center !rounded-xl !bg-primary !border-primary !text-[18px] !shadow-none"
       [fluid]="true"
       [loading]="submitting()"
       [disabled]="submitting()"

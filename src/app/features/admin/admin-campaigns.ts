@@ -4,22 +4,12 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
-import { ProgressBarModule } from 'primeng/progressbar';
-import { SelectButtonModule } from 'primeng/selectbutton';
 import { SkeletonModule } from 'primeng/skeleton';
-import { TagModule } from 'primeng/tag';
 import { ApiError } from '../../core/api/api-error';
 import { AdminRepository } from '../../core/data/admin-repository';
 import { CampaignStatus, PublicCampaign } from '../../core/models/campaign';
-import {
-  budgetPercent,
-  campaignStatusLabel,
-  campaignStatusTone,
-  daysLeftLabel,
-  formatMoney,
-  hasBudget,
-  platformLabel,
-} from '../../core/util/campaign-format';
+import { CampaignCompactCard } from '../../shared/admin/campaign-compact-card';
+import { PageHeader } from '../../shared/admin/page-header';
 
 type ListState = 'loading' | 'ready' | 'error';
 /** 'ALL' is the absent-`?status=` default rather than a backend status. */
@@ -33,6 +23,10 @@ const STATUS_TABS: { label: string; value: StatusTab }[] = [
   { label: 'Closed', value: 'CLOSED' },
 ];
 
+/** Figma's tab chips: orange when selected, neutral grey otherwise. */
+const TAB_SELECTED = 'bg-[#EC612C] text-white';
+const TAB_IDLE = 'bg-[#ECECEC] text-[#525252] hover:bg-[#E2E2E2]';
+
 /**
  * Admin campaign index. Unlike the public list this includes DRAFT rows, so the
  * status tab set gains a "Draft" entry.
@@ -44,14 +38,13 @@ const STATUS_TABS: { label: string; value: StatusTab }[] = [
 @Component({
   imports: [
     ButtonModule,
+    CampaignCompactCard,
     FormsModule,
     InputTextModule,
     MessageModule,
-    ProgressBarModule,
+    PageHeader,
     RouterLink,
-    SelectButtonModule,
     SkeletonModule,
-    TagModule,
   ],
   selector: 'app-admin-campaigns',
   templateUrl: './admin-campaigns.html',
@@ -71,13 +64,6 @@ export class AdminCampaigns {
 
   protected readonly statusTabs = STATUS_TABS;
   protected readonly skeletonRows = [0, 1, 2, 3, 4, 5];
-
-  protected readonly budgetPercent = budgetPercent;
-  protected readonly campaignStatusLabel = campaignStatusLabel;
-  protected readonly campaignStatusTone = campaignStatusTone;
-  protected readonly daysLeftLabel = daysLeftLabel;
-  protected readonly formatMoney = formatMoney;
-  protected readonly hasBudget = hasBudget;
 
   /** An unknown or missing `?status=` falls back to All rather than 404-ing. */
   protected readonly activeStatus = computed<StatusTab>(() => {
@@ -114,6 +100,10 @@ export class AdminCampaigns {
     void this.load();
   }
 
+  protected tabClass(value: StatusTab): string {
+    return this.activeStatus() === value ? TAB_SELECTED : TAB_IDLE;
+  }
+
   /** Tabs write to the URL; `activeStatus` reads it back through the input. */
   protected setStatus(value: StatusTab): void {
     void this.router.navigate([], {
@@ -128,8 +118,8 @@ export class AdminCampaigns {
     this.setStatus('ALL');
   }
 
-  protected platformSummary(campaign: PublicCampaign): string {
-    return campaign.platforms.map(platformLabel).join(', ') || 'Not specified';
+  protected createCampaign(): void {
+    void this.router.navigate(['/admin/campaigns/new']);
   }
 
   protected async load(): Promise<void> {

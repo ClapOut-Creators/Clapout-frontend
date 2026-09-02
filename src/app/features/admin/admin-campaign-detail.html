@@ -1,254 +1,361 @@
-<main class="mx-auto max-w-6xl px-4 py-10">
-  <a
-    routerLink="/admin/campaigns"
-    class="inline-flex items-center gap-2 rounded-lg border border-surface-200 px-3 py-1.5 text-sm text-surface-700 no-underline hover:bg-surface-100"
-  >
-    <span aria-hidden="true">&larr;</span> Campaigns
-  </a>
-
-  @switch (state()) {
-    @case ('loading') {
-      <div class="mt-8" aria-busy="true" aria-live="polite">
-        <span class="sr-only">Loading campaign</span>
-        <p-skeleton width="55%" height="2rem" />
-        <div class="mt-4"><p-skeleton width="100%" height="6rem" /></div>
-        <div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
-          <p-skeleton width="100%" height="14rem" borderRadius="1rem" />
-          <p-skeleton width="100%" height="14rem" borderRadius="1rem" />
-        </div>
-      </div>
-    }
-
-    @case ('not-found') {
-      <section class="mt-10 rounded-xl border border-surface-200 bg-surface-0 p-10 text-center">
-        <h1 class="text-2xl font-semibold text-surface-900">Campaign not found</h1>
-        <p class="mx-auto mt-3 max-w-md text-surface-600">
-          No campaign matches &ldquo;{{ slug() }}&rdquo;. It may have been deleted.
-        </p>
-        <a
-          routerLink="/admin/campaigns"
-          class="mt-6 inline-block rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-contrast no-underline"
-          >Back to campaigns</a
-        >
-      </section>
-    }
-
-    @case ('error') {
-      <section class="mt-10 rounded-xl border border-surface-200 bg-surface-0 p-6">
-        <p-message severity="error" [closable]="false">{{ errorMessage() }}</p-message>
-        <p-button label="Try again" size="small" styleClass="mt-4" (onClick)="reload()" />
-      </section>
-    }
-
-    @default {
-      @if (campaign(); as campaign) {
-        <!-- Header: identity + lifecycle actions -->
-        <header class="mt-8 flex flex-wrap items-start justify-between gap-4">
-          <div class="flex items-center gap-3">
-            <span
-              class="flex h-12 w-20 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-surface-200"
-              [style.background-color]="campaign.brand.logoBg"
-            >
-              @if (campaign.brand.logoUrl) {
-                <img
-                  [src]="campaign.brand.logoUrl"
-                  [alt]="campaign.brand.name + ' logo'"
-                  [class]="
-                    campaign.brand.logoFit === 'contain'
-                      ? 'h-full w-full object-contain p-2'
-                      : 'h-full w-full object-cover'
-                  "
-                />
-              }
-            </span>
-            <span>
-              <span class="block text-sm font-medium text-surface-600">{{
-                campaign.brand.name
-              }}</span>
-              <p-tag
-                [value]="campaignStatusLabel(campaign.status)"
-                [severity]="campaignStatusTone(campaign.status)"
-                [rounded]="true"
-              />
-            </span>
-          </div>
-
-          <div class="flex flex-wrap items-center gap-3">
-            <a [routerLink]="['/admin/campaigns', campaign.slug, 'edit']" class="no-underline">
-              <p-button label="Edit" severity="secondary" [outlined]="true" />
-            </a>
-            @if (campaign.status === 'DRAFT') {
-              <p-button
-                label="Publish"
-                [loading]="working()"
-                [disabled]="working()"
-                (onClick)="publish()"
-              />
-            }
-            @if (campaign.status === 'ACTIVE' || campaign.status === 'UPCOMING') {
-              <p-button
-                label="Close campaign"
-                severity="secondary"
-                [outlined]="true"
-                [disabled]="working()"
-                (onClick)="confirmClose()"
-              />
-            }
-            @if (campaign.status === 'CLOSED') {
-              <p-button
-                label="Reopen campaign"
-                [loading]="working()"
-                [disabled]="working()"
-                (onClick)="reopen()"
-              />
-            }
-          </div>
-        </header>
-
-        @if (actionMessage()) {
-          <div class="mt-5">
-            <p-message severity="error" [closable]="false">{{ actionMessage() }}</p-message>
-          </div>
-        }
-
-        <!-- Public-style detail + performance overview -->
-        <div class="mt-8 grid grid-cols-1 items-start gap-8 lg:grid-cols-[minmax(0,1fr)_24rem]">
-          <div>
-            <h1 class="text-2xl font-semibold leading-snug text-surface-900 md:text-3xl">
-              {{ campaign.title || campaign.brand.name }}
-            </h1>
-
-            <p
-              class="mt-4 whitespace-pre-line text-surface-600"
-              [class.line-clamp-3]="!descriptionExpanded()"
-            >
-              {{ campaign.description }}
-            </p>
-            <button
-              type="button"
-              class="mt-1 cursor-pointer border-0 bg-transparent p-0 text-sm font-medium text-primary"
-              [attr.aria-expanded]="descriptionExpanded()"
-              (click)="toggleDescription()"
-            >
-              {{ descriptionExpanded() ? 'Collapse' : 'Expand' }}
-            </button>
-
-            <div class="mt-5 flex flex-wrap items-center gap-2">
-              @for (tag of campaign.tags; track tag) {
-                <span class="rounded-full bg-primary-100 px-3 py-1 text-sm text-surface-800">{{
-                  tag
-                }}</span>
-              }
-              <span class="text-sm font-semibold text-surface-900"
-                >{{ formatMoney(campaign.currency, campaign.cpm) }} / 1k views</span
-              >
+<main class="min-h-screen">
+  <div class="mx-auto">
+    @switch (state()) {
+      @case ('loading') {
+        <div aria-busy="true" aria-live="polite">
+          <span class="sr-only">Loading campaign</span>
+          <p-skeleton width="18rem" height="2.5rem" />
+          <div class="mt-4 rounded-[18.83px] border border-[#ECECEC] bg-white p-5">
+            <div class="grid gap-6 lg:grid-cols-[minmax(0,4fr)_minmax(0,6fr)]">
+              <p-skeleton width="100%" height="19rem" borderRadius="1rem" />
+              <p-skeleton width="100%" height="19rem" borderRadius="1.2rem" />
+              <p-skeleton width="100%" height="13rem" borderRadius="1.25rem" />
+              <p-skeleton width="100%" height="13rem" borderRadius="1.25rem" />
             </div>
-
-            @if (campaign.bannerUrl) {
-              <img
-                [src]="campaign.bannerUrl"
-                [alt]="campaign.brand.name + ' campaign banner'"
-                class="mt-6 h-auto w-full rounded-2xl border border-surface-200"
-              />
-            }
-
-            <dl class="mt-6 divide-y divide-surface-200 rounded-2xl border border-surface-200">
-              <div class="flex items-center justify-between px-5 py-3.5 text-sm">
-                <dt class="text-surface-600">Category</dt>
-                <dd class="m-0 font-medium text-surface-900">{{ campaign.category }}</dd>
-              </div>
-              <div class="flex items-center justify-between gap-4 px-5 py-3.5 text-sm">
-                <dt class="text-surface-600">Start - End date</dt>
-                <dd class="m-0 text-right font-medium text-surface-900">
-                  {{ formatDate(campaign.startDate) }} - {{ formatDate(campaign.endDate) }}
-                </dd>
-              </div>
-              <div class="flex items-center justify-between gap-4 px-5 py-3.5 text-sm">
-                <dt class="text-surface-600">Platforms</dt>
-                <dd class="m-0 text-right font-medium text-surface-900">
-                  {{ platformSummary(campaign) }}
-                </dd>
-              </div>
-              <div class="flex items-center justify-between px-5 py-3.5 text-sm">
-                <dt class="text-surface-600">Last updated</dt>
-                <dd class="m-0 font-medium text-surface-900">
-                  {{ formatDate(campaign.updatedAt) }}
-                </dd>
-              </div>
-              <div class="flex items-center justify-between px-5 py-3.5 text-sm">
-                <dt class="text-surface-600">Public link</dt>
-                <dd class="m-0 font-medium text-surface-900">
-                  @if (campaign.status === 'DRAFT') {
-                    <span class="font-normal text-surface-500">Not published yet</span>
-                  } @else {
-                    <a
-                      [routerLink]="['/campaigns', campaign.slug]"
-                      class="text-primary underline underline-offset-2"
-                      >/campaigns/{{ campaign.slug }}</a
-                    >
-                  }
-                </dd>
-              </div>
-            </dl>
           </div>
-
-          <section class="rounded-2xl border border-surface-200 bg-surface-0 p-5">
-            <h2 class="text-base font-semibold text-surface-900">Performance overview</h2>
-
-            <p class="mt-4 text-2xl font-semibold text-surface-900">
-              {{ formatMoney(campaign.currency, campaign.budgetTotal) }}
-              <span class="text-sm font-normal text-surface-500">budget</span>
-            </p>
-
-            @if (hasBudget(campaign.budgetTotal)) {
-              <div class="co-meter mt-3">
-                <p-progressbar
-                  [value]="budgetPercent(campaign.budgetSpent, campaign.budgetTotal)"
-                  [showValue]="false"
-                />
-              </div>
-            } @else {
-              <p class="mt-2 text-sm text-surface-500">Budget not announced yet.</p>
-            }
-
-            <dl class="mt-5 flex flex-col gap-3 text-sm">
-              <div class="flex items-center justify-between">
-                <dt class="text-surface-600">Budget spent</dt>
-                <dd class="m-0 font-medium text-surface-900">
-                  {{ formatMoney(campaign.currency, campaign.budgetSpent) }}
-                </dd>
-              </div>
-              <div class="flex items-center justify-between">
-                <dt class="text-surface-600">CPM</dt>
-                <dd class="m-0 font-medium text-surface-900">
-                  {{ formatMoney(campaign.currency, campaign.cpm) }}
-                </dd>
-              </div>
-              <div class="flex items-center justify-between">
-                <dt class="text-surface-600">Verified views</dt>
-                <dd class="m-0 font-medium text-surface-500">Not tracked yet</dd>
-              </div>
-              <div class="flex items-center justify-between">
-                <dt class="text-surface-600">Registration</dt>
-                <dd class="m-0 font-medium text-surface-900">
-                  {{ campaign.registrationOpen ? 'Open' : 'Closed' }}
-                </dd>
-              </div>
-            </dl>
-          </section>
+          <div class="mt-4 rounded-[18.83px] border border-[#ECECEC] bg-white p-5">
+            <p-skeleton width="14rem" height="1.6rem" />
+            <div class="mt-4">
+              <p-skeleton width="100%" height="16rem" borderRadius="0.75rem" />
+            </div>
+          </div>
         </div>
+      }
 
-        <!-- Registered clippers for this campaign -->
-        <section class="mt-10">
-          <h2 class="text-lg font-semibold text-surface-900">Registered clippers</h2>
-          <p class="mt-1 text-sm text-surface-600">
-            Everyone who applied to this campaign, with the details you need to review and pay them.
+      @case ('not-found') {
+        <section class="rounded-[18.83px] border border-[#ECECEC] bg-white p-10 text-center">
+          <h1 class="text-2xl font-semibold text-surface-950">Campaign not found</h1>
+          <p class="mx-auto mt-3 max-w-md text-surface-600">
+            No campaign matches &ldquo;{{ slug() }}&rdquo;. It may have been deleted.
           </p>
-          <div class="mt-4">
-            <app-clippers-table [campaignSlug]="campaign.slug" />
-          </div>
+          <a
+            routerLink="/admin/campaigns"
+            class="mt-6 inline-block rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-contrast no-underline"
+            >Back to campaigns</a
+          >
         </section>
       }
+
+      @case ('error') {
+        <section class="rounded-[18.83px] border border-[#ECECEC] bg-white p-6">
+          <p-message severity="error" [closable]="false">{{ errorMessage() }}</p-message>
+          <p-button label="Try again" size="small" styleClass="mt-4" (onClick)="reload()" />
+        </section>
+      }
+
+      @default {
+        @if (campaign(); as campaign) {
+          <!-- Identity + lifecycle actions -->
+          <div class="flex flex-wrap items-start gap-3">
+            <app-brand-logo-tile
+              class="mt-[30px] hidden shrink-0 sm:block"
+              [name]="campaign.brand.name"
+              [logoUrl]="campaign.brand.logoUrl"
+              [logoBg]="campaign.brand.logoBg"
+              [logoFit]="campaign.brand.logoFit"
+              sizeClass="h-[46px] w-[46px] !rounded-[9.9px]"
+            />
+
+            <app-page-header
+              class="block min-w-0 flex-1"
+              breadcrumb="Campaigns"
+              [breadcrumbTrail]="campaign.brand.name"
+              [title]="campaign.brand.name"
+            >
+              <div class="flex flex-wrap items-center gap-2.5">
+                <span
+                  class="inline-flex items-center rounded-full px-[14.45px] py-[5.25px] text-[13.13px] font-medium leading-[17.07px]"
+                  [class]="campaignStatusPillClass(campaign.status)"
+                  >{{ campaignStatusLabel(campaign.status) }}</span
+                >
+
+                @if (campaign.status === 'DRAFT') {
+                  <p-button
+                    label="Publish"
+                    styleClass="!rounded-lg !border-[#ECECEC] !bg-[#ECECEC] !px-4 !py-2.5 !text-sm !text-[#525252] !shadow-none"
+                    [loading]="working()"
+                    [disabled]="working()"
+                    (onClick)="publish()"
+                  />
+                }
+                @if (canPause()) {
+                  <p-button
+                    label="Pause Campaign"
+                    styleClass="!rounded-lg !border-[#ECECEC] !bg-[#ECECEC] !px-4 !py-2.5 !text-sm !text-[#525252] !shadow-none"
+                    [disabled]="working()"
+                    (onClick)="confirmClose()"
+                  />
+                }
+                @if (campaign.status === 'CLOSED') {
+                  <p-button
+                    label="Reopen"
+                    styleClass="!rounded-lg !border-[#ECECEC] !bg-[#ECECEC] !px-4 !py-2.5 !text-sm !text-[#525252] !shadow-none"
+                    [loading]="working()"
+                    [disabled]="working()"
+                    (onClick)="reopen()"
+                  />
+                }
+                <p-button
+                  label="Edit"
+                  styleClass="!rounded-lg !bg-primary !border-primary !px-7 !py-2.5 !text-sm !shadow-none"
+                  (onClick)="editCampaign(campaign.slug)"
+                />
+              </div>
+            </app-page-header>
+          </div>
+
+          @if (actionMessage()) {
+            <div class="mt-4">
+              <p-message severity="error" [closable]="false">{{ actionMessage() }}</p-message>
+            </div>
+          }
+
+          <!-- Brief + performance -->
+          <section
+            class="mt-4 rounded-[18.83px] border border-[#ECECEC] bg-[#FFFFFF] p-5 sm:p-8"
+            aria-labelledby="admin-campaign-brief-heading"
+          >
+            <div
+              class="grid items-start gap-x-10 gap-y-6 lg:grid-cols-[minmax(0,4fr)_minmax(0,6fr)]"
+            >
+              <div>
+                <h2
+                  id="admin-campaign-brief-heading"
+                  class="text-[28px] font-medium leading-tight text-black/80 xl:text-[38px]"
+                >
+                  {{ campaign.title || campaign.brand.name }}
+                </h2>
+
+                <p
+                  class="mt-4 whitespace-pre-line text-[18px] leading-[26px] text-[#464646]"
+                  [class.line-clamp-3]="!descriptionExpanded()"
+                >
+                  {{ campaign.description }}
+                </p>
+                <button
+                  type="button"
+                  class="mt-3 inline-flex cursor-pointer items-center gap-2.5 rounded-full border-0 bg-[#F6F6F6] px-3 py-1 text-[18px] font-medium text-[#383838] hover:bg-[#EFEFEF]"
+                  [attr.aria-expanded]="descriptionExpanded()"
+                  (click)="toggleDescription()"
+                >
+                  <span>{{ descriptionExpanded() ? 'Collapse' : 'Expand' }}</span>
+                  <svg
+                    data-p-icon="chevron-down"
+                    [size]="16"
+                    class="transition-transform"
+                    [class.rotate-180]="descriptionExpanded()"
+                    aria-hidden="true"
+                  ></svg>
+                </button>
+
+                <div class="mt-4 flex flex-wrap items-center gap-3">
+                  @for (tag of campaign.tags; track tag) {
+                    <span
+                      class="inline-flex items-center rounded-full bg-[#FFC93C] px-2.5 py-0.5 text-[18px] text-[#151515]"
+                      >{{ tag }}</span
+                    >
+                  }
+                  @if (campaign.tags.length) {
+                    <span class="h-5 w-px bg-[#DCDCDC]" aria-hidden="true"></span>
+                  }
+                  <span class="text-[18px] text-[#686868]"
+                    >{{ formatMoney(campaign.currency, campaign.cpm) }} / 1k views</span
+                  >
+                  @if (campaign.platforms.length) {
+                    <span class="h-5 w-px bg-[#DCDCDC]" aria-hidden="true"></span>
+                    <span class="flex items-center gap-3 text-[#151515]">
+                      @for (platform of campaign.platforms; track platform) {
+                        <span class="inline-flex items-center">
+                          @switch (platform) {
+                            @case ('tiktok') {
+                              <svg data-p-icon="tiktok" [size]="20" aria-hidden="true"></svg>
+                            }
+                            @case ('facebook') {
+                              <svg data-p-icon="facebook" [size]="20" aria-hidden="true"></svg>
+                            }
+                            @case ('instagram') {
+                              <svg data-p-icon="instagram" [size]="20" aria-hidden="true"></svg>
+                            }
+                            @case ('youtube') {
+                              <svg data-p-icon="youtube" [size]="20" aria-hidden="true"></svg>
+                            }
+                            @default {
+                              <svg data-p-icon="twitter" [size]="20" aria-hidden="true"></svg>
+                            }
+                          }
+                          <span class="sr-only">{{ platformLabel(platform) }}</span>
+                        </span>
+                      }
+                    </span>
+                  }
+                </div>
+
+                <div class="mt-4 flex flex-wrap items-center gap-2.5 text-[14px] text-[#464646]">
+                  <span
+                    >Avg review time:
+                    <span class="font-medium text-[#16AC20]">{{
+                      campaign.avgReviewTime || notAnnounced
+                    }}</span></span
+                  >
+                  <span class="h-5 w-px bg-[#DCDCDC]" aria-hidden="true"></span>
+                  <span
+                    >Start date:
+                    <span class="font-medium text-[#171A1C]">{{
+                      formatDate(campaign.startDate)
+                    }}</span></span
+                  >
+                  <span class="h-5 w-px bg-[#DCDCDC]" aria-hidden="true"></span>
+                  <span
+                    >End date:
+                    <span class="font-medium text-[#171A1C]">{{
+                      formatDate(campaign.endDate)
+                    }}</span></span
+                  >
+                </div>
+              </div>
+
+              @if (campaign.bannerUrl) {
+                <img
+                  [src]="campaign.bannerUrl"
+                  [alt]="campaign.brand.name + ' campaign banner'"
+                  class="h-full max-h-[320px] w-full rounded-[19.08px] object-cover"
+                />
+              } @else {
+                <div
+                  class="flex min-h-[200px] items-center justify-center rounded-[19.08px] bg-[#151515] px-6 text-center text-[18px] text-[#A6A6A6]"
+                >
+                  No campaign banner uploaded yet
+                </div>
+              }
+
+              <!-- Facts -->
+              <div>
+                <dl class="divide-y divide-[#ECECEC] rounded-[20px] bg-[#F8F8F8]">
+                  <div class="flex items-center justify-between gap-4 px-[17px] py-[14px]">
+                    <dt class="text-[15.8px] text-[#7F7F7F]">Category</dt>
+                    <dd class="m-0 text-right text-[15.8px] text-[#272727]">
+                      {{ campaign.category || notAnnounced }}
+                    </dd>
+                  </div>
+                  <div class="flex items-center justify-between gap-4 px-[17px] py-[14px]">
+                    <dt class="text-[15.8px] text-[#7F7F7F]">Start - End date</dt>
+                    <dd class="m-0 text-right text-[15.8px] text-[#272727]">
+                      {{ dateRangeLabel(campaign) }}
+                    </dd>
+                  </div>
+                </dl>
+
+                <div class="mt-3 rounded-[16px] border border-[#DDDDDD] bg-[#F8F8F8] px-4 py-3.5">
+                  @if (campaign.resourceUrl) {
+                    <a
+                      [href]="campaign.resourceUrl"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="flex items-center justify-between gap-3 no-underline"
+                    >
+                      <span class="truncate text-[18px] font-medium text-[#464646]">{{
+                        campaign.resourceLabel || 'Open resource'
+                      }}</span>
+                      <svg
+                        data-p-icon="external-link"
+                        [size]="20"
+                        class="shrink-0 text-[#464646]"
+                        aria-hidden="true"
+                      ></svg>
+                    </a>
+                    <p class="mt-1 text-[18px] text-[#909090]">Resource</p>
+                  } @else {
+                    <p class="text-[18px] font-medium text-[#464646]">No resource link</p>
+                    <p class="mt-1 text-[18px] text-[#909090]">Resource</p>
+                  }
+                </div>
+              </div>
+
+              <!-- Performance overview -->
+              <section
+                class="rounded-[20px] border border-[#DDDDDD] bg-[#F8F8F8] p-5"
+                aria-labelledby="admin-campaign-performance-heading"
+              >
+                <div class="flex flex-wrap items-start justify-between gap-3">
+                  <h3
+                    id="admin-campaign-performance-heading"
+                    class="text-[22px] font-semibold text-[#151515]"
+                  >
+                    Performance Overview
+                  </h3>
+                  <p class="text-[24px] font-semibold text-[#1C1C1C]">
+                    {{ formatMoney(campaign.currency, campaign.budgetTotal) }}
+                  </p>
+                </div>
+
+                <div class="mt-6 flex flex-wrap items-baseline justify-between gap-3">
+                  <span class="text-[18px] font-medium text-[#585858]">Budget Spent</span>
+                  <span class="text-[18px] font-medium text-[#171A1C]">
+                    {{ formatMoney(campaign.currency, campaign.budgetSpent) }}
+                  </span>
+                </div>
+
+                @if (hasBudget(campaign.budgetTotal)) {
+                  <div class="mt-2 h-[9px] w-full overflow-hidden rounded-full bg-white">
+                    <div
+                      class="h-full rounded-full bg-gradient-to-r from-[#EC612C] to-[#FFC93C]"
+                      [style.width.%]="budgetPercent(campaign.budgetSpent, campaign.budgetTotal)"
+                    ></div>
+                  </div>
+                } @else {
+                  <p class="mt-2 text-sm text-[#7B7B7B]">Budget not announced yet.</p>
+                }
+
+                <dl class="mt-6 grid grid-cols-3 gap-3">
+                  <div>
+                    <dt class="text-[16px] text-[#7B7B7B]">CPM</dt>
+                    <dd class="m-0 mt-1 text-[20px] font-semibold text-[#171A1C]">
+                      {{ formatMoney(campaign.currency, campaign.cpm) }}
+                    </dd>
+                  </div>
+                  <div class="text-center">
+                    <dt class="text-[16px] text-[#7B7B7B]">Verified Views</dt>
+                    <dd class="m-0 mt-1 text-[20px] font-semibold text-[#171A1C]">
+                      {{ notAnnounced }}
+                    </dd>
+                  </div>
+                  <div class="text-right">
+                    <dt class="text-[16px] text-[#7B7B7B]">Active Creators</dt>
+                    <dd class="m-0 mt-1 text-[20px] font-semibold text-[#171A1C]">
+                      {{ activeCreatorsLabel() }}
+                    </dd>
+                  </div>
+                </dl>
+              </section>
+            </div>
+          </section>
+
+          <!-- Registered clippers for this campaign -->
+          <section
+            class="mt-4 rounded-[18.83px] border border-[#ECECEC] bg-[#FFFFFF] p-5 sm:p-8"
+            aria-labelledby="admin-campaign-clippers-heading"
+          >
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <h2 id="admin-campaign-clippers-heading" class="text-[22px] font-bold text-[#171A1C]">
+                Registered Clippers
+              </h2>
+              <button
+                type="button"
+                class="inline-flex cursor-pointer items-center gap-2 rounded-[10px] border-0 bg-[#ECECEC] px-[15px] py-2 text-[16px] text-[#525252] hover:bg-[#E2E2E2] disabled:cursor-not-allowed disabled:opacity-50"
+                [disabled]="!canExportClippers()"
+                (click)="exportClippers()"
+              >
+                <svg data-p-icon="download" [size]="14" aria-hidden="true"></svg>
+                <span>Export</span>
+              </button>
+            </div>
+
+            <div class="mt-5">
+              <app-clippers-table [campaignSlug]="campaign.slug" [showToolbar]="false" />
+            </div>
+          </section>
+        }
+      }
     }
-  }
+  </div>
 </main>
