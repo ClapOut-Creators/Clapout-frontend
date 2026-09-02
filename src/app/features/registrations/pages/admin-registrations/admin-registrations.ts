@@ -1,10 +1,9 @@
 import { Component, inject, signal } from '@angular/core';
 import { MessageModule } from 'primeng/message';
-import { ApiError } from '../../core/api/api-error';
-import { AdminRepository } from '../../core/data/admin-repository';
-import { CampaignsAdminRepository } from '../campaigns/data-access/campaigns-admin-repository';
-import { ClippersTable } from '../../shared/components/clippers-table';
-import { PageHeader } from '../../shared/components/page-header';
+import { ApiError } from '../../../../core/api/api-error';
+import { CampaignsAdminRepository } from '../../../campaigns/data-access/campaigns-admin-repository';
+import { ClippersTable } from '../../../../shared/components/clippers-table';
+import { PageHeader } from '../../../../shared/components/page-header';
 
 interface CampaignOption {
   label: string;
@@ -24,7 +23,6 @@ interface CampaignOption {
   templateUrl: './admin-registrations.html',
 })
 export class AdminRegistrations {
-  private readonly admin = inject(AdminRepository);
   private readonly campaignsAdmin = inject(CampaignsAdminRepository);
 
   protected readonly campaignOptions = signal<CampaignOption[]>([]);

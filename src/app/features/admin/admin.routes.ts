@@ -10,19 +10,18 @@ export const ADMIN_ROUTES: Routes = [
     loadComponent: () => import('./admin-dashboard').then((module) => module.AdminDashboard),
     title: 'Admin dashboard - ClapOut Studio',
   },
+  /**
+   * The registrations, brands and campaigns domains own and guard their own
+   * admin routes now (see each feature's own *.routes.ts) — this file just
+   * mounts them at /admin/registrations, /admin/brands and /admin/campaigns.
+   */
   {
     path: 'registrations',
-    canActivate: [adminGuard],
-    loadComponent: () =>
-      import('./admin-registrations').then((module) => module.AdminRegistrations),
-    title: 'Registered clippers - ClapOut Studio',
+    loadChildren: () =>
+      import('../registrations/registrations.routes').then(
+        (module) => module.REGISTRATION_ADMIN_ROUTES,
+      ),
   },
-  /**
-   * The brands and campaigns domains own and guard their own admin routes
-   * now (see features/brands/brands.routes.ts#BRAND_ADMIN_ROUTES and
-   * features/campaigns/campaigns.routes.ts#CAMPAIGN_ADMIN_ROUTES) — this
-   * file just mounts them at /admin/brands and /admin/campaigns.
-   */
   {
     path: 'brands',
     loadChildren: () =>

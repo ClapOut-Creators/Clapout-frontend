@@ -1,4 +1,4 @@
-import { CampaignPlatform, PublicCampaign } from '../../features/campaigns/models/campaign';
+import { CampaignPlatform, PublicCampaign } from '../../campaigns/models/campaign';
 
 /** Campaign application contract (`POST /registrations`, `GET /me/registrations`). */
 

@@ -13,8 +13,8 @@ import { ButtonModule } from 'primeng/button';
 import { MessageModule } from 'primeng/message';
 import { SkeletonModule } from 'primeng/skeleton';
 import { ApiError } from '../../../../core/api/api-error';
-import { AdminRepository } from '../../../../core/data/admin-repository';
 import { CampaignsAdminRepository } from '../../data-access/campaigns-admin-repository';
+import { RegistrationsAdminRepository } from '../../../registrations/data-access/registrations-admin-repository';
 import { PublicCampaign } from '../../models/campaign';
 import {
   budgetPercent,
@@ -64,8 +64,8 @@ export class AdminCampaignDetail {
   /** Bound from the `:slug` route parameter via `withComponentInputBinding()`. */
   readonly slug = input.required<string>();
 
-  private readonly admin = inject(AdminRepository);
   private readonly campaignsAdmin = inject(CampaignsAdminRepository);
+  private readonly registrationsAdmin = inject(RegistrationsAdminRepository);
   private readonly router = inject(Router);
   private readonly messages = inject(MessageService);
   private readonly confirmations = inject(ConfirmationService);
@@ -255,7 +255,10 @@ export class AdminCampaignDetail {
    */
   private async loadAcceptedCount(slug: string): Promise<void> {
     try {
-      const accepted = await this.admin.registrations({ campaignSlug: slug, status: 'ACCEPTED' });
+      const accepted = await this.registrationsAdmin.registrations({
+        campaignSlug: slug,
+        status: 'ACCEPTED',
+      });
       this.acceptedCount.set(accepted.length);
     } catch {
       this.acceptedCount.set(null);

@@ -15,10 +15,10 @@ import { SkeletonModule } from 'primeng/skeleton';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { ApiError } from '../../core/api/api-error';
-import { AdminRepository } from '../../core/data/admin-repository';
-import { AdminRegistration } from '../../core/models/admin';
+import { RegistrationsAdminRepository } from '../../features/registrations/data-access/registrations-admin-repository';
+import { AdminRegistration } from '../../features/registrations/models/registration-admin';
 import { PayoutMethod } from '../../core/models/user';
-import { RegistrationStatus } from '../../core/models/registration';
+import { RegistrationStatus } from '../../features/registrations/models/registration';
 import {
   NOT_ANNOUNCED,
   platformLabel,
@@ -86,7 +86,7 @@ export class ClippersTable {
   /** Hides the toolbar entirely (embedded, space-constrained usage). */
   readonly showToolbar = input(true);
 
-  private readonly admin = inject(AdminRepository);
+  private readonly admin = inject(RegistrationsAdminRepository);
   private readonly messages = inject(MessageService);
 
   protected readonly state = signal<TableState>('loading');

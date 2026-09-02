@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { creatorGuard } from '../../core/auth/creator-guard';
+import { REGISTRATION_CREATOR_ROUTES } from '../registrations/registrations.routes';
 
 /** Everything below `/creator` needs a signed-in creator. */
 export const CREATOR_ROUTES: Routes = [
@@ -10,10 +11,7 @@ export const CREATOR_ROUTES: Routes = [
     loadComponent: () => import('./creator-dashboard').then((module) => module.CreatorDashboard),
     title: 'Your dashboard - ClapOut Studio',
   },
-  {
-    path: 'campaigns/:slug/apply',
-    canActivate: [creatorGuard],
-    loadComponent: () => import('./campaign-apply').then((module) => module.CampaignApply),
-    title: 'Apply to campaign - ClapOut Studio',
-  },
+  // The registrations domain owns and guards this route (see
+  // features/registrations/registrations.routes.ts#REGISTRATION_CREATOR_ROUTES).
+  ...REGISTRATION_CREATOR_ROUTES,
 ];

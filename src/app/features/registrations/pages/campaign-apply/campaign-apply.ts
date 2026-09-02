@@ -9,19 +9,19 @@ import { MessageModule } from 'primeng/message';
 import { SelectModule } from 'primeng/select';
 import { SkeletonModule } from 'primeng/skeleton';
 import { TextareaModule } from 'primeng/textarea';
-import { ApiError } from '../../core/api/api-error';
-import { CampaignsRepository } from '../campaigns/data-access/campaigns-repository';
-import { RegistrationsRepository } from '../../core/data/registrations-repository';
-import { CampaignPlatform, PublicCampaign } from '../campaigns/models/campaign';
+import { ApiError } from '../../../../core/api/api-error';
+import { CampaignsRepository } from '../../../campaigns/data-access/campaigns-repository';
+import { RegistrationsRepository } from '../../data-access/registrations-repository';
+import { CampaignPlatform, PublicCampaign } from '../../../campaigns/models/campaign';
 import {
   formatDate,
   formatDateTime,
   formatMoney,
   openCountdownLabel,
   platformLabel,
-} from '../../shared/utils/campaign-format';
-import { createNowSignal } from '../../shared/components/clock';
-import { firstErrorMessage, httpUrlValidator } from '../../shared/components/form-errors';
+} from '../../../../shared/utils/campaign-format';
+import { createNowSignal } from '../../../../shared/components/clock';
+import { firstErrorMessage, httpUrlValidator } from '../../../../shared/components/form-errors';
 
 type ApplyState = 'loading' | 'ready' | 'not-found' | 'error';
 

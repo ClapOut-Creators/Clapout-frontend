@@ -14,9 +14,9 @@ import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
 import { ApiError } from '../../core/api/api-error';
 import { AuthService } from '../../core/auth/auth-service';
-import { RegistrationsRepository } from '../../core/data/registrations-repository';
+import { RegistrationsRepository } from '../registrations/data-access/registrations-repository';
 import { PublicCampaign } from '../campaigns/models/campaign';
-import { Registration, registrationCampaign } from '../../core/models/registration';
+import { Registration, registrationCampaign } from '../registrations/models/registration';
 import { SocialAccount } from '../../core/models/user';
 import {
   formatMoneyExact,

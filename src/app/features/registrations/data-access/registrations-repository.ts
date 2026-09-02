@@ -1,8 +1,8 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import { toApiError } from '../api/api-error';
-import { APP_ENVIRONMENT } from '../config/app-environment';
+import { toApiError } from '../../../core/api/api-error';
+import { APP_ENVIRONMENT } from '../../../core/config/app-environment';
 import { CreateRegistrationPayload, Registration } from '../models/registration';
 
 /** Typed HTTP access to campaign applications. Every call requires a session. */

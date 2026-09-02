@@ -16,9 +16,9 @@ import { TagModule } from 'primeng/tag';
 import { ApiError } from '../../../../core/api/api-error';
 import { AuthService } from '../../../../core/auth/auth-service';
 import { CampaignsRepository } from '../../data-access/campaigns-repository';
-import { RegistrationsRepository } from '../../../../core/data/registrations-repository';
+import { RegistrationsRepository } from '../../../registrations/data-access/registrations-repository';
 import { PublicCampaign } from '../../models/campaign';
-import { Registration } from '../../../../core/models/registration';
+import { Registration } from '../../../registrations/models/registration';
 import {
   budgetPercent,
   campaignStatusLabel,
