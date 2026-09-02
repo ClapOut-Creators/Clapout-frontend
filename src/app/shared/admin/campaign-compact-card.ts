@@ -18,6 +18,7 @@ import {
   platformLabel,
   TagTone,
 } from '../../core/util/campaign-format';
+import { ShareCampaignButton } from '../public/share-campaign-button';
 import { BrandLogoTile } from './brand-logo-tile';
 
 /**
@@ -54,6 +55,7 @@ export function campaignStatusPillClass(status: CampaignStatus): string {
     Facebook,
     Instagram,
     RouterLink,
+    ShareCampaignButton,
     Tiktok,
     Twitter,
     Wallet,
@@ -61,17 +63,26 @@ export function campaignStatusPillClass(status: CampaignStatus): string {
   ],
   selector: 'app-campaign-compact-card',
   template: `
-    <a
-      [routerLink]="[routerLinkBase(), campaign().slug]"
-      class="flex h-full flex-col rounded-[26.27px] border border-[#DDDDDD] bg-[#F8F8F8] px-[17px] pb-[22px] pt-[22px] no-underline transition-colors hover:border-[#CDCDCD] hover:bg-[#F4F4F4]"
+    <!-- The card is one big link, but it also carries a Share button, and a button
+         may not live inside an anchor. The anchor is therefore a transparent
+         overlay stretched across the card, and the Share control lifts itself
+         above it. -->
+    <div
+      class="relative flex h-full flex-col rounded-[26.27px] border border-[#DDDDDD] bg-[#F8F8F8] px-[17px] pb-[22px] pt-[22px] transition-colors hover:border-[#CDCDCD] hover:bg-[#F4F4F4]"
     >
+      <a
+        class="absolute inset-0 rounded-[26.27px] no-underline"
+        [routerLink]="[routerLinkBase(), campaign().slug]"
+        [attr.aria-label]="'Open ' + (campaign().title || campaign().brand.name)"
+      ></a>
+
       <div class="flex items-start justify-between gap-3">
         <app-brand-logo-tile
           [name]="campaign().brand.name"
           [logoUrl]="campaign().brand.logoUrl"
           [logoBg]="campaign().brand.logoBg"
           [logoFit]="campaign().brand.logoFit"
-          sizeClass="h-[66px] w-[120px] xl:w-[152px] !rounded-[13.13px]"
+          sizeClass="h-[66px] w-[96px] sm:w-[120px] xl:w-[152px] !rounded-[13.13px]"
         />
 
         <span class="flex shrink-0 flex-col items-end gap-2.5">
@@ -90,6 +101,17 @@ export function campaignStatusPillClass(status: CampaignStatus): string {
       <h3 class="mt-3 truncate text-[24px] font-semibold leading-tight text-[#151515]">
         {{ campaign().brand.name }}
       </h3>
+
+      <!-- Drafts have no public page, so there is nothing to share yet. -->
+      @if (campaign().status !== 'DRAFT') {
+        <app-share-campaign-button
+          class="relative z-[1] mt-2.5 self-start"
+          variant="text"
+          [slug]="campaign().slug"
+          [title]="campaign().title"
+          [brandName]="campaign().brand.name"
+        />
+      }
 
       <p class="mt-2.5 flex flex-wrap items-center gap-x-6 gap-y-1 text-[14.45px] text-[#666666]">
         <span>Platform</span>
@@ -152,7 +174,7 @@ export function campaignStatusPillClass(status: CampaignStatus): string {
           <p class="mt-3.5 text-[11.82px] font-medium text-[#5E5E5E]">Budget not announced yet</p>
         }
       </div>
-    </a>
+    </div>
   `,
 })
 export class CampaignCompactCard {

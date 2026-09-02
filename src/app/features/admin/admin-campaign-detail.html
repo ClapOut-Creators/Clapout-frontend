@@ -95,6 +95,15 @@
                     (onClick)="reopen()"
                   />
                 }
+                <!-- A draft has no public page to share yet. -->
+                @if (campaign.status !== 'DRAFT') {
+                  <app-share-campaign-button
+                    variant="secondary"
+                    [slug]="campaign.slug"
+                    [title]="campaign.title"
+                    [brandName]="campaign.brand.name"
+                  />
+                }
                 <p-button
                   label="Edit"
                   styleClass="!rounded-lg !bg-primary !border-primary !px-7 !py-2.5 !text-sm !shadow-none"
@@ -121,13 +130,13 @@
               <div>
                 <h2
                   id="admin-campaign-brief-heading"
-                  class="text-[28px] font-medium leading-tight text-black/80 xl:text-[38px]"
+                  class="co-user-text text-[28px] font-medium leading-tight text-black/80 xl:text-[38px]"
                 >
                   {{ campaign.title || campaign.brand.name }}
                 </h2>
 
                 <p
-                  class="mt-4 whitespace-pre-line text-[18px] leading-[26px] text-[#464646]"
+                  class="co-user-text mt-4 whitespace-pre-line text-[18px] leading-[26px] text-[#464646]"
                   [class.line-clamp-3]="!descriptionExpanded()"
                 >
                   {{ campaign.description }}

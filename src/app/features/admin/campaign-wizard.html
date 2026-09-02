@@ -54,6 +54,15 @@
               class="flex h-[52px] items-center justify-center rounded-xl bg-[#EC612C] text-[20px] text-white no-underline"
               >View Campaign</a
             >
+            @if (savedSlug(); as slug) {
+              <app-share-campaign-button
+                variant="block"
+                label="Share campaign"
+                [slug]="slug"
+                [title]="form.controls.title.value"
+                [brandName]="selectedBrand()?.name ?? ''"
+              />
+            }
             <a
               routerLink="/admin/dashboard"
               class="flex h-[52px] items-center justify-center rounded-xl border border-[#B4B4B4] bg-white text-[20px] text-[#151515] no-underline"

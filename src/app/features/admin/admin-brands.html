@@ -208,12 +208,12 @@
                       <span class="flex items-center justify-end gap-2">
                         <a
                           [routerLink]="['/admin/brands', row.id]"
-                          class="inline-flex items-center rounded-lg bg-[#171A1C] px-4 py-1.5 text-xs font-medium text-white no-underline hover:bg-[#383838]"
+                          class="inline-flex items-center rounded-lg bg-[#171A1C] px-4 py-1.5 text-xs font-medium text-white no-underline hover:bg-[#383838] max-sm:min-h-10"
                           >View</a
                         >
                         <button
                           type="button"
-                          class="inline-flex items-center justify-center rounded-lg bg-[#FFE1E1] px-2.5 py-2 text-[#E60000] hover:bg-[#FFD0D0] disabled:cursor-not-allowed disabled:opacity-60"
+                          class="inline-flex items-center justify-center rounded-lg bg-[#FFE1E1] px-2.5 py-2 text-[#E60000] hover:bg-[#FFD0D0] disabled:cursor-not-allowed disabled:opacity-60 max-sm:min-h-10"
                           [disabled]="isDeleting(row.id)"
                           (click)="confirmDelete(row)"
                         >

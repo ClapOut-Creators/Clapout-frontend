@@ -28,6 +28,7 @@ import { BrandLogoTile } from '../../shared/admin/brand-logo-tile';
 import { campaignStatusPillClass } from '../../shared/admin/campaign-compact-card';
 import { ClippersTable } from '../../shared/admin/clippers-table';
 import { PageHeader } from '../../shared/admin/page-header';
+import { ShareCampaignButton } from '../../shared/public/share-campaign-button';
 
 type DetailState = 'loading' | 'ready' | 'not-found' | 'error';
 
@@ -49,6 +50,7 @@ type DetailState = 'loading' | 'ready' | 'not-found' | 'error';
     MessageModule,
     PageHeader,
     RouterLink,
+    ShareCampaignButton,
     SkeletonModule,
     Tiktok,
     Twitter,

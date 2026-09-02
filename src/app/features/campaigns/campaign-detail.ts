@@ -33,6 +33,8 @@ import {
   registrationStatusLabel,
 } from '../../core/util/campaign-format';
 import { BrandLogoTile } from '../../shared/admin/brand-logo-tile';
+import { ShareCampaignButton } from '../../shared/public/share-campaign-button';
+import { LinkifiedText } from '../../shared/text/linkified-text';
 import { createNowSignal } from '../../shared/time/clock';
 
 type DetailState = 'loading' | 'ready' | 'not-found' | 'error';
@@ -57,8 +59,10 @@ type DetailState = 'loading' | 'ready' | 'not-found' | 'error';
     Facebook,
     Instagram,
     Link,
+    LinkifiedText,
     MessageModule,
     RouterLink,
+    ShareCampaignButton,
     SkeletonModule,
     TagModule,
     Tiktok,

@@ -1,11 +1,23 @@
 <main class="mx-auto w-full max-w-[1249px] px-4 pb-16 pt-[18px] lg:px-6 lg:pb-24 lg:pt-8 xl:px-0">
-  <a
-    routerLink="/campaigns"
-    class="inline-flex items-center gap-2.5 rounded-full border border-[#CDCDCD] px-2 py-0.5 text-[16px] leading-6 text-[#212121] no-underline hover:bg-[#F6F6F6]"
-  >
-    <svg data-p-icon="chevron-left" [size]="14" class="text-[#2D2D2D]" aria-hidden="true"></svg>
-    Back
-  </a>
+  <!-- Back at the left of the content column, Share pinned to its right edge on the same row. -->
+  <div class="flex items-center justify-between gap-3">
+    <a
+      routerLink="/campaigns"
+      class="inline-flex items-center gap-2.5 rounded-full border border-[#CDCDCD] px-3 py-0.5 text-[16px] leading-6 text-[#212121] no-underline hover:bg-[#F6F6F6] max-sm:min-h-10"
+    >
+      <svg data-p-icon="chevron-left" [size]="14" class="text-[#2D2D2D]" aria-hidden="true"></svg>
+      Back
+    </a>
+
+    @if (campaign(); as campaign) {
+      <app-share-campaign-button
+        variant="pill"
+        [slug]="campaign.slug"
+        [title]="campaign.title"
+        [brandName]="campaign.brand.name"
+      />
+    }
+  </div>
 
   @switch (state()) {
     @case ('loading') {
@@ -75,9 +87,10 @@
                 [logoFit]="campaign.brand.logoFit"
                 sizeClass="h-[42px] w-[42px] lg:h-[37px] lg:w-[37px]"
               />
-              <span class="text-[20px] font-medium leading-6 text-[#5C5C61] lg:text-[18px]">{{
-                campaign.brand.name
-              }}</span>
+              <span
+                class="co-user-text min-w-0 text-[20px] font-medium leading-6 text-[#5C5C61] lg:text-[18px]"
+                >{{ campaign.brand.name }}</span
+              >
               <p-tag
                 [value]="campaignStatusLabel(campaign.status)"
                 [severity]="campaignStatusTone(campaign.status)"
@@ -86,14 +99,14 @@
             </div>
 
             <h1
-              class="mt-[15px] text-[30px] font-medium leading-[41px] text-black/80 lg:mt-[7px] lg:text-[38px] lg:leading-[1.5]"
+              class="co-user-text mt-[15px] text-[30px] font-medium leading-[41px] text-black/80 lg:mt-[7px] lg:text-[38px] lg:leading-[1.5]"
             >
               {{ campaign.title || campaign.brand.name }}
             </h1>
 
             <p
               id="campaign-brief"
-              class="mt-[15px] whitespace-pre-line text-[16px] leading-[23px] text-[#464646] lg:mt-[7px] lg:text-[18px] lg:leading-[26px]"
+              class="co-user-text mt-[15px] whitespace-pre-line text-[16px] leading-[23px] text-[#464646] lg:mt-[7px] lg:text-[18px] lg:leading-[26px]"
               [class]="descriptionClampClass()"
             >
               {{ campaign.description }}
@@ -101,7 +114,7 @@
 
             <button
               type="button"
-              class="mt-[15px] inline-flex cursor-pointer items-center gap-2.5 rounded-full border-0 bg-[#F6F6F6] px-3 py-1 text-[16px] font-medium leading-6 text-[#383838] hover:bg-[#EFEFEF] lg:mt-2.5 lg:text-[18px]"
+              class="mt-[15px] inline-flex cursor-pointer items-center gap-2.5 rounded-full border-0 bg-[#F6F6F6] px-3 py-1 text-[16px] font-medium leading-6 text-[#383838] hover:bg-[#EFEFEF] max-sm:min-h-10 lg:mt-2.5 lg:text-[18px]"
               aria-controls="campaign-brief"
               [attr.aria-expanded]="descriptionExpanded()"
               (click)="toggleDescription()"
@@ -121,7 +134,7 @@
                 <span class="flex flex-wrap items-center gap-3">
                   @for (tag of campaign.tags; track tag) {
                     <span
-                      class="inline-flex items-center rounded-full bg-[#FFC93C] px-2.5 py-0.5 text-[16px] leading-6 text-[#383838] lg:text-[18px] lg:leading-[27px]"
+                      class="co-user-text inline-flex items-center rounded-full bg-[#FFC93C] px-2.5 py-0.5 text-[16px] leading-6 text-[#383838] lg:text-[18px] lg:leading-[27px]"
                       >{{ tag }}</span
                     >
                   }
@@ -265,7 +278,7 @@
             >
               <div class="flex min-h-[56px] items-center justify-between gap-4 px-[17px] py-[14px]">
                 <dt class="text-[15.8px] leading-7 whitespace-nowrap text-[#7F7F7F]">Category</dt>
-                <dd class="m-0 text-right text-[15.8px] leading-7 text-[#272727]">
+                <dd class="co-user-text m-0 text-right text-[15.8px] leading-7 text-[#272727]">
                   {{ campaign.category || notAnnounced }}
                 </dd>
               </div>
@@ -378,11 +391,15 @@
                 Requirements
               </h2>
               <p class="m-0 mt-2.5 text-[14px] leading-6 text-[#7A7A7A]">Content Requirements</p>
-              <p class="m-0 mt-0.5 whitespace-pre-line text-[16px] leading-6 text-[#464646]">
-                {{
-                  campaign.requirementsNote ||
+              <p class="m-0 mt-0.5 text-[16px] leading-6 text-[#464646]">
+                <!-- Brands paste WhatsApp invites and Drive links into this note, so the
+                     bare URLs are rendered as real links rather than dead text. -->
+                <app-linkified-text
+                  [value]="
+                    campaign.requirementsNote ||
                     'The brand has not published detailed requirements for this campaign yet.'
-                }}
+                  "
+                />
               </p>
               @if (campaign.requirementsDocUrl) {
                 <a
@@ -412,7 +429,9 @@
                   class="mt-2.5 block w-full max-w-[254px] rounded-[10px] border border-[#DDDDDD] bg-[#F8F8F8] px-[15px] py-[9px] no-underline hover:bg-[#F2F2F2]"
                 >
                   <span class="flex items-center justify-between gap-3">
-                    <span class="flex items-center gap-2 text-[16px] leading-6 text-[#464646]">
+                    <span
+                      class="co-user-text flex min-w-0 items-center gap-2 text-[16px] leading-6 text-[#464646]"
+                    >
                       <svg data-p-icon="link" [size]="14" aria-hidden="true"></svg>
                       {{ campaign.resourceLabel || 'Campaign resource' }}
                     </span>
@@ -431,7 +450,7 @@
                 <div
                   class="mt-2.5 w-full max-w-[254px] rounded-[10px] border border-[#DDDDDD] bg-[#F8F8F8] px-[15px] py-[9px]"
                 >
-                  <p class="m-0 text-[16px] leading-6 text-[#464646]">
+                  <p class="co-user-text m-0 text-[16px] leading-6 text-[#464646]">
                     {{ campaign.resourceLabel }}
                   </p>
                   <p class="m-0 mt-[11px] text-[14px] leading-[17px] text-[#909090]">

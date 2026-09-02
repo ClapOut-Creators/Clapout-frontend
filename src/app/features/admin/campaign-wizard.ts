@@ -47,6 +47,7 @@ import { formatDate, formatMoney, platformLabel } from '../../core/util/campaign
 import { BrandLogoTile } from '../../shared/admin/brand-logo-tile';
 import { WizardShell } from '../../shared/admin/wizard-shell';
 import { firstErrorMessage, httpUrlValidator } from '../../shared/forms/form-errors';
+import { ShareCampaignButton } from '../../shared/public/share-campaign-button';
 
 type WizardState = 'loading' | 'form' | 'published' | 'error';
 
@@ -240,6 +241,7 @@ function dateRangeStartValidator(control: AbstractControl): ValidationErrors | n
     ReactiveFormsModule,
     RouterLink,
     SelectModule,
+    ShareCampaignButton,
     SkeletonModule,
     TextareaModule,
     Tiktok,

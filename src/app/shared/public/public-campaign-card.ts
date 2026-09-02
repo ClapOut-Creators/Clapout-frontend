@@ -104,7 +104,9 @@ export function elapsedLabel(iso: string | null | undefined, now: number = Date.
             class="flex h-full w-full items-center justify-center px-5 text-center"
             [style.background-color]="campaign().brand.logoBg"
           >
-            <span class="co-display text-[18px] font-semibold leading-tight text-white">
+            <span
+              class="co-display co-user-text text-[18px] font-semibold leading-tight text-white"
+            >
               {{ campaign().brand.name }}
             </span>
           </span>
@@ -141,8 +143,8 @@ export function elapsedLabel(iso: string | null | undefined, now: number = Date.
             </svg>
           </div>
           <span class="shrink-0 text-[14.9px] text-[#8C8C94] xl:text-[14px]">
-            <span class="sr-only">Updated</span>
-            {{ updatedLabel() }}
+            <span class="sr-only">{{ metaLabel() ? metaLabelPrefix() : 'Updated' }}</span>
+            {{ metaLabel() ?? updatedLabel() }}
           </span>
         </div>
 
@@ -177,7 +179,7 @@ export function elapsedLabel(iso: string | null | undefined, now: number = Date.
       </div>
 
       <h3
-        class="mt-[6.2px] line-clamp-2 px-[14px] text-[21.8px] font-semibold leading-[27.8px] text-[#0F0F12] xl:mt-[5.9px] xl:text-[20.6px] xl:leading-[26.2px]"
+        class="co-user-text mt-[6.2px] line-clamp-2 px-[14px] text-[21.8px] font-semibold leading-[27.8px] text-[#0F0F12] xl:mt-[5.9px] xl:text-[20.6px] xl:leading-[26.2px]"
       >
         {{ campaign().title }}
       </h3>
@@ -233,6 +235,14 @@ export function elapsedLabel(iso: string | null | undefined, now: number = Date.
 })
 export class PublicCampaignCard {
   readonly campaign = input.required<PublicCampaign>();
+  /**
+   * Replaces the card's "Updated 26d ago" stamp. The clipper dashboard puts the
+   * date they applied in that slot, which is the timestamp that matters on
+   * their own dashboard, and keeps the card's geometry untouched.
+   */
+  readonly metaLabel = input<string | null>(null);
+  /** Screen-reader prefix for `metaLabel`. */
+  readonly metaLabelPrefix = input<string>('Updated');
 
   protected readonly hasBudget = hasBudget;
   protected readonly platformLabel = platformLabel;
