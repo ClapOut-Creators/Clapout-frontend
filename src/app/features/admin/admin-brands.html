@@ -1,0 +1,232 @@
+<main class="min-h-screen">
+  <div class="mx-auto">
+    <app-page-header
+      breadcrumb="Brands"
+      title="Brands"
+      subtitle="Manage brand accounts, contacts and campaign activity."
+    >
+      <p-button
+        label="Create Brands"
+        styleClass="!rounded-lg !bg-primary !border-primary !px-7 !py-2.5 !text-sm !shadow-none"
+        (onClick)="createBrand()"
+      />
+    </app-page-header>
+
+    @switch (state()) {
+      @case ('loading') {
+        <div class="mt-4" aria-busy="true" aria-live="polite">
+          <span class="sr-only">Loading brands</span>
+
+          <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            @for (card of skeletonCards; track card) {
+              <div class="rounded-xl border border-[#ECECEC] bg-[#FFFFFF] p-4">
+                <p-skeleton width="55%" height="0.875rem" />
+                <div class="mt-3"><p-skeleton width="30%" height="1.75rem" /></div>
+              </div>
+            }
+          </div>
+
+          <div class="mt-3 rounded-[18.83px] border border-[#ECECEC] bg-[#FFFFFF] p-4">
+            <p-skeleton width="9rem" height="1.25rem" />
+            <div class="mt-4 flex flex-col gap-2">
+              <p-skeleton width="100%" height="4rem" borderRadius="0.75rem" />
+              @for (row of skeletonRows; track row) {
+                <p-skeleton width="100%" height="3.25rem" />
+              }
+            </div>
+          </div>
+        </div>
+      }
+
+      @case ('error') {
+        <div class="mt-4 rounded-[18.83px] border border-[#ECECEC] bg-[#FFFFFF] p-6">
+          <p-message severity="error" [closable]="false">{{ errorMessage() }}</p-message>
+          <p class="mt-3 text-sm text-surface-600">
+            The brands service did not respond, so the totals and the list below are unavailable.
+          </p>
+          <p-button label="Try again" size="small" styleClass="mt-4" (onClick)="reload()" />
+        </div>
+      }
+
+      @default {
+        <section class="mt-4" aria-labelledby="admin-brand-stats-heading">
+          <h2 id="admin-brand-stats-heading" class="sr-only">Brand totals</h2>
+          <dl class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <app-stat-card label="Total brands" [value]="totalBrands()" />
+            <app-stat-card label="Active campaigns" [value]="activeCampaigns()" />
+            <app-stat-card
+              label="Needs attention"
+              [value]="needsAttention()"
+              hint="Brands with no campaigns yet"
+            />
+          </dl>
+        </section>
+
+        <section
+          class="mt-3 rounded-[18.83px] border border-[#ECECEC] bg-[#FFFFFF] p-4"
+          aria-labelledby="admin-brand-list-heading"
+        >
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <h2 id="admin-brand-list-heading" class="text-lg font-semibold text-surface-950">
+              Brand list
+            </h2>
+
+            <div class="relative w-full sm:w-72">
+              <label for="admin-brand-search" class="sr-only">Search brands</label>
+              <svg
+                data-p-icon="search"
+                [size]="14"
+                class="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-[#7B7B7B]"
+                aria-hidden="true"
+              ></svg>
+              <input
+                pInputText
+                id="admin-brand-search"
+                type="search"
+                class="w-full !pl-9"
+                placeholder="Search brands"
+                [ngModel]="searchInput()"
+                (ngModelChange)="onSearchInput($event)"
+              />
+            </div>
+          </div>
+
+          @if (brands().length === 0) {
+            @if (hasSearch()) {
+              <div
+                class="mt-4 rounded-xl border border-dashed border-surface-300 p-10 text-center"
+                aria-live="polite"
+              >
+                <h3 class="text-base font-semibold text-surface-950">
+                  No brands match this search
+                </h3>
+                <p class="mx-auto mt-2 max-w-md text-surface-600">
+                  Nothing matched “{{ search() }}”. Clear the search to see every brand again.
+                </p>
+                <p-button
+                  label="Clear search"
+                  size="small"
+                  [outlined]="true"
+                  styleClass="mt-5"
+                  (onClick)="clearSearch()"
+                />
+              </div>
+            } @else {
+              <div class="mt-4 rounded-xl border border-dashed border-surface-300 p-10 text-center">
+                <h3 class="text-base font-semibold text-surface-950">No brands yet</h3>
+                <p class="mx-auto mt-2 max-w-md text-surface-600">
+                  Add the first brand account and its campaigns, contacts and clippers all hang off
+                  it.
+                </p>
+                <a
+                  routerLink="/admin/brands/new"
+                  class="mt-5 inline-block rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-contrast no-underline"
+                  >Create Brands</a
+                >
+              </div>
+            }
+          } @else {
+            <p class="sr-only" aria-live="polite">{{ countLabel() }}</p>
+
+            <div
+              class="mt-4 overflow-x-auto text-sm transition-opacity"
+              [class.opacity-60]="refreshing()"
+              [attr.aria-busy]="refreshing()"
+            >
+              <p-table
+                dataKey="id"
+                [value]="brands()"
+                [tableStyle]="{ 'min-width': '68rem' }"
+                [paginator]="true"
+                [rows]="10"
+                [rowsPerPageOptions]="[10, 20, 50]"
+              >
+                <ng-template #header>
+                  <tr>
+                    <th
+                      scope="col"
+                      class="!rounded-l-xl !bg-[#F9F9F9] !font-medium !text-[#171A1C]"
+                    >
+                      Brand
+                    </th>
+                    <th scope="col" class="!bg-[#F9F9F9] !font-medium !text-[#171A1C]">Email</th>
+                    <th scope="col" class="!bg-[#F9F9F9] !font-medium !text-[#171A1C]">Industry</th>
+                    <th scope="col" class="!bg-[#F9F9F9] !font-medium !text-[#171A1C]">
+                      Phone number
+                    </th>
+                    <th scope="col" class="!bg-[#F9F9F9] !font-medium !text-[#171A1C]">Country</th>
+                    <th scope="col" class="!bg-[#F9F9F9] !font-medium !text-[#171A1C]">Owner</th>
+                    <th scope="col" class="!bg-[#F9F9F9] !font-medium !text-[#171A1C]">Status</th>
+                    <th
+                      scope="col"
+                      class="!rounded-r-xl !bg-[#F9F9F9] !text-right !font-semibold !text-[#171A1C]"
+                    >
+                      Action
+                    </th>
+                  </tr>
+                </ng-template>
+
+                <ng-template #body let-row>
+                  <tr>
+                    <td>
+                      <span class="flex items-center gap-2.5">
+                        <app-brand-logo-tile
+                          sizeClass="h-10 w-10"
+                          [name]="row.name"
+                          [logoUrl]="row.logoUrl"
+                          [logoBg]="row.logoBg"
+                          [logoFit]="row.logoFit"
+                        />
+                        <span class="min-w-0 truncate text-[#444444]">{{ row.name }}</span>
+                      </span>
+                    </td>
+                    <td>
+                      @if (row.contactEmail) {
+                        <a
+                          [href]="'mailto:' + row.contactEmail"
+                          class="text-[#444444] no-underline hover:underline"
+                          >{{ row.contactEmail }}</a
+                        >
+                      } @else {
+                        <span class="text-surface-400">—</span>
+                      }
+                    </td>
+                    <td class="text-[#1A1A1A]">{{ row.industry || '—' }}</td>
+                    <td class="whitespace-nowrap text-[#444444]">{{ row.contactPhone || '—' }}</td>
+                    <td class="text-[#1A1A1A]">{{ row.country || '—' }}</td>
+                    <td class="text-[#1A1A1A]">{{ row.contactName || '—' }}</td>
+                    <td>
+                      <span
+                        class="inline-flex items-center rounded-lg px-2 py-1.5 text-sm leading-none"
+                        [class]="statusClass(row)"
+                        >{{ statusLabel(row) }}</span
+                      >
+                    </td>
+                    <td>
+                      <span class="flex items-center justify-end gap-2">
+                        <a
+                          [routerLink]="['/admin/brands', row.id]"
+                          class="inline-flex items-center rounded-lg bg-[#171A1C] px-4 py-1.5 text-xs font-medium text-white no-underline hover:bg-[#383838]"
+                          >View</a
+                        >
+                        <button
+                          type="button"
+                          class="inline-flex items-center justify-center rounded-lg bg-[#FFE1E1] px-2.5 py-2 text-[#E60000] hover:bg-[#FFD0D0] disabled:cursor-not-allowed disabled:opacity-60"
+                          [disabled]="isDeleting(row.id)"
+                          (click)="confirmDelete(row)"
+                        >
+                          <svg data-p-icon="trash" [size]="14" aria-hidden="true"></svg>
+                          <span class="sr-only">Delete {{ row.name }}</span>
+                        </button>
+                      </span>
+                    </td>
+                  </tr>
+                </ng-template>
+              </p-table>
+            </div>
+          }
+        </section>
+      }
+    }
+  </div>
+</main>

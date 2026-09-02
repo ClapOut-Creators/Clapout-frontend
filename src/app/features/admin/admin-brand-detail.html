@@ -1,0 +1,345 @@
+<main class="min-h-screen">
+  <div class="mx-auto">
+    <app-page-header
+      breadcrumb="Brands"
+      [breadcrumbTrail]="headerTrail()"
+      [title]="headerTitle()"
+      subtitle="Brand account, contacts and campaign activity."
+    >
+      @if (brand()) {
+        <div class="flex flex-wrap items-center gap-2.5">
+          <p-button
+            [label]="statusActionLabel()"
+            [disabled]="savingStatus()"
+            styleClass="!rounded-lg !border-[#ECECEC] !bg-[#ECECEC] !px-5 !py-2.5 !text-sm !text-[#525252] !shadow-none"
+            (onClick)="toggleStatus()"
+          />
+          <p-button
+            label="Edit"
+            styleClass="!rounded-lg !bg-primary !border-primary !px-7 !py-2.5 !text-sm !shadow-none"
+            (onClick)="editBrand()"
+          />
+        </div>
+      }
+    </app-page-header>
+
+    @switch (state()) {
+      @case ('loading') {
+        <div class="mt-4" aria-busy="true" aria-live="polite">
+          <span class="sr-only">Loading this brand</span>
+
+          <div class="rounded-[18.83px] border border-[#ECECEC] bg-[#FFFFFF] p-5">
+            <div class="flex flex-wrap items-center gap-4">
+              <p-skeleton width="6.5rem" height="6rem" borderRadius="1.2rem" />
+              <div class="flex-1">
+                <p-skeleton width="35%" height="2rem" />
+                <div class="mt-3"><p-skeleton width="20%" height="1rem" /></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
+            @for (card of skeletonCards; track card) {
+              <div class="rounded-xl border border-[#ECECEC] bg-[#FFFFFF] p-4">
+                <p-skeleton width="55%" height="0.875rem" />
+                <div class="mt-3"><p-skeleton width="40%" height="1.75rem" /></div>
+              </div>
+            }
+          </div>
+
+          <div class="mt-3 rounded-[18.83px] border border-[#ECECEC] bg-[#FFFFFF] p-4">
+            <p-skeleton width="9rem" height="1.25rem" />
+            <div class="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+              @for (row of skeletonRows; track row) {
+                <p-skeleton width="100%" height="12rem" borderRadius="1.6rem" />
+              }
+            </div>
+          </div>
+        </div>
+      }
+
+      @case ('not-found') {
+        <div
+          class="mt-4 rounded-[18.83px] border border-dashed border-surface-300 bg-[#FFFFFF] p-10 text-center"
+        >
+          <h2 class="text-lg font-semibold text-surface-950">Brand not found</h2>
+          <p class="mx-auto mt-2 max-w-md text-surface-600">
+            This brand has been deleted, or the link points at an id that never existed.
+          </p>
+          <a
+            routerLink="/admin/brands"
+            class="mt-5 inline-block rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-contrast no-underline"
+            >Back to brands</a
+          >
+        </div>
+      }
+
+      @case ('error') {
+        <div class="mt-4 rounded-[18.83px] border border-[#ECECEC] bg-[#FFFFFF] p-6">
+          <p-message severity="error" [closable]="false">{{ errorMessage() }}</p-message>
+          <p class="mt-3 text-sm text-surface-600">
+            The brands service did not respond, so this account could not be loaded.
+          </p>
+          <p-button label="Try again" size="small" styleClass="mt-4" (onClick)="reload()" />
+        </div>
+      }
+
+      @default {
+        @if (brand(); as brand) {
+          <section
+            class="mt-4 rounded-[18.83px] border border-[#ECECEC] bg-[#FFFFFF] p-5"
+            aria-labelledby="admin-brand-identity-heading"
+          >
+            <div class="flex flex-col gap-6 xl:flex-row xl:items-center">
+              <div class="flex min-w-0 flex-1 items-center gap-4">
+                <app-brand-logo-tile
+                  sizeClass="h-24 w-26 rounded-2xl"
+                  [name]="brand.name"
+                  [logoUrl]="brand.logoUrl"
+                  [logoBg]="brand.logoBg"
+                  [logoFit]="brand.logoFit"
+                />
+                <div class="min-w-0">
+                  <div class="flex flex-wrap items-center gap-2.5">
+                    <h2
+                      id="admin-brand-identity-heading"
+                      class="truncate text-2xl font-medium text-surface-950 sm:text-3xl"
+                    >
+                      {{ brand.name }}
+                    </h2>
+                    <span
+                      class="inline-flex items-center rounded-lg px-2 py-1.5 text-sm leading-none"
+                      [class]="
+                        isActive() ? 'bg-[#E1FFE1] text-[#16AC20]' : 'bg-[#F1F1F1] text-[#7B7B7B]'
+                      "
+                      >{{ isActive() ? 'Active' : 'Inactive' }}</span
+                    >
+                  </div>
+                  <p class="mt-1 truncate text-[#7B7B7B]">
+                    {{ brand.industry || 'Industry not set' }}
+                  </p>
+                </div>
+              </div>
+
+              <dl
+                class="grid gap-6 sm:grid-cols-2 xl:w-[46%] xl:border-l xl:border-[#ECECEC] xl:pl-8"
+              >
+                <div>
+                  <dt class="text-[#464646]">Primary Contact</dt>
+                  <dd class="m-0 mt-2.5 flex items-center gap-2.5">
+                    <span
+                      class="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-[#171A1C] text-sm font-semibold text-white"
+                      aria-hidden="true"
+                      >{{ initials(brand.contactName) }}</span
+                    >
+                    <span class="min-w-0">
+                      <span class="block truncate text-[#464646]">{{
+                        brand.contactName || '—'
+                      }}</span>
+                      <span class="block truncate text-sm text-[#ACACAC]">{{
+                        brand.contactEmail || '—'
+                      }}</span>
+                      @if (brand.contactPhone) {
+                        <span class="block truncate text-sm text-[#ACACAC]">{{
+                          brand.contactPhone
+                        }}</span>
+                      }
+                    </span>
+                  </dd>
+                </div>
+
+                <div>
+                  <dt class="text-[#464646]">Account manager</dt>
+                  <dd class="m-0 mt-2.5 flex items-center gap-2.5">
+                    <span
+                      class="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-[#171A1C] text-sm font-semibold text-white"
+                      aria-hidden="true"
+                      >{{ initials(accountManager()?.fullName) }}</span
+                    >
+                    <span class="min-w-0">
+                      <span class="block truncate text-[#464646]">{{
+                        accountManager()?.fullName || '—'
+                      }}</span>
+                      <span class="block truncate text-sm text-[#ACACAC]">{{
+                        accountManager()?.email || '—'
+                      }}</span>
+                    </span>
+                  </dd>
+                </div>
+              </dl>
+            </div>
+          </section>
+
+          <section class="mt-3" aria-labelledby="admin-brand-stats-heading">
+            <h2 id="admin-brand-stats-heading" class="sr-only">Brand totals</h2>
+            <dl class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              <app-stat-card label="Total campaigns" [value]="totalCampaignsLabel()" />
+              <app-stat-card label="Registration" [value]="registrationLabel()" />
+              <app-stat-card label="Revenue" [value]="revenueLabel()" />
+            </dl>
+          </section>
+
+          <section
+            class="mt-3 rounded-[18.83px] border border-[#ECECEC] bg-[#FFFFFF] p-4"
+            aria-labelledby="admin-brand-campaigns-heading"
+          >
+            <h2 id="admin-brand-campaigns-heading" class="text-lg font-semibold text-surface-950">
+              Campaigns
+            </h2>
+
+            <div class="mt-4 flex flex-wrap items-center justify-between gap-3">
+              <div class="w-full sm:max-w-md">
+                <label for="admin-brand-campaign-search" class="sr-only">
+                  Search this brand's campaigns
+                </label>
+                <input
+                  pInputText
+                  id="admin-brand-campaign-search"
+                  type="search"
+                  class="w-full"
+                  placeholder="Search"
+                  [ngModel]="campaignSearch()"
+                  (ngModelChange)="campaignSearch.set($event)"
+                />
+              </div>
+              <p-button
+                label="Create campaign"
+                [outlined]="true"
+                styleClass="!rounded-xl !border-primary !px-7 !py-2.5 !text-sm !text-primary !shadow-none"
+                (onClick)="createCampaign()"
+              />
+            </div>
+
+            @if (campaigns().length === 0) {
+              <div class="mt-4 rounded-xl border border-dashed border-surface-300 p-10 text-center">
+                <h3 class="text-base font-semibold text-surface-950">No campaigns yet</h3>
+                <p class="mx-auto mt-2 max-w-md text-surface-600">
+                  {{ brand.name }} has no campaigns on ClapOut yet. Start one and it will appear
+                  here.
+                </p>
+                <p-button
+                  label="Create campaign"
+                  size="small"
+                  styleClass="mt-5"
+                  (onClick)="createCampaign()"
+                />
+              </div>
+            } @else if (visibleCampaigns().length === 0) {
+              <div
+                class="mt-4 rounded-xl border border-dashed border-surface-300 p-10 text-center"
+                aria-live="polite"
+              >
+                <h3 class="text-base font-semibold text-surface-950">
+                  No campaigns match this search
+                </h3>
+                <p class="mx-auto mt-2 max-w-md text-surface-600">
+                  Nothing matched “{{ campaignSearch() }}”. Clear the search to see all
+                  {{ campaigns().length }} campaigns.
+                </p>
+                <p-button
+                  label="Clear search"
+                  size="small"
+                  [outlined]="true"
+                  styleClass="mt-5"
+                  (onClick)="clearCampaignSearch()"
+                />
+              </div>
+            } @else {
+              <ul class="mt-4 grid list-none grid-cols-1 gap-3 p-0 md:grid-cols-2 xl:grid-cols-3">
+                @for (campaign of visibleCampaigns(); track campaign.slug) {
+                  <li>
+                    <a
+                      [routerLink]="['/admin/campaigns', campaign.slug]"
+                      class="flex h-full flex-col rounded-[26.27px] border border-[#DDDDDD] bg-[#F8F8F8] p-4 no-underline transition-colors hover:border-surface-300 hover:bg-[#F1F1F1]"
+                    >
+                      <div class="flex items-start justify-between gap-3">
+                        <app-brand-logo-tile
+                          sizeClass="h-16 w-36 rounded-xl"
+                          [name]="campaign.brand.name"
+                          [logoUrl]="campaign.brand.logoUrl"
+                          [logoBg]="campaign.brand.logoBg"
+                          [logoFit]="campaign.brand.logoFit"
+                        />
+                        <span class="text-right">
+                          <span
+                            class="inline-flex items-center rounded-full px-3.5 py-1 text-xs"
+                            [class]="campaignPillClass(campaign.status)"
+                            >{{ campaignStatusLabel(campaign.status) }}</span
+                          >
+                          <span
+                            class="mt-2 flex items-center justify-end gap-1.5 text-xs text-[#7B7B7B]"
+                          >
+                            <svg data-p-icon="clock" [size]="13" aria-hidden="true"></svg>
+                            {{ daysLeftLabel(campaign.endDate) }}
+                          </span>
+                        </span>
+                      </div>
+
+                      <h3 class="mt-4 truncate text-xl font-semibold text-[#151515]">
+                        {{ campaign.title || campaign.brand.name }}
+                      </h3>
+
+                      <div class="mt-2 flex flex-wrap items-center gap-3 text-sm">
+                        <span class="text-[#666666]">Platform</span>
+                        <span class="text-[#1A1A1A]">{{ platformSummary(campaign) }}</span>
+                      </div>
+
+                      <div class="mt-4 flex items-end justify-between gap-3 text-sm">
+                        <span>
+                          <span class="flex items-center gap-1.5 text-[#666666]">
+                            <svg data-p-icon="wallet" [size]="14" aria-hidden="true"></svg>
+                            Paid Out
+                          </span>
+                          <span class="mt-1 block font-semibold text-[#151515]">
+                            {{ formatMoney(campaign.currency, campaign.budgetSpent) }}
+                            <span class="text-xs font-medium text-[#5E5E5E]"
+                              >/{{ formatMoney(campaign.currency, campaign.budgetTotal) }}</span
+                            >
+                          </span>
+                        </span>
+                        <span class="text-right">
+                          <span class="block text-[#7B7B7B]">CPM</span>
+                          <span class="mt-1 block font-semibold text-[#151515]">
+                            {{ formatMoney(campaign.currency, campaign.cpm) }}
+                            <span class="text-xs font-medium text-[#5E5E5E]">/ 1k views</span>
+                          </span>
+                        </span>
+                      </div>
+
+                      @if (hasBudget(campaign.budgetTotal)) {
+                        <div class="co-meter mt-auto pt-4">
+                          <p-progressbar
+                            [value]="budgetPercent(campaign.budgetSpent, campaign.budgetTotal)"
+                            [showValue]="false"
+                          />
+                        </div>
+                      } @else {
+                        <p class="mt-auto pt-4 text-xs text-[#7B7B7B]">Budget not announced yet</p>
+                      }
+                    </a>
+                  </li>
+                }
+              </ul>
+            }
+          </section>
+
+          <section
+            class="mt-3 rounded-[18.83px] border border-[#ECECEC] bg-[#FFFFFF] p-4"
+            aria-labelledby="admin-brand-clippers-heading"
+          >
+            <h2 id="admin-brand-clippers-heading" class="text-lg font-semibold text-surface-950">
+              Recent Registered
+            </h2>
+            <p class="mt-1 text-sm text-surface-500">
+              Everyone who registered for a {{ brand.name }} campaign, with the details you need to
+              review and pay them.
+            </p>
+            <div class="mt-4">
+              <app-clippers-table [brandId]="brand.id" [campaignOptions]="campaignOptions()" />
+            </div>
+          </section>
+        }
+      }
+    }
+  </div>
+</main>
