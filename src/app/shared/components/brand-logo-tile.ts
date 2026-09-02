@@ -35,6 +35,8 @@ export class BrandLogoTile {
   readonly logoFit = input<'cover' | 'contain'>('cover');
   /** Tailwind sizing, e.g. 'h-16 w-28' for cards or 'h-10 w-10' for tables. */
   readonly sizeClass = input<string>('h-16 w-28');
+  /** Optional contain inset override for large artwork surfaces. */
+  readonly containInsetClass = input<string>();
 
   private readonly tile = viewChild.required<ElementRef<HTMLElement>>('tile');
 
@@ -55,9 +57,9 @@ export class BrandLogoTile {
     if (!contain) {
       return 'h-full w-full object-cover';
     }
-    return this.smallTile()
-      ? 'h-full w-full object-contain p-[10%]'
-      : 'h-full w-full object-contain p-[12%]';
+    return `h-full w-full object-contain ${
+      this.containInsetClass() ?? (this.smallTile() ? 'p-[10%]' : 'p-[12%]')
+    }`;
   });
 
   constructor() {

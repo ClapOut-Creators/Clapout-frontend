@@ -82,7 +82,8 @@ export function campaignStatusPillClass(status: CampaignStatus): string {
           [logoUrl]="campaign().brand.logoUrl"
           [logoBg]="campaign().brand.logoBg"
           [logoFit]="campaign().brand.logoFit"
-          sizeClass="h-[66px] w-[96px] sm:w-[120px] xl:w-[152px] !rounded-[13.13px]"
+          sizeClass="h-[86px] w-[140px] sm:w-[168px] xl:w-[190px] !rounded-[13.13px]"
+          containInsetClass="p-[4%]"
         />
 
         <span class="flex shrink-0 flex-col items-end gap-2.5">

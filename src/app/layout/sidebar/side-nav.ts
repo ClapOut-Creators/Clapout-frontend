@@ -8,8 +8,10 @@ import { Home } from '@primeicons/angular/home';
 import { Shop } from '@primeicons/angular/shop';
 import { Sidebar } from '@primeicons/angular/sidebar';
 import { SignOut } from '@primeicons/angular/sign-out';
+import { MenuItem } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { DrawerModule } from 'primeng/drawer';
+import { MenuModule } from 'primeng/menu';
 import { TooltipModule } from 'primeng/tooltip';
 import { AuthService } from '../../core/auth/auth-service';
 
@@ -51,6 +53,7 @@ const ADMIN_LINKS: NavLink[] = [
     Compass,
     DrawerModule,
     Home,
+    MenuModule,
     RouterLink,
     RouterLinkActive,
     Shop,
@@ -73,6 +76,12 @@ export class SideNav {
   protected readonly userMenuOpen = signal(false);
 
   protected readonly links = computed(() => (this.isAdmin() ? ADMIN_LINKS : CREATOR_LINKS));
+  protected readonly accountMenuItems = computed<MenuItem[]>(() => [
+    {
+      label: 'Sign out',
+      command: () => this.signOut(),
+    },
+  ]);
   /** Admins land in their own section rather than public discovery. */
   protected readonly homeLink = computed(() =>
     this.isAdmin() ? '/admin/dashboard' : '/campaigns',
@@ -80,10 +89,6 @@ export class SideNav {
 
   protected closeDrawer(): void {
     this.drawerOpen.set(false);
-  }
-
-  protected toggleUserMenu(): void {
-    this.userMenuOpen.update((open) => !open);
   }
 
   protected initials(): string {

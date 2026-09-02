@@ -65,36 +65,45 @@
       [attr.aria-label]="'Open account menu for ' + (user()?.fullName ?? 'current user')"
       aria-haspopup="menu"
       [attr.aria-expanded]="userMenuOpen()"
+      aria-controls="sidebar-account-menu"
       pTooltip="Account"
       tooltipPosition="right"
-      (click)="toggleUserMenu()"
+      (click)="accountMenu.toggle($event)"
     >
       {{ initials() }}
     </button>
 
-    @if (userMenuOpen()) {
-      <div
-        role="menu"
-        aria-label="Account menu"
-        class="absolute bottom-0 left-[calc(100%+0.75rem)] z-30 w-56 rounded-lg border border-surface-200 bg-surface-0 p-2 shadow-[var(--clapout-shadow-overlay)]"
-      >
-        <p class="truncate px-3 py-2 text-sm font-medium text-surface-900">
-          {{ user()?.fullName }}
-        </p>
-        <p class="px-3 pb-2 text-xs font-medium uppercase tracking-wide text-surface-500">
-          {{ isAdmin() ? 'Admin' : 'Creator' }}
-        </p>
-        <button
-          type="button"
-          role="menuitem"
-          class="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm font-medium text-surface-700 hover:bg-surface-100"
-          (click)="signOut()"
+    <p-menu
+      #accountMenu
+      id="sidebar-account-menu"
+      [model]="accountMenuItems()"
+      [popup]="true"
+      [appendTo]="'body'"
+      ariaLabel="Account menu"
+      styleClass="!w-56 !rounded-lg !border !border-surface-200 !bg-surface-0 !p-2 !shadow-[var(--clapout-shadow-overlay)]"
+      (onShow)="userMenuOpen.set(true)"
+      (onHide)="userMenuOpen.set(false)"
+    >
+      <ng-template #start>
+        <div class="px-3 py-2">
+          <p class="truncate text-sm font-medium text-surface-900">
+            {{ user()?.fullName }}
+          </p>
+          <p class="mt-2 text-xs font-medium uppercase tracking-wide text-surface-500">
+            {{ isAdmin() ? 'Admin' : 'Creator' }}
+          </p>
+        </div>
+      </ng-template>
+
+      <ng-template #item let-item>
+        <div
+          class="flex min-h-9 w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm font-medium text-surface-700 hover:bg-surface-100"
         >
           <svg data-p-icon="sign-out" [size]="14"></svg>
-          <span>Sign out</span>
-        </button>
-      </div>
-    }
+          <span>{{ item.label }}</span>
+        </div>
+      </ng-template>
+    </p-menu>
   </div>
 </aside>
 

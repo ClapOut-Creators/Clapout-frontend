@@ -55,7 +55,10 @@ describe('SideNav', () => {
     return { auth, element: fixture.nativeElement as HTMLElement, fixture };
   }
 
-  afterEach(() => TestBed.resetTestingModule());
+  afterEach(() => {
+    document.body.querySelectorAll('.p-menu').forEach((menu) => menu.remove());
+    TestBed.resetTestingModule();
+  });
 
   it('renders the admin icon rail with accessible route names', async () => {
     const { element } = await render(adminUser);
@@ -92,10 +95,18 @@ describe('SideNav', () => {
     const accountButton = element.querySelector<HTMLButtonElement>('button[aria-haspopup="menu"]');
     accountButton?.click();
     fixture.detectChanges();
+    await fixture.whenStable();
 
-    expect(element.querySelector('[role="menu"]')?.textContent).toContain('Ada Admin');
+    const accountMenu = Array.from(document.body.querySelectorAll('.p-menu')).find((menu) =>
+      menu.textContent?.includes('Sign out'),
+    );
+    expect(accountMenu?.textContent).toContain('Ada Admin');
+    expect(accountMenu?.textContent).toContain('Admin');
+    expect(accountMenu?.textContent).toContain('Sign out');
 
-    element.querySelector<HTMLButtonElement>('[role="menuitem"]')?.click();
+    document.body
+      .querySelector<HTMLElement>('#sidebar-account-menu [data-pc-section="itemcontent"]')
+      ?.click();
     expect(auth.signOut).toHaveBeenCalledOnce();
   });
 });
