@@ -64,6 +64,8 @@ describe('SideNav', () => {
     expect(element.querySelector('a[aria-label="Dashboard"]')).toBeTruthy();
     expect(element.querySelector('a[aria-label="Campaigns"]')).toBeTruthy();
     expect(element.querySelector('a[aria-label="Registrations"]')).toBeTruthy();
+    expect(element.querySelector('a[aria-label="Submissions"]')).toBeTruthy();
+    expect(element.querySelector('a[aria-label="Inquiries"]')).toBeTruthy();
     expect(element.querySelector('button[aria-label="Settings coming soon"]')).toBeTruthy();
     expect(element.querySelector('button[aria-haspopup="menu"]')).toBeTruthy();
   });
@@ -72,14 +74,16 @@ describe('SideNav', () => {
     const { element } = await render(creatorUser);
 
     const links = Array.from(element.querySelectorAll('.co-shell-rail nav a'));
-    expect(links).toHaveLength(2);
+    expect(links).toHaveLength(3);
     expect(links.map((link) => link.getAttribute('aria-label'))).toEqual([
       'Dashboard',
       'Campaigns',
+      'Submissions',
     ]);
     expect(links.map((link) => link.getAttribute('href'))).toEqual([
       '/creator/dashboard',
       '/campaigns',
+      '/creator/submissions',
     ]);
   });
 

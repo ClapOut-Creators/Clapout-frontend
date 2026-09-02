@@ -4,9 +4,11 @@ import { Clipboard } from '@primeicons/angular/clipboard';
 import { Cog } from '@primeicons/angular/cog';
 import { Compass } from '@primeicons/angular/compass';
 import { Home } from '@primeicons/angular/home';
+import { Inbox } from '@primeicons/angular/inbox';
 import { Shop } from '@primeicons/angular/shop';
 import { Sidebar } from '@primeicons/angular/sidebar';
 import { SignOut } from '@primeicons/angular/sign-out';
+import { Video } from '@primeicons/angular/video';
 import { ButtonModule } from 'primeng/button';
 import { DrawerModule } from 'primeng/drawer';
 import { TooltipModule } from 'primeng/tooltip';
@@ -17,13 +19,14 @@ interface NavLink {
   path: string;
   /** Exact matching for parents whose children have their own entries. */
   exact: boolean;
-  icon: 'clipboard' | 'compass' | 'home' | 'shop';
+  icon: 'clipboard' | 'compass' | 'home' | 'inbox' | 'shop' | 'video';
 }
 
 // Figma (clipper dashboard rail): home first, then discovery.
 const CREATOR_LINKS: NavLink[] = [
   { label: 'Dashboard', path: '/creator/dashboard', exact: false, icon: 'home' },
   { label: 'Campaigns', path: '/campaigns', exact: false, icon: 'compass' },
+  { label: 'Submissions', path: '/creator/submissions', exact: false, icon: 'video' },
 ];
 
 // Order and glyphs follow the Figma rail: home → brands (shop) → campaigns
@@ -33,6 +36,8 @@ const ADMIN_LINKS: NavLink[] = [
   { label: 'Brands', path: '/admin/brands', exact: false, icon: 'shop' },
   { label: 'Campaigns', path: '/admin/campaigns', exact: false, icon: 'clipboard' },
   { label: 'Registrations', path: '/admin/registrations', exact: false, icon: 'compass' },
+  { label: 'Submissions', path: '/admin/submissions', exact: false, icon: 'video' },
+  { label: 'Inquiries', path: '/admin/inquiries', exact: false, icon: 'inbox' },
 ];
 
 /**
@@ -48,12 +53,14 @@ const ADMIN_LINKS: NavLink[] = [
     Compass,
     DrawerModule,
     Home,
+    Inbox,
     RouterLink,
     RouterLinkActive,
     Shop,
     Sidebar,
     SignOut,
     TooltipModule,
+    Video,
   ],
   selector: 'app-side-nav',
   styleUrl: './side-nav.css',
