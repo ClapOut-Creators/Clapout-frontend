@@ -2,12 +2,12 @@
 <aside class="co-shell-rail sticky top-0 hidden h-screen w-20 shrink-0 flex-col lg:flex pt-[14px]">
   <a
     [routerLink]="homeLink()"
-    class="mx-auto flex size-10 items-center justify-center rounded-md text-surface-900 no-underline"
+    class="mx-auto flex size-11 items-center justify-center rounded-md text-surface-900 no-underline"
     pTooltip="ClapOut home"
     tooltipPosition="right"
     aria-label="ClapOut home"
   >
-    <img src="/logo/clapout-logo.png" alt="" class="size-12 select-none" draggable="false" />
+    <img src="/logo/clapout-logo.png" alt="" class="size-13 max-w-none shrink-0 select-none" draggable="false" />
   </a>
 
   <nav aria-label="Primary" class="mt-8 flex flex-1 flex-col items-center gap-4">
@@ -23,16 +23,16 @@
       >
         @switch (link.icon) {
           @case ('clipboard') {
-            <svg data-p-icon="clipboard" [size]="16"></svg>
+            <svg data-p-icon="clipboard" [size]="18"></svg>
           }
           @case ('compass') {
-            <svg data-p-icon="compass" [size]="16"></svg>
+            <svg data-p-icon="compass" [size]="18"></svg>
           }
           @case ('shop') {
-            <svg data-p-icon="shop" [size]="16"></svg>
+            <svg data-p-icon="shop" [size]="18"></svg>
           }
           @default {
-            <svg data-p-icon="home" [size]="16"></svg>
+            <svg data-p-icon="home" [size]="18"></svg>
           }
         }
       </a>
@@ -48,7 +48,7 @@
       pTooltip="Settings coming soon"
       tooltipPosition="right"
     >
-      <svg data-p-icon="cog" [size]="16"></svg>
+      <svg data-p-icon="cog" [size]="18"></svg>
     </button>
 
     <button
