@@ -1,549 +1,1135 @@
 @switch (state()) {
   @case ('loading') {
-    <main class="mx-auto max-w-2xl px-4 py-10" aria-busy="true" aria-live="polite">
+    <main class="mx-auto max-w-[546px] px-4 py-16" aria-busy="true" aria-live="polite">
       <span class="sr-only">Loading campaign</span>
-      <p-skeleton width="50%" height="2rem" />
-      <div class="mt-6"><p-skeleton width="100%" height="20rem" borderRadius="1rem" /></div>
+      <p-skeleton width="60%" height="2.5rem" />
+      <div class="mt-6"><p-skeleton width="100%" height="22rem" borderRadius="1rem" /></div>
     </main>
   }
 
   @case ('error') {
-    <main class="mx-auto max-w-2xl px-4 py-10">
+    <main class="mx-auto max-w-[546px] px-4 py-16">
       <p-message severity="error" [closable]="false">{{ loadErrorMessage() }}</p-message>
       <a
         routerLink="/admin/campaigns"
-        class="mt-6 inline-block rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-contrast no-underline"
+        class="mt-6 inline-block rounded-xl bg-primary px-4 py-2.5 text-[18px] font-medium text-white no-underline"
         >Back to campaigns</a
       >
     </main>
   }
 
+  <!-- Success — 176:1056 -->
   @case ('published') {
-    <main class="mx-auto flex max-w-md flex-col items-center px-4 py-20 text-center">
-      <span
-        class="flex h-14 w-14 items-center justify-center rounded-full bg-green-100 text-2xl text-green-700"
-        aria-hidden="true"
-        >&check;</span
-      >
-      <h1 class="mt-5 text-2xl font-semibold tracking-tight text-surface-900">
-        Campaign published!
-      </h1>
-      <p class="mt-2 text-surface-600">
-        Your campaign has been published and is now live. Creators can find it and register to start
-        clipping.
-      </p>
+    <div class="fixed inset-0 z-30 overflow-y-auto bg-[#FFFFFF]/90">
       <a
-        [routerLink]="['/admin/campaigns', savedSlug()]"
-        class="mt-8 w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-contrast no-underline"
-        >View campaign</a
+        routerLink="/admin/campaigns"
+        class="absolute right-8 top-[60px] flex h-11 w-11 items-center justify-center rounded-full bg-[#CDCDCD] text-[#393939] no-underline"
+        aria-label="Close"
       >
-      <a
-        routerLink="/admin/dashboard"
-        class="mt-3 w-full rounded-lg border border-surface-200 px-4 py-2.5 text-sm font-medium text-surface-700 no-underline"
-        >Back to dashboard</a
-      >
-    </main>
+        <svg data-p-icon="times" [size]="16" aria-hidden="true"></svg>
+      </a>
+
+      <div class="flex min-h-full items-center justify-center px-4 py-16">
+        <div
+          class="flex w-[640px] max-w-full flex-col items-center gap-9 rounded-[40px] bg-white px-11 pb-10 pt-8"
+        >
+          <span
+            class="flex h-20 w-20 items-center justify-center rounded-full bg-[#B1DEB1] text-[#009100]"
+            aria-hidden="true"
+          >
+            <svg data-p-icon="check" [size]="36"></svg>
+          </span>
+
+          <div class="flex flex-col gap-3 text-center">
+            <h1 class="text-[28px] font-semibold text-[#171A1C]">Campaign Published!</h1>
+            <p class="text-[20px] leading-normal text-[#464646]">
+              Your campaign has been successfully published and is under review. Participating
+              creators can now view your brief and submit clips when it is live.
+            </p>
+          </div>
+
+          <div class="flex w-full flex-col gap-3">
+            <a
+              [routerLink]="['/admin/campaigns', savedSlug()]"
+              class="flex h-[52px] items-center justify-center rounded-xl bg-[#EC612C] text-[20px] text-white no-underline"
+              >View Campaign</a
+            >
+            <a
+              routerLink="/admin/dashboard"
+              class="flex h-[52px] items-center justify-center rounded-xl border border-[#B4B4B4] bg-white text-[20px] text-[#151515] no-underline"
+              >Back to Dashboard</a
+            >
+          </div>
+        </div>
+      </div>
+    </div>
   }
 
   @default {
-    <main class="mx-auto max-w-2xl px-4 py-10">
-      <div class="flex items-center justify-between gap-4">
-        <a
-          routerLink="/admin/campaigns"
-          class="inline-flex items-center gap-2 rounded-lg border border-surface-200 px-3 py-1.5 text-sm text-surface-700 no-underline hover:bg-surface-100"
+    <!-- ============================ inline brand sub-flow ================= -->
+    @if (inBrandFlow()) {
+      <app-wizard-shell
+        [step]="brandStep()"
+        [totalSteps]="brandSteps.length"
+        [title]="currentBrandStep().title"
+        [subtitle]="currentBrandStep().subtitle"
+        (closed)="requestClose()"
+      >
+        <form
+          class="flex flex-col gap-6"
+          [formGroup]="brandForm"
+          (ngSubmit)="brandNext()"
+          novalidate
         >
-          <span aria-hidden="true">&larr;</span> Campaigns
-        </a>
-        <span class="text-sm text-surface-500">Step {{ step() + 1 }} of {{ steps.length }}</span>
-      </div>
-
-      <div class="mt-5 h-1.5 w-full overflow-hidden rounded-full bg-surface-200">
-        <div
-          class="h-full rounded-full bg-primary transition-all"
-          [style.width.%]="progressPercent()"
-        ></div>
-      </div>
-
-      <header class="mt-6 text-center">
-        <h1 class="text-2xl font-semibold tracking-tight text-surface-900">
-          {{ currentStep().title }}
-        </h1>
-        <p class="mt-2 text-surface-600">{{ currentStep().subtitle }}</p>
-        @if (isEditing() || savedSlug()) {
-          <p class="mt-2 text-xs uppercase tracking-wide text-surface-500">Editing a saved draft</p>
-        }
-      </header>
-
-      @if (errorMessage()) {
-        <div class="mt-5">
-          <p-message severity="error" [closable]="false">{{ errorMessage() }}</p-message>
-        </div>
-      }
-
-      <form class="mt-7 flex flex-col gap-5" [formGroup]="form" (ngSubmit)="next()" novalidate>
-        @switch (step()) {
-          <!-- 1. Banner + title -->
-          @case (0) {
-            <div class="flex flex-col gap-2">
-              <span class="text-sm font-medium text-surface-800">Campaign banner</span>
-              <app-image-input
-                inputId="wizard-banner"
-                previewAlt="Campaign banner preview"
-                previewClass="h-28 w-48"
-                [value]="form.controls.bannerUrl.value"
-                (valueChange)="setBanner($event)"
-              />
-            </div>
-
-            <div class="flex flex-col gap-2">
-              <label class="text-sm font-medium text-surface-800" for="wizard-title">Title</label>
-              <input
-                pInputText
-                id="wizard-title"
-                type="text"
-                class="w-full"
-                placeholder="E-WALE Clipping | ₵2k Budget | ₵20.0 CPM"
-                formControlName="title"
-                [attr.aria-invalid]="fieldError('title') ? 'true' : null"
-              />
-              @if (fieldError('title'); as message) {
-                <p class="text-sm text-red-700">{{ message }}</p>
-              }
-            </div>
+          @if (brandErrorMessage()) {
+            <p-message severity="error" [closable]="false">{{ brandErrorMessage() }}</p-message>
           }
 
-          <!-- 2. Description + category -->
-          @case (1) {
-            <div class="flex flex-col gap-2">
-              <label class="text-sm font-medium text-surface-800" for="wizard-description"
-                >Short description</label
-              >
-              <textarea
-                pTextarea
-                id="wizard-description"
-                rows="6"
-                class="w-full"
-                placeholder="What is this campaign about, and what should clippers make?"
-                formControlName="description"
-                [attr.aria-invalid]="fieldError('description') ? 'true' : null"
-              ></textarea>
-              @if (fieldError('description'); as message) {
-                <p class="text-sm text-red-700">{{ message }}</p>
-              }
-            </div>
-
-            <div class="flex flex-col gap-2">
-              <label class="text-sm font-medium text-surface-800" for="wizard-category"
-                >Category</label
-              >
-              <p-select
-                inputId="wizard-category"
-                class="w-full"
-                optionLabel="label"
-                optionValue="value"
-                placeholder="Select a category"
-                formControlName="category"
-                [options]="categoryOptions"
-              />
-              @if (fieldError('category'); as message) {
-                <p class="text-sm text-red-700">{{ message }}</p>
-              }
-            </div>
-          }
-
-          <!-- 3. Budget -->
-          @case (2) {
-            <div class="flex flex-col gap-2">
-              <label class="text-sm font-medium text-surface-800" for="wizard-currency"
-                >Currency</label
-              >
-              <p-select
-                inputId="wizard-currency"
-                class="w-full"
-                optionLabel="label"
-                optionValue="value"
-                formControlName="currency"
-                [options]="currencyOptions"
-              />
-            </div>
-
-            <div class="flex flex-col gap-2">
-              <label class="text-sm font-medium text-surface-800" for="wizard-budget"
-                >Campaign budget</label
-              >
-              <p-inputnumber
-                inputId="wizard-budget"
-                class="w-full"
-                inputStyleClass="w-full"
-                mode="decimal"
-                [maxFractionDigits]="2"
-                placeholder="2000"
-                formControlName="budgetTotal"
-              />
-              @if (fieldError('budgetTotal'); as message) {
-                <p class="text-sm text-red-700">{{ message }}</p>
-              }
-            </div>
-
-            <div class="flex flex-col gap-2">
-              <label class="text-sm font-medium text-surface-800" for="wizard-cpm"
-                >Rate per 1,000 views (CPM)</label
-              >
-              <p-inputnumber
-                inputId="wizard-cpm"
-                class="w-full"
-                inputStyleClass="w-full"
-                mode="decimal"
-                [maxFractionDigits]="2"
-                placeholder="20"
-                formControlName="cpm"
-              />
-              @if (fieldError('cpm'); as message) {
-                <p class="text-sm text-red-700">{{ message }}</p>
-              }
-            </div>
-          }
-
-          <!-- 4. Timeline -->
-          @case (3) {
-            <div class="flex flex-col gap-2">
-              <label class="text-sm font-medium text-surface-800" for="wizard-start"
-                >Start date</label
-              >
-              <p-datepicker
-                inputId="wizard-start"
-                class="w-full"
-                inputStyleClass="w-full"
-                dateFormat="d MM yy"
-                [showIcon]="true"
-                formControlName="startDate"
-              />
-              <p class="text-xs text-surface-500">
-                Publishing before this date schedules the campaign as Upcoming.
-              </p>
-              @if (fieldError('startDate'); as message) {
-                <p class="text-sm text-red-700">{{ message }}</p>
-              }
-            </div>
-
-            <div class="flex flex-col gap-2">
-              <label class="text-sm font-medium text-surface-800" for="wizard-end"
-                >End date <span class="font-normal text-surface-500">(optional)</span></label
-              >
-              <p-datepicker
-                inputId="wizard-end"
-                class="w-full"
-                inputStyleClass="w-full"
-                dateFormat="d MM yy"
-                [showIcon]="true"
-                [showClear]="true"
-                formControlName="endDate"
-              />
-            </div>
-          }
-
-          <!-- 5. Platforms -->
-          @case (4) {
-            <fieldset class="flex flex-col gap-3 border-0 p-0">
-              <legend class="text-sm font-medium text-surface-800">
-                Platforms (choose at least one)
-              </legend>
-              @for (choice of platformChoices; track choice.value) {
-                <div
-                  class="flex items-center gap-3 rounded-xl border border-surface-200 bg-surface-0 px-4 py-3"
-                >
-                  <p-checkbox
-                    [inputId]="'wizard-platform-' + choice.value"
-                    [binary]="true"
-                    [ngModelOptions]="{ standalone: true }"
-                    [ngModel]="isPlatformSelected(choice.value)"
-                    (ngModelChange)="togglePlatform(choice.value, $event)"
-                  />
-                  <label
-                    class="cursor-pointer text-sm text-surface-800"
-                    [for]="'wizard-platform-' + choice.value"
-                    >{{ choice.label }}</label
-                  >
+          @switch (brandStep()) {
+            <!-- Brand Details — 198:9402 -->
+            @case (0) {
+              <div class="flex flex-col items-center gap-2">
+                <div class="flex items-center gap-2.5">
+                  <span class="text-[20px] font-medium text-[#0C0C0C]">Upload logo</span>
                 </div>
-              }
-              @if (submitted() && form.controls.platforms.value.length === 0) {
-                <p class="text-sm text-red-700">Select at least one platform.</p>
-              }
-            </fieldset>
-          }
-
-          <!-- 6. Requirements + resources -->
-          @case (5) {
-            <div class="flex flex-col gap-2">
-              <label class="text-sm font-medium text-surface-800" for="wizard-requirements"
-                >Content requirement</label
-              >
-              <textarea
-                pTextarea
-                id="wizard-requirements"
-                rows="5"
-                class="w-full"
-                placeholder="What every clip must include, and anything that is off-limits."
-                formControlName="requirementsNote"
-                [attr.aria-invalid]="fieldError('requirementsNote') ? 'true' : null"
-              ></textarea>
-              @if (fieldError('requirementsNote'); as message) {
-                <p class="text-sm text-red-700">{{ message }}</p>
-              }
-            </div>
-
-            <div class="flex flex-col gap-2">
-              <label class="text-sm font-medium text-surface-800" for="wizard-resource-label"
-                >Resource name <span class="font-normal text-surface-500">(optional)</span></label
-              >
-              <input
-                pInputText
-                id="wizard-resource-label"
-                type="text"
-                class="w-full"
-                placeholder="Google Drive"
-                formControlName="resourceLabel"
-              />
-            </div>
-
-            <div class="flex flex-col gap-2">
-              <label class="text-sm font-medium text-surface-800" for="wizard-resource-url"
-                >Resource link <span class="font-normal text-surface-500">(optional)</span></label
-              >
-              <input
-                pInputText
-                id="wizard-resource-url"
-                type="url"
-                class="w-full"
-                placeholder="https://drive.google.com/…"
-                formControlName="resourceUrl"
-                [attr.aria-invalid]="fieldError('resourceUrl') ? 'true' : null"
-              />
-              @if (fieldError('resourceUrl'); as message) {
-                <p class="text-sm text-red-700">{{ message }}</p>
-              }
-            </div>
-          }
-
-          <!-- 7. Brand -->
-          @case (6) {
-            <div class="flex flex-col gap-2">
-              <span class="text-sm font-medium text-surface-800">Brand logo</span>
-              <app-image-input
-                inputId="wizard-logo"
-                previewAlt="Brand logo preview"
-                previewClass="h-24 w-24"
-                [previewBackground]="form.controls.brandLogoBg.value"
-                [value]="form.controls.brandLogoUrl.value"
-                (valueChange)="setLogo($event)"
-              />
-              @if (fieldError('brandLogoUrl'); as message) {
-                <p class="text-sm text-red-700">{{ message }}</p>
-              }
-            </div>
-
-            <div class="flex flex-col gap-2">
-              <label class="text-sm font-medium text-surface-800" for="wizard-brand-name"
-                >Company name</label
-              >
-              <input
-                pInputText
-                id="wizard-brand-name"
-                type="text"
-                class="w-full"
-                placeholder="E-wale tech"
-                formControlName="brandName"
-                [attr.aria-invalid]="fieldError('brandName') ? 'true' : null"
-              />
-              @if (fieldError('brandName'); as message) {
-                <p class="text-sm text-red-700">{{ message }}</p>
-              }
-            </div>
-
-            <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
-              <div class="flex flex-col gap-2">
-                <label class="text-sm font-medium text-surface-800" for="wizard-logo-bg"
-                  >Logo background</label
+                <div
+                  class="flex h-[107px] w-[106px] items-center justify-center overflow-hidden rounded-[22px] border border-[#D7D7D7] bg-[#F1F1F1]"
                 >
+                  @if (brandForm.controls.logoUrl.value; as logoUrl) {
+                    <img
+                      [src]="logoUrl"
+                      alt="Brand logo preview"
+                      class="h-full w-full object-contain"
+                    />
+                  } @else {
+                    <span class="text-[#868686]">
+                      <svg data-p-icon="image" [size]="36" aria-hidden="true"></svg>
+                    </span>
+                  }
+                </div>
                 <input
-                  id="wizard-logo-bg"
-                  type="color"
-                  class="h-10 w-full cursor-pointer rounded-lg border border-surface-200 bg-surface-0 p-1"
-                  formControlName="brandLogoBg"
+                  id="brand-logo-file"
+                  class="sr-only"
+                  type="file"
+                  accept="image/*"
+                  (change)="onLogoFile($event)"
                 />
+                <div class="flex items-center gap-4">
+                  <label
+                    for="brand-logo-file"
+                    class="flex h-9 cursor-pointer items-center rounded-[10px] bg-primary px-3.5 text-[18px] text-white"
+                    >Upload image</label
+                  >
+                  <button
+                    type="button"
+                    class="cursor-pointer border-0 bg-transparent p-0 text-[16px] text-[#7B7B7B] underline underline-offset-2"
+                    (click)="logoUrlOpen.set(!logoUrlOpen())"
+                  >
+                    or paste an image URL
+                  </button>
+                </div>
+                @if (logoUrlOpen()) {
+                  <input
+                    pInputText
+                    #brandLogoUrlInput
+                    type="url"
+                    class="h-[50px] w-full rounded-xl border border-[#D7D7D7] bg-white px-[18px] text-[18px] placeholder:text-[#DFDFDF]"
+                    placeholder="https://…"
+                    aria-label="Brand logo image URL"
+                    [value]="imageUrlDraft(brandForm.controls.logoUrl.value)"
+                    (input)="setLogoUrl(brandLogoUrlInput.value)"
+                  />
+                }
+                @if (logoErrorMessage()) {
+                  <p class="text-[16px] text-[#D00000]">{{ logoErrorMessage() }}</p>
+                }
               </div>
+
               <div class="flex flex-col gap-2">
-                <label class="text-sm font-medium text-surface-800" for="wizard-logo-fit"
-                  >Logo fit</label
-                >
+                <div class="flex items-center gap-2.5">
+                  <label class="text-[20px] font-medium text-[#0C0C0C]" for="brand-name"
+                    >Brand name</label
+                  >
+                  <span class="text-[22px] font-semibold text-[#D00000]" aria-hidden="true">*</span>
+                </div>
+                <input
+                  pInputText
+                  id="brand-name"
+                  type="text"
+                  class="h-[50px] w-full rounded-xl border border-[#D7D7D7] bg-white px-[18px] text-[18px] placeholder:text-[#DFDFDF]"
+                  placeholder="E-wale tech"
+                  formControlName="name"
+                  [attr.aria-invalid]="brandFieldError('name') ? 'true' : null"
+                />
+                @if (brandFieldError('name'); as message) {
+                  <p class="text-[16px] text-[#D00000]">{{ message }}</p>
+                }
+              </div>
+
+              <div class="flex flex-col gap-2">
+                <div class="flex items-center gap-2.5">
+                  <label class="text-[20px] font-medium text-[#0C0C0C]" for="brand-website"
+                    >Website/social link</label
+                  >
+                  <span class="text-[22px] font-semibold text-[#D00000]" aria-hidden="true">*</span>
+                </div>
+                <input
+                  pInputText
+                  id="brand-website"
+                  type="url"
+                  class="h-[50px] w-full rounded-xl border border-[#D7D7D7] bg-white px-[18px] text-[18px] placeholder:text-[#DFDFDF]"
+                  placeholder="https://e-wale.com"
+                  formControlName="website"
+                  [attr.aria-invalid]="brandFieldError('website') ? 'true' : null"
+                />
+                @if (brandFieldError('website'); as message) {
+                  <p class="text-[16px] text-[#D00000]">{{ message }}</p>
+                }
+              </div>
+
+              <div class="flex flex-col gap-2">
+                <div class="flex items-center gap-2.5">
+                  <label class="text-[20px] font-medium text-[#0C0C0C]" for="brand-industry"
+                    >Industry</label
+                  >
+                  <span class="text-[22px] font-semibold text-[#D00000]" aria-hidden="true">*</span>
+                </div>
                 <p-select
-                  inputId="wizard-logo-fit"
-                  class="w-full"
+                  inputId="brand-industry"
+                  class="h-[50px] w-full rounded-xl border border-[#D7D7D7] bg-white px-[18px] text-[18px] [&_.p-select-label]:px-0 [&_.p-select-label]:text-[18px] [&_.p-select-label.p-placeholder]:text-[#969696]"
                   optionLabel="label"
                   optionValue="value"
-                  formControlName="brandLogoFit"
-                  [options]="logoFitOptions"
+                  placeholder="Select type"
+                  formControlName="industry"
+                  [options]="industryOptions"
                 />
+                @if (brandFieldError('industry'); as message) {
+                  <p class="text-[16px] text-[#D00000]">{{ message }}</p>
+                }
               </div>
+            }
+
+            <!-- Brand Location — 198:9485 -->
+            @case (1) {
+              <div class="flex flex-col gap-2">
+                <div class="flex items-center gap-2.5">
+                  <label class="text-[20px] font-medium text-[#0C0C0C]" for="brand-country"
+                    >Country</label
+                  >
+                  <span class="text-[22px] font-semibold text-[#D00000]" aria-hidden="true">*</span>
+                </div>
+                <p-select
+                  inputId="brand-country"
+                  class="h-[50px] w-full rounded-xl border border-[#D7D7D7] bg-white px-[18px] text-[18px] [&_.p-select-label]:px-0 [&_.p-select-label]:text-[18px] [&_.p-select-label.p-placeholder]:text-[#969696]"
+                  optionLabel="label"
+                  optionValue="value"
+                  placeholder="Select type"
+                  formControlName="country"
+                  [options]="countryOptions"
+                  (onChange)="onCountryChange($event.value)"
+                />
+                @if (brandFieldError('country'); as message) {
+                  <p class="text-[16px] text-[#D00000]">{{ message }}</p>
+                }
+              </div>
+
+              <div class="flex flex-col gap-2">
+                <div class="flex items-center gap-2.5">
+                  <label class="text-[20px] font-medium text-[#0C0C0C]" for="brand-city"
+                    >City</label
+                  >
+                  <span class="text-[22px] font-semibold text-[#D00000]" aria-hidden="true">*</span>
+                </div>
+                @if (cityOptions().length) {
+                  <p-select
+                    inputId="brand-city"
+                    class="h-[50px] w-full rounded-xl border border-[#D7D7D7] bg-white px-[18px] text-[18px] [&_.p-select-label]:px-0 [&_.p-select-label]:text-[18px] [&_.p-select-label.p-placeholder]:text-[#969696]"
+                    optionLabel="label"
+                    optionValue="value"
+                    placeholder="Select type"
+                    formControlName="city"
+                    [options]="cityOptions()"
+                  />
+                } @else {
+                  <input
+                    pInputText
+                    id="brand-city"
+                    type="text"
+                    class="h-[50px] w-full rounded-xl border border-[#D7D7D7] bg-white px-[18px] text-[18px] placeholder:text-[#DFDFDF]"
+                    placeholder="Accra"
+                    formControlName="city"
+                    [attr.aria-invalid]="brandFieldError('city') ? 'true' : null"
+                  />
+                }
+                @if (brandFieldError('city'); as message) {
+                  <p class="text-[16px] text-[#D00000]">{{ message }}</p>
+                }
+              </div>
+            }
+
+            <!-- Primary Contact — 198:9539 -->
+            @case (2) {
+              <div class="flex flex-col gap-2">
+                <div class="flex items-center gap-2.5">
+                  <label class="text-[20px] font-medium text-[#0C0C0C]" for="brand-contact-name"
+                    >Contact name</label
+                  >
+                  <span class="text-[22px] font-semibold text-[#D00000]" aria-hidden="true">*</span>
+                </div>
+                <input
+                  pInputText
+                  id="brand-contact-name"
+                  type="text"
+                  class="h-[50px] w-full rounded-xl border border-[#D7D7D7] bg-white px-[18px] text-[18px] placeholder:text-[#DFDFDF]"
+                  placeholder="name"
+                  formControlName="contactName"
+                  [attr.aria-invalid]="brandFieldError('contactName') ? 'true' : null"
+                />
+                @if (brandFieldError('contactName'); as message) {
+                  <p class="text-[16px] text-[#D00000]">{{ message }}</p>
+                }
+              </div>
+
+              <div class="flex flex-col gap-2">
+                <div class="flex items-center gap-2.5">
+                  <label class="text-[20px] font-medium text-[#0C0C0C]" for="brand-contact-email"
+                    >Business email</label
+                  >
+                  <span class="text-[22px] font-semibold text-[#D00000]" aria-hidden="true">*</span>
+                </div>
+                <input
+                  pInputText
+                  id="brand-contact-email"
+                  type="email"
+                  class="h-[50px] w-full rounded-xl border border-[#D7D7D7] bg-white px-[18px] text-[18px] placeholder:text-[#DFDFDF]"
+                  placeholder="hello@e-wale.com"
+                  formControlName="contactEmail"
+                  [attr.aria-invalid]="brandFieldError('contactEmail') ? 'true' : null"
+                />
+                @if (brandFieldError('contactEmail'); as message) {
+                  <p class="text-[16px] text-[#D00000]">{{ message }}</p>
+                }
+              </div>
+
+              <div class="flex flex-col gap-2">
+                <div class="flex items-center gap-2.5">
+                  <label class="text-[20px] font-medium text-[#0C0C0C]" for="brand-contact-phone"
+                    >Phone number</label
+                  >
+                  <span class="text-[22px] font-semibold text-[#D00000]" aria-hidden="true">*</span>
+                </div>
+                <input
+                  pInputText
+                  id="brand-contact-phone"
+                  type="tel"
+                  class="h-[50px] w-full rounded-xl border border-[#D7D7D7] bg-white px-[18px] text-[18px] placeholder:text-[#DFDFDF]"
+                  placeholder="0202457890"
+                  formControlName="contactPhone"
+                  [attr.aria-invalid]="brandFieldError('contactPhone') ? 'true' : null"
+                />
+                @if (brandFieldError('contactPhone'); as message) {
+                  <p class="text-[16px] text-[#D00000]">{{ message }}</p>
+                }
+              </div>
+            }
+          }
+
+          <div class="grid grid-cols-2 gap-4">
+            <button
+              type="button"
+              class="h-[50px] cursor-pointer rounded-xl border border-[#D7D7D7] bg-white text-[18px] text-surface-800"
+              [disabled]="brandSaving()"
+              (click)="brandBack()"
+            >
+              Back
+            </button>
+            <button
+              type="submit"
+              class="flex h-[50px] w-full cursor-pointer items-center justify-center gap-2.5 rounded-xl border-0 bg-[#0C0C0C] text-[18px] font-medium text-white"
+              [disabled]="brandSaving()"
+            >
+              {{ brandStep() === brandSteps.length - 1 ? 'Create brand' : 'Continue' }}
+              <svg data-p-icon="arrow-right" [size]="20" aria-hidden="true"></svg>
+            </button>
+          </div>
+        </form>
+      </app-wizard-shell>
+    } @else if (isPreview()) {
+      <!-- ========================= preview — 173:4482 ==================== -->
+      <div class="fixed inset-0 z-30 overflow-y-auto bg-[#FFFFFF]/90">
+        <button
+          type="button"
+          class="absolute right-8 top-[60px] flex h-11 w-11 cursor-pointer items-center justify-center rounded-full border-0 bg-[#CDCDCD] text-[#393939]"
+          aria-label="Close"
+          (click)="requestClose()"
+        >
+          <svg data-p-icon="times" [size]="16" aria-hidden="true"></svg>
+        </button>
+
+        <div class="mx-auto w-full max-w-[1141px] px-6 pb-16 pt-[129px]">
+          @if (errorMessage()) {
+            <div class="mb-6">
+              <p-message severity="error" [closable]="false">{{ errorMessage() }}</p-message>
             </div>
           }
 
-          <!-- 8. Preview -->
-          @case (7) {
-            <section class="rounded-2xl border border-surface-200 bg-surface-0 p-5">
-              <div class="flex items-center gap-3">
-                <span
-                  class="flex h-12 w-20 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-surface-200"
-                  [style.background-color]="form.controls.brandLogoBg.value"
-                >
-                  @if (form.controls.brandLogoUrl.value) {
-                    <img
-                      [src]="form.controls.brandLogoUrl.value"
-                      [alt]="form.controls.brandName.value + ' logo'"
-                      [class]="
-                        form.controls.brandLogoFit.value === 'contain'
-                          ? 'h-full w-full object-contain p-2'
-                          : 'h-full w-full object-cover'
-                      "
-                    />
-                  }
-                </span>
-                <span class="text-sm font-medium text-surface-600">{{
-                  form.controls.brandName.value
-                }}</span>
-                <p-tag value="Draft" severity="contrast" [rounded]="true" />
-              </div>
+          <div class="grid gap-10 lg:grid-cols-2">
+            <div class="flex flex-col gap-2.5">
+              <h1 class="text-[34.7px] font-medium leading-tight text-black/80">
+                {{ form.controls.title.value || 'Untitled campaign' }}
+              </h1>
 
-              <h2 class="mt-4 text-xl font-semibold leading-snug text-surface-900">
-                {{ form.controls.title.value }}
-              </h2>
-              <p class="mt-3 whitespace-pre-line text-sm text-surface-600">
+              <p class="whitespace-pre-line text-[16.4px] leading-relaxed text-[#464646]">
                 {{ form.controls.description.value }}
               </p>
 
-              @if (form.controls.bannerUrl.value) {
-                <img
-                  [src]="form.controls.bannerUrl.value"
-                  alt="Campaign banner"
-                  class="mt-4 h-auto w-full rounded-xl"
-                />
-              }
+              <div class="mt-2 flex flex-wrap items-center gap-4">
+                @if (form.controls.tag.value) {
+                  <span
+                    class="rounded-[27.4px] bg-[#FFC93C] px-2.5 py-0.5 text-[16.4px] text-[#383838]"
+                    >{{ form.controls.tag.value }}</span
+                  >
+                }
+                @if (form.controls.category.value) {
+                  <span
+                    class="rounded-[27.4px] bg-[#FFC93C] px-2.5 py-0.5 text-[16.4px] text-[#383838]"
+                    >{{ form.controls.category.value }}</span
+                  >
+                }
+                <span class="h-[18px] w-px bg-[#DCDCDC]" aria-hidden="true"></span>
+                <span class="text-[16.4px] text-[#686868]"
+                  >{{ formatMoney(form.controls.currency.value, form.controls.cpm.value) }} / 1k
+                  views</span
+                >
+                <span class="h-[18px] w-px bg-[#DCDCDC]" aria-hidden="true"></span>
+                <span class="flex items-center gap-2">
+                  @for (platform of form.controls.platforms.value; track platform) {
+                    <span class="text-[#151515]" [attr.title]="platformLabel(platform)">
+                      @switch (platform) {
+                        @case ('tiktok') {
+                          <svg data-p-icon="tiktok" [size]="21" aria-hidden="true"></svg>
+                        }
+                        @case ('instagram') {
+                          <svg data-p-icon="instagram" [size]="21" aria-hidden="true"></svg>
+                        }
+                        @case ('facebook') {
+                          <svg data-p-icon="facebook" [size]="21" aria-hidden="true"></svg>
+                        }
+                        @case ('youtube') {
+                          <svg data-p-icon="youtube" [size]="21" aria-hidden="true"></svg>
+                        }
+                        @case ('x') {
+                          <svg data-p-icon="twitter" [size]="21" aria-hidden="true"></svg>
+                        }
+                      }
+                      <span class="sr-only">{{ platformLabel(platform) }}</span>
+                    </span>
+                  }
+                </span>
+              </div>
 
-              <dl class="mt-5 divide-y divide-surface-200 rounded-xl border border-surface-200">
-                <div class="flex items-center justify-between px-4 py-3 text-sm">
-                  <dt class="text-surface-600">Budget</dt>
-                  <dd class="m-0 font-medium text-surface-900">
-                    {{ formatMoney(form.controls.currency.value, form.controls.budgetTotal.value) }}
+              <div class="mt-1 flex flex-wrap items-center gap-2.5 text-[12.8px] text-[#464646]">
+                @if (loadedCampaign(); as campaign) {
+                  <span>Avg review time: {{ campaign.avgReviewTime }}</span>
+                  <span class="h-[18px] w-px bg-[#DCDCDC]" aria-hidden="true"></span>
+                }
+                <span>Start date: {{ rangeStartLabel() }}</span>
+                <span class="h-[18px] w-px bg-[#DCDCDC]" aria-hidden="true"></span>
+                <span>End date: {{ rangeEndLabel() }}</span>
+              </div>
+
+              @if (previewBrand(); as brand) {
+                <div class="mt-2 flex items-center gap-3">
+                  <app-brand-logo-tile
+                    sizeClass="h-10 w-16"
+                    [name]="brand.name"
+                    [logoUrl]="brand.logoUrl"
+                    [logoBg]="brand.logoBg"
+                    [logoFit]="brand.logoFit"
+                  />
+                  <span class="text-[16.4px] text-[#464646]">Launched by {{ brand.name }}</span>
+                </div>
+              }
+            </div>
+
+            <div
+              class="h-[314px] w-full overflow-hidden rounded-[25.6px] bg-[#DDDDDD]"
+              [class.flex]="!form.controls.bannerUrl.value"
+            >
+              @if (form.controls.bannerUrl.value; as bannerUrl) {
+                <img [src]="bannerUrl" alt="Campaign banner" class="h-full w-full object-cover" />
+              } @else {
+                <span class="m-auto flex flex-col items-center gap-2 text-[16px] text-[#7B7B7B]">
+                  <svg data-p-icon="image" [size]="40" aria-hidden="true"></svg>
+                  No banner yet
+                </span>
+              }
+            </div>
+          </div>
+
+          <hr class="my-[46px] border-0 border-t border-[#E2E2E2]" />
+
+          <div class="grid gap-10 lg:grid-cols-2">
+            <div class="flex flex-col gap-8">
+              <div class="flex flex-col gap-2">
+                <h2 class="text-[16.4px] font-medium text-[#383838]">Requirements</h2>
+                <p class="text-[12.8px] text-[#7A7A7A]">Content Requirements</p>
+                <p class="whitespace-pre-line text-[14.6px] text-[#464646]">
+                  {{ form.controls.requirementsNote.value || 'Not set yet.' }}
+                </p>
+              </div>
+
+              @if (form.controls.resourceUrl.value || form.controls.resourceLabel.value) {
+                <div class="flex flex-col gap-2.5">
+                  <h2 class="text-[16.4px] font-medium text-[#383838]">Resources</h2>
+                  <a
+                    class="flex w-[232px] max-w-full flex-col justify-center gap-1 rounded-[9.1px] border border-[#DDDDDD] bg-[#F8F8F8] px-4 py-3 no-underline"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    [attr.href]="form.controls.resourceUrl.value || null"
+                  >
+                    <span class="flex items-center justify-between gap-2">
+                      <span class="text-[14.6px] text-[#464646]">{{
+                        form.controls.resourceLabel.value || 'Campaign resource'
+                      }}</span>
+                      <svg
+                        data-p-icon="external-link"
+                        [size]="13"
+                        class="text-[#464646]"
+                        aria-hidden="true"
+                      ></svg>
+                    </span>
+                    <span class="text-[12.8px] text-[#909090]">Resource</span>
+                  </a>
+                </div>
+              }
+            </div>
+
+            <div class="flex flex-col gap-2.5">
+              <div class="rounded-[18.3px] border border-[#DDDDDD] bg-[#F8F8F8] p-[19px]">
+                <p class="text-[20.1px] font-semibold text-[#151515]">
+                  {{ formatMoney(form.controls.currency.value, form.controls.budgetTotal.value) }}
+                  <span class="font-normal text-[#7F7F7F]">budget</span>
+                </p>
+                <div class="mt-4 h-2 w-full overflow-hidden rounded-[14.3px] bg-white">
+                  <span class="block h-full w-0 rounded-[28.6px] bg-primary"></span>
+                </div>
+                <div class="mt-3 flex items-center justify-between text-[16.4px] text-[#585858]">
+                  <span>{{ formatMoney(form.controls.currency.value, 0) }}</span>
+                  <span>{{
+                    formatMoney(form.controls.currency.value, form.controls.budgetTotal.value)
+                  }}</span>
+                </div>
+              </div>
+
+              <dl
+                class="m-0 divide-y divide-[#EAEAEA] overflow-hidden rounded-[18.3px] bg-[#F8F8F8]"
+              >
+                <div class="flex items-center justify-between gap-4 px-[15px] py-[13px]">
+                  <dt class="text-[14.4px] text-[#7F7F7F]">Category</dt>
+                  <dd class="m-0 text-[14.4px] text-[#272727]">
+                    {{ form.controls.category.value || '—' }}
                   </dd>
                 </div>
-                <div class="flex items-center justify-between px-4 py-3 text-sm">
-                  <dt class="text-surface-600">CPM</dt>
-                  <dd class="m-0 font-medium text-surface-900">
-                    {{ formatMoney(form.controls.currency.value, form.controls.cpm.value) }} / 1k
-                    views
+                <div class="flex items-center justify-between gap-4 px-[15px] py-[13px]">
+                  <dt class="text-[14.4px] text-[#7F7F7F]">Product</dt>
+                  <dd class="m-0 text-[14.4px] text-[#272727]">
+                    {{ form.controls.tag.value || '—' }}
                   </dd>
                 </div>
-                <div class="flex items-center justify-between px-4 py-3 text-sm">
-                  <dt class="text-surface-600">Category</dt>
-                  <dd class="m-0 font-medium text-surface-900">
-                    {{ form.controls.category.value }}
+                <div class="flex items-center justify-between gap-4 px-[15px] py-[13px]">
+                  <dt class="text-[14.4px] text-[#7F7F7F]">Start - End date</dt>
+                  <dd class="m-0 text-right text-[14.4px] text-[#272727]">
+                    {{ rangeStartLabel() }} - {{ rangeEndLabel() }}
                   </dd>
                 </div>
-                <div class="flex items-center justify-between gap-4 px-4 py-3 text-sm">
-                  <dt class="text-surface-600">Start - End date</dt>
-                  <dd class="m-0 text-right font-medium text-surface-900">
-                    {{ formatDate(form.controls.startDate.value?.toISOString()) }} -
-                    {{ formatDate(form.controls.endDate.value?.toISOString()) }}
-                  </dd>
+                <div class="flex items-center justify-between gap-4 px-[15px] py-[13px]">
+                  <dt class="text-[14.4px] text-[#7F7F7F]">Estimated views</dt>
+                  <dd class="m-0 text-[14.4px] text-[#272727]">{{ estimatedViewsLabel() }}</dd>
                 </div>
-                <div class="flex items-center justify-between gap-4 px-4 py-3 text-sm">
-                  <dt class="text-surface-600">Platforms</dt>
-                  <dd class="m-0 text-right font-medium text-surface-900">
+                <div class="flex items-center justify-between gap-4 px-[15px] py-[13px]">
+                  <dt class="text-[14.4px] text-[#7F7F7F]">Platforms</dt>
+                  <dd class="m-0 text-right text-[14.4px] text-[#272727]">
                     @for (platform of form.controls.platforms.value; track platform) {
                       <span>{{ platformLabel(platform) }}</span>
                       @if (!$last) {
                         <span>, </span>
                       }
                     }
+                    @if (!form.controls.platforms.value.length) {
+                      <span>—</span>
+                    }
+                  </dd>
+                </div>
+                <div class="flex items-center justify-between gap-4 px-[15px] py-[13px]">
+                  <dt class="text-[14.4px] text-[#7F7F7F]">Last updated</dt>
+                  <dd class="m-0 text-[14.4px] text-[#272727]">
+                    {{ savedSlug() ? 'Saved as a draft' : 'Not saved yet' }}
                   </dd>
                 </div>
               </dl>
 
-              @if (form.controls.requirementsNote.value) {
-                <div class="mt-5">
-                  <h3 class="text-sm font-semibold text-surface-900">Requirements</h3>
-                  <p class="mt-2 whitespace-pre-line text-sm text-surface-600">
-                    {{ form.controls.requirementsNote.value }}
-                  </p>
-                </div>
+              @if (missingFields().length) {
+                <p-message severity="warn" [closable]="false"
+                  >Still needed before publishing: {{ missingFields().join(', ') }}</p-message
+                >
               }
+            </div>
+          </div>
 
-              @if (form.controls.resourceLabel.value || form.controls.resourceUrl.value) {
-                <div class="mt-5">
-                  <h3 class="text-sm font-semibold text-surface-900">Resources</h3>
-                  <p class="mt-2 text-sm text-surface-600">
-                    {{ form.controls.resourceLabel.value || 'Campaign resource' }}
-                    @if (form.controls.resourceUrl.value) {
-                      <span class="text-surface-500">- {{ form.controls.resourceUrl.value }}</span>
+          <div class="mt-12 flex flex-wrap items-center justify-end gap-[15px]">
+            <button
+              type="button"
+              class="h-[46px] cursor-pointer rounded-[10px] border-0 bg-[#ECECEC] px-[15px] text-[20px] text-[#525252]"
+              [disabled]="saving() || publishing()"
+              (click)="goToStep(1)"
+            >
+              Edit
+            </button>
+            <button
+              type="button"
+              class="h-[46px] cursor-pointer rounded-xl border-0 bg-[#151515] px-[28px] text-[18px] text-white"
+              [disabled]="saving() || publishing()"
+              (click)="saveDraft()"
+            >
+              {{ saving() ? 'Saving…' : 'Save Draft' }}
+            </button>
+            <button
+              type="button"
+              class="h-[46px] cursor-pointer rounded-xl border-0 bg-[#EC612C] px-[28px] text-[18px] text-white"
+              [disabled]="saving() || publishing()"
+              (click)="publish()"
+            >
+              {{ publishing() ? 'Publishing…' : 'Publish' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    } @else {
+      <!-- ============================ campaign steps ===================== -->
+      <app-wizard-shell
+        [step]="step()"
+        [totalSteps]="steps.length"
+        [title]="currentStep().title"
+        [subtitle]="currentStep().subtitle"
+        (closed)="requestClose()"
+      >
+        <form class="flex flex-col gap-6" [formGroup]="form" (ngSubmit)="next()" novalidate>
+          @if (errorMessage()) {
+            <p-message severity="error" [closable]="false">{{ errorMessage() }}</p-message>
+          }
+
+          @switch (step()) {
+            <!-- 0. Select brand -->
+            @case (0) {
+              <div class="flex flex-col gap-2">
+                <div class="flex items-center gap-2.5">
+                  <label class="text-[20px] font-medium text-[#0C0C0C]" for="wizard-brand"
+                    >Brand</label
+                  >
+                  <span class="text-[22px] font-semibold text-[#D00000]" aria-hidden="true">*</span>
+                </div>
+                <p-select
+                  inputId="wizard-brand"
+                  class="h-[50px] w-full rounded-xl border border-[#D7D7D7] bg-white px-[18px] text-[18px] [&_.p-select-label]:px-0 [&_.p-select-label]:text-[18px] [&_.p-select-label.p-placeholder]:text-[#969696]"
+                  optionLabel="name"
+                  optionValue="id"
+                  filterBy="name"
+                  placeholder="Select a brand"
+                  formControlName="brandId"
+                  [options]="brands()"
+                  [loading]="brandsLoading()"
+                  [filter]="brands().length > 6"
+                >
+                  <ng-template #selectedItem let-brand>
+                    @if (brand) {
+                      <span class="flex items-center gap-3">
+                        <app-brand-logo-tile
+                          sizeClass="h-8 w-8"
+                          [name]="brand.name"
+                          [logoUrl]="brand.logoUrl"
+                          [logoBg]="brand.logoBg"
+                          [logoFit]="brand.logoFit"
+                        />
+                        <span class="text-[18px] text-[#0C0C0C]">{{ brand.name }}</span>
+                      </span>
                     }
-                  </p>
-                </div>
-              }
-            </section>
+                  </ng-template>
+                  <ng-template #item let-brand>
+                    <span class="flex items-center gap-3">
+                      <app-brand-logo-tile
+                        sizeClass="h-8 w-8"
+                        [name]="brand.name"
+                        [logoUrl]="brand.logoUrl"
+                        [logoBg]="brand.logoBg"
+                        [logoFit]="brand.logoFit"
+                      />
+                      <span class="text-[18px] text-[#0C0C0C]">{{ brand.name }}</span>
+                    </span>
+                  </ng-template>
+                </p-select>
+                @if (fieldError('brandId'); as message) {
+                  <p class="text-[16px] text-[#D00000]">{{ message }}</p>
+                }
+                @if (brandsErrorMessage()) {
+                  <p class="text-[16px] text-[#7B7B7B]">{{ brandsErrorMessage() }}</p>
+                }
+              </div>
 
-            @if (missingFields().length) {
-              <p-message severity="warn" [closable]="false"
-                >Still needed before publishing: {{ missingFields().join(', ') }}</p-message
+              <button
+                type="button"
+                class="flex h-[50px] w-full cursor-pointer items-center justify-center gap-2.5 rounded-xl border border-dashed border-[#D7D7D7] bg-white text-[18px] text-[#464646]"
+                (click)="startBrandFlow()"
               >
+                <svg data-p-icon="plus" [size]="18" aria-hidden="true"></svg>
+                Create a new brand
+              </button>
+            }
+
+            <!-- 1. Create New Campaign — 172:823 -->
+            @case (1) {
+              <div class="flex flex-col gap-2">
+                <div class="flex items-center gap-2.5">
+                  <span class="text-[20px] font-medium text-[#0C0C0C]">Campaign Banner</span>
+                  <span class="text-[22px] font-semibold text-[#D00000]" aria-hidden="true">*</span>
+                </div>
+
+                <div class="w-full rounded-[18.8px] border border-[#ECECEC] bg-white p-[18px]">
+                  <div
+                    class="flex h-[278px] w-full flex-col items-center justify-center gap-4 overflow-hidden rounded-[15px] bg-[#F4F4F4]"
+                  >
+                    @if (form.controls.bannerUrl.value; as bannerUrl) {
+                      <img
+                        [src]="bannerUrl"
+                        alt="Campaign banner preview"
+                        class="h-full w-full object-contain"
+                      />
+                    } @else {
+                      <span class="text-[#868686]">
+                        <svg data-p-icon="image" [size]="52" aria-hidden="true"></svg>
+                      </span>
+                      <label
+                        for="wizard-banner-file"
+                        class="flex h-9 cursor-pointer items-center rounded-[10px] bg-primary px-3.5 text-[18px] text-white"
+                        >Upload image</label
+                      >
+                    }
+                  </div>
+                </div>
+
+                <input
+                  id="wizard-banner-file"
+                  class="sr-only"
+                  type="file"
+                  accept="image/*"
+                  (change)="onBannerFile($event)"
+                />
+
+                <div class="flex flex-wrap items-center justify-center gap-4">
+                  @if (form.controls.bannerUrl.value) {
+                    <label
+                      for="wizard-banner-file"
+                      class="cursor-pointer text-[16px] text-[#7B7B7B] underline underline-offset-2"
+                      >Replace image</label
+                    >
+                    <button
+                      type="button"
+                      class="cursor-pointer border-0 bg-transparent p-0 text-[16px] text-[#7B7B7B] underline underline-offset-2"
+                      (click)="clearBanner()"
+                    >
+                      Remove
+                    </button>
+                  }
+                  <button
+                    type="button"
+                    class="cursor-pointer border-0 bg-transparent p-0 text-[16px] text-[#7B7B7B] underline underline-offset-2"
+                    (click)="bannerUrlOpen.set(!bannerUrlOpen())"
+                  >
+                    or paste an image URL
+                  </button>
+                </div>
+
+                @if (bannerUrlOpen()) {
+                  <input
+                    pInputText
+                    #bannerUrlInput
+                    type="url"
+                    class="h-[50px] w-full rounded-xl border border-[#D7D7D7] bg-white px-[18px] text-[18px] placeholder:text-[#DFDFDF]"
+                    placeholder="https://…"
+                    aria-label="Campaign banner image URL"
+                    [value]="imageUrlDraft(form.controls.bannerUrl.value)"
+                    (input)="setBannerUrl(bannerUrlInput.value)"
+                  />
+                }
+                @if (bannerErrorMessage()) {
+                  <p class="text-[16px] text-[#D00000]">{{ bannerErrorMessage() }}</p>
+                }
+              </div>
+
+              <div class="flex flex-col gap-2">
+                <div class="flex items-center gap-2.5">
+                  <label class="text-[20px] font-medium text-[#0C0C0C]" for="wizard-title"
+                    >Title</label
+                  >
+                  <span class="text-[22px] font-semibold text-[#D00000]" aria-hidden="true">*</span>
+                </div>
+                <input
+                  pInputText
+                  id="wizard-title"
+                  type="text"
+                  class="h-[50px] w-full rounded-xl border border-[#D7D7D7] bg-white px-[18px] text-[18px] placeholder:text-[#DFDFDF]"
+                  placeholder="E-WALE Clipping | ₵2k Budget | ₵20.0 CPM"
+                  formControlName="title"
+                  [attr.aria-invalid]="fieldError('title') ? 'true' : null"
+                />
+                @if (fieldError('title'); as message) {
+                  <p class="text-[16px] text-[#D00000]">{{ message }}</p>
+                }
+              </div>
+            }
+
+            <!-- 2. Campaign Details — 172:1211 -->
+            @case (2) {
+              <div class="flex flex-col gap-2">
+                <div class="flex items-center gap-2.5">
+                  <label class="text-[20px] font-medium text-[#0C0C0C]" for="wizard-description"
+                    >Short description</label
+                  >
+                  <span class="text-[22px] font-semibold text-[#D00000]" aria-hidden="true">*</span>
+                </div>
+                <div class="relative">
+                  <textarea
+                    pTextarea
+                    id="wizard-description"
+                    class="h-[209px] w-full resize-none rounded-xl border border-[#D7D7D7] bg-white px-[18px] pb-10 pt-3.5 text-[18px] placeholder:text-[#DFDFDF]"
+                    placeholder="Detail about the campaign"
+                    [attr.maxlength]="longTextLimit"
+                    formControlName="description"
+                    [attr.aria-invalid]="fieldError('description') ? 'true' : null"
+                  ></textarea>
+                  <span
+                    class="pointer-events-none absolute bottom-3.5 right-[18px] text-[18px] text-[#969696]"
+                    aria-hidden="true"
+                    >{{ form.controls.description.value.length }}/{{ longTextLimit }}</span
+                  >
+                </div>
+                @if (fieldError('description'); as message) {
+                  <p class="text-[16px] text-[#D00000]">{{ message }}</p>
+                }
+              </div>
+
+              <div class="flex flex-col gap-2">
+                <div class="flex items-center gap-2.5">
+                  <label class="text-[20px] font-medium text-[#0C0C0C]" for="wizard-category"
+                    >Category</label
+                  >
+                  <span class="text-[22px] font-semibold text-[#D00000]" aria-hidden="true">*</span>
+                </div>
+                <p-select
+                  inputId="wizard-category"
+                  class="h-[50px] w-full rounded-xl border border-[#D7D7D7] bg-white px-[18px] text-[18px] [&_.p-select-label]:px-0 [&_.p-select-label]:text-[18px] [&_.p-select-label.p-placeholder]:text-[#969696]"
+                  optionLabel="label"
+                  optionValue="value"
+                  placeholder="Select type"
+                  formControlName="category"
+                  [options]="categoryOptions"
+                />
+                @if (fieldError('category'); as message) {
+                  <p class="text-[16px] text-[#D00000]">{{ message }}</p>
+                }
+              </div>
+
+              <!-- "Product" is not a contract field: it is stored as the campaign's single tag. -->
+              <div class="flex flex-col gap-2">
+                <div class="flex items-center gap-2.5">
+                  <label class="text-[20px] font-medium text-[#0C0C0C]" for="wizard-product"
+                    >Product</label
+                  >
+                  <span class="text-[22px] font-semibold text-[#D00000]" aria-hidden="true">*</span>
+                </div>
+                <p-select
+                  inputId="wizard-product"
+                  class="h-[50px] w-full rounded-xl border border-[#D7D7D7] bg-white px-[18px] text-[18px] [&_.p-select-label]:px-0 [&_.p-select-label]:text-[18px] [&_.p-select-label.p-placeholder]:text-[#969696]"
+                  optionLabel="label"
+                  optionValue="value"
+                  placeholder="Select type"
+                  formControlName="tag"
+                  [options]="tagOptions"
+                />
+                @if (fieldError('tag'); as message) {
+                  <p class="text-[16px] text-[#D00000]">{{ message }}</p>
+                }
+              </div>
+            }
+
+            <!-- 3. Campaign Budget — 172:1549 -->
+            @case (3) {
+              <div class="flex flex-col gap-2">
+                <div class="flex items-center gap-2.5">
+                  <label class="text-[20px] font-medium text-[#0C0C0C]" for="wizard-currency"
+                    >Currency</label
+                  >
+                  <span class="text-[22px] font-semibold text-[#D00000]" aria-hidden="true">*</span>
+                </div>
+                <p-select
+                  inputId="wizard-currency"
+                  class="h-[50px] w-full rounded-xl border border-[#D7D7D7] bg-white px-[18px] text-[18px] [&_.p-select-label]:px-0 [&_.p-select-label]:text-[18px] [&_.p-select-label.p-placeholder]:text-[#969696]"
+                  optionLabel="label"
+                  optionValue="value"
+                  placeholder="GHS"
+                  formControlName="currency"
+                  [options]="currencyOptions"
+                />
+                @if (fieldError('currency'); as message) {
+                  <p class="text-[16px] text-[#D00000]">{{ message }}</p>
+                }
+              </div>
+
+              <div class="flex flex-col gap-2">
+                <div class="flex items-center gap-2.5">
+                  <label class="text-[20px] font-medium text-[#0C0C0C]" for="wizard-budget"
+                    >Campaign budget</label
+                  >
+                  <span class="text-[22px] font-semibold text-[#D00000]" aria-hidden="true">*</span>
+                </div>
+                <p-inputnumber
+                  inputId="wizard-budget"
+                  class="w-full"
+                  inputStyleClass="h-[50px] w-full rounded-xl border border-[#D7D7D7] bg-white px-[18px] text-[18px] placeholder:text-[#DFDFDF]"
+                  mode="decimal"
+                  placeholder="200,000"
+                  formControlName="budgetTotal"
+                  [maxFractionDigits]="2"
+                />
+                @if (fieldError('budgetTotal'); as message) {
+                  <p class="text-[16px] text-[#D00000]">{{ message }}</p>
+                }
+              </div>
+
+              <div class="flex flex-col gap-2">
+                <div class="flex items-center gap-2.5">
+                  <label class="text-[20px] font-medium text-[#0C0C0C]" for="wizard-cpm"
+                    >Rate</label
+                  >
+                  <span class="text-[22px] font-semibold text-[#D00000]" aria-hidden="true">*</span>
+                </div>
+                <p-inputnumber
+                  inputId="wizard-cpm"
+                  class="w-full"
+                  inputStyleClass="h-[50px] w-full rounded-xl border border-[#D7D7D7] bg-white px-[18px] text-[18px] placeholder:text-[#DFDFDF]"
+                  mode="decimal"
+                  placeholder="20"
+                  formControlName="cpm"
+                  [maxFractionDigits]="2"
+                />
+                <p class="text-[16px] text-[#7B7B7B]">Paid per 1,000 verified views.</p>
+                @if (fieldError('cpm'); as message) {
+                  <p class="text-[16px] text-[#D00000]">{{ message }}</p>
+                }
+              </div>
+
+              <!-- The design's "Views" input has no contract field: budget ÷ rate × 1,000. -->
+              <div class="flex flex-col gap-2">
+                <div class="flex items-center gap-2.5">
+                  <label class="text-[20px] font-medium text-[#0C0C0C]" for="wizard-views"
+                    >Estimated views</label
+                  >
+                </div>
+                <input
+                  id="wizard-views"
+                  type="text"
+                  class="h-[50px] w-full cursor-not-allowed rounded-xl border border-[#D7D7D7] bg-[#F4F4F4] px-[18px] text-[18px] text-[#969696]"
+                  readonly
+                  disabled
+                  [value]="estimatedViewsLabel()"
+                />
+                <p class="text-[16px] text-[#7B7B7B]">
+                  Calculated from the budget and rate — not stored on the campaign.
+                </p>
+              </div>
+            }
+
+            <!-- 4. Campaign Timeline — 172:2146 -->
+            @case (4) {
+              <fieldset class="m-0 flex flex-col gap-3 border-0 p-0">
+                <legend class="sr-only">Campaign start and end date</legend>
+                <p-datepicker
+                  class="w-full [&_.p-datepicker-panel]:w-full [&_.p-datepicker-panel]:rounded-[18.9px] [&_.p-datepicker-panel]:border [&_.p-datepicker-panel]:border-[#E2E8F0] [&_.p-datepicker-panel]:p-[19px]"
+                  selectionMode="range"
+                  dateFormat="d MM yy"
+                  formControlName="dateRange"
+                  [inline]="true"
+                  [numberOfMonths]="1"
+                />
+                <p class="text-center text-[16px] text-[#7B7B7B]">{{ rangeLabel() }}</p>
+                @if (fieldError('dateRange'); as message) {
+                  <p class="text-center text-[16px] text-[#D00000]">{{ message }}</p>
+                }
+              </fieldset>
+            }
+
+            <!-- 5. Campaign Platforms — 172:3073 -->
+            @case (5) {
+              <fieldset class="m-0 flex flex-col gap-[18px] border-0 p-0">
+                <legend class="sr-only">Campaign platforms</legend>
+                @for (choice of platformChoices; track choice.value) {
+                  <div
+                    class="flex h-[95px] w-full items-center gap-4 rounded-xl border border-[#D7D7D7] bg-white px-[18px]"
+                  >
+                    <span
+                      class="flex h-16 w-16 shrink-0 items-center justify-center rounded-[18px] text-white"
+                      [class]="choice.tileClass"
+                      aria-hidden="true"
+                    >
+                      @switch (choice.value) {
+                        @case ('tiktok') {
+                          <svg data-p-icon="tiktok" [size]="32"></svg>
+                        }
+                        @case ('instagram') {
+                          <svg data-p-icon="instagram" [size]="32"></svg>
+                        }
+                        @case ('facebook') {
+                          <svg data-p-icon="facebook" [size]="32"></svg>
+                        }
+                        @case ('youtube') {
+                          <svg data-p-icon="youtube" [size]="32"></svg>
+                        }
+                        @case ('x') {
+                          <svg data-p-icon="twitter" [size]="32"></svg>
+                        }
+                      }
+                    </span>
+
+                    <span class="flex min-w-0 flex-1 flex-col">
+                      <label
+                        class="cursor-pointer text-[24px] text-[#010101]"
+                        [for]="'wizard-platform-' + choice.value"
+                        >{{ choice.label }}</label
+                      >
+                      <span class="text-[18px] text-[#DFDFDF]">Social media platform</span>
+                    </span>
+
+                    <p-checkbox
+                      class="shrink-0 [&.p-checkbox-checked_.p-checkbox-box]:border-[#00CF60] [&.p-checkbox-checked_.p-checkbox-box]:bg-[#00CF60] [&_.p-checkbox-box]:size-7 [&_.p-checkbox-box]:rounded-full [&_.p-checkbox-box]:border-[#CCCCCC] [&_.p-checkbox-box]:bg-[#F0F0F0]"
+                      [binary]="true"
+                      [inputId]="'wizard-platform-' + choice.value"
+                      [ngModelOptions]="{ standalone: true }"
+                      [ngModel]="isPlatformSelected(choice.value)"
+                      (ngModelChange)="togglePlatform(choice.value, $event)"
+                    />
+                  </div>
+                }
+                @if (fieldError('platforms'); as message) {
+                  <p class="text-[16px] text-[#D00000]">{{ message }}</p>
+                }
+              </fieldset>
+            }
+
+            <!-- 6. Requirement & Resources — 172:3572 -->
+            @case (6) {
+              <div class="flex flex-col gap-2">
+                <div class="flex items-center gap-2.5">
+                  <label class="text-[20px] font-medium text-[#0C0C0C]" for="wizard-requirements"
+                    >Content Requirement</label
+                  >
+                  <span class="text-[22px] font-semibold text-[#D00000]" aria-hidden="true">*</span>
+                </div>
+                <div class="relative">
+                  <textarea
+                    pTextarea
+                    id="wizard-requirements"
+                    class="h-[209px] w-full resize-none rounded-xl border border-[#D7D7D7] bg-white px-[18px] pb-10 pt-3.5 text-[18px] placeholder:text-[#DFDFDF]"
+                    placeholder="What every clip must include, and anything that is off-limits."
+                    [attr.maxlength]="longTextLimit"
+                    formControlName="requirementsNote"
+                    [attr.aria-invalid]="fieldError('requirementsNote') ? 'true' : null"
+                  ></textarea>
+                  <span
+                    class="pointer-events-none absolute bottom-3.5 right-[18px] text-[18px] text-[#969696]"
+                    aria-hidden="true"
+                    >{{ form.controls.requirementsNote.value.length }}/{{ longTextLimit }}</span
+                  >
+                </div>
+                @if (fieldError('requirementsNote'); as message) {
+                  <p class="text-[16px] text-[#D00000]">{{ message }}</p>
+                }
+              </div>
+
+              <div class="flex flex-col gap-2">
+                <div class="flex items-center gap-2.5">
+                  <label class="text-[20px] font-medium text-[#0C0C0C]" for="wizard-resource-label"
+                    >Resource name</label
+                  >
+                </div>
+                <input
+                  pInputText
+                  id="wizard-resource-label"
+                  type="text"
+                  class="h-[50px] w-full rounded-xl border border-[#D7D7D7] bg-white px-[18px] text-[18px] placeholder:text-[#DFDFDF]"
+                  placeholder="Google Drive"
+                  formControlName="resourceLabel"
+                />
+              </div>
+
+              <div class="flex flex-col gap-2">
+                <div class="flex items-center gap-2.5">
+                  <label class="text-[20px] font-medium text-[#0C0C0C]" for="wizard-resource-url"
+                    >Resource Link</label
+                  >
+                </div>
+                <div class="relative">
+                  <input
+                    pInputText
+                    id="wizard-resource-url"
+                    type="url"
+                    class="h-[50px] w-full rounded-xl border border-[#D7D7D7] bg-white pl-[18px] pr-12 text-[18px] placeholder:text-[#DFDFDF]"
+                    placeholder="link"
+                    formControlName="resourceUrl"
+                    [attr.aria-invalid]="fieldError('resourceUrl') ? 'true' : null"
+                  />
+                  <span
+                    class="pointer-events-none absolute right-[18px] top-1/2 -translate-y-1/2 text-[#868686]"
+                    aria-hidden="true"
+                  >
+                    <svg data-p-icon="external-link" [size]="20"></svg>
+                  </span>
+                </div>
+                @if (fieldError('resourceUrl'); as message) {
+                  <p class="text-[16px] text-[#D00000]">{{ message }}</p>
+                }
+              </div>
             }
           }
-        }
 
-        <!-- Step navigation -->
-        <div class="mt-2 flex items-center gap-3">
-          @if (step() > 0) {
-            <p-button
-              type="button"
-              label="Back"
-              severity="secondary"
-              [outlined]="true"
-              [disabled]="saving() || publishing()"
-              (onClick)="back()"
-            />
-          }
-
-          @if (isPreview()) {
-            <p-button
-              type="button"
-              label="Edit"
-              severity="secondary"
-              [text]="true"
-              [disabled]="saving() || publishing()"
-              (onClick)="goToStep(0)"
-            />
-            <span class="ml-auto flex gap-3">
-              <p-button
-                type="button"
-                label="Save draft"
-                severity="secondary"
-                [outlined]="true"
-                [loading]="saving()"
-                [disabled]="saving() || publishing()"
-                (onClick)="saveDraft()"
-              />
-              <p-button
-                type="button"
-                label="Publish"
-                [loading]="publishing()"
-                [disabled]="saving() || publishing()"
-                (onClick)="publish()"
-              />
-            </span>
+          <!-- Footer: the first step has nowhere to go back to. -->
+          @if (step() === 0) {
+            <button
+              type="submit"
+              class="flex h-[50px] w-full cursor-pointer items-center justify-center gap-2.5 rounded-xl border-0 bg-[#0C0C0C] text-[18px] font-medium text-white"
+            >
+              Continue
+              <svg data-p-icon="arrow-right" [size]="20" aria-hidden="true"></svg>
+            </button>
           } @else {
-            <p-button type="submit" label="Continue" styleClass="ml-auto" />
+            <div class="grid grid-cols-2 gap-4">
+              <button
+                type="button"
+                class="h-[50px] cursor-pointer rounded-xl border border-[#D7D7D7] bg-white text-[18px] text-surface-800"
+                (click)="back()"
+              >
+                Back
+              </button>
+              <button
+                type="submit"
+                class="flex h-[50px] w-full cursor-pointer items-center justify-center gap-2.5 rounded-xl border-0 bg-[#0C0C0C] text-[18px] font-medium text-white"
+              >
+                Continue
+                <svg data-p-icon="arrow-right" [size]="20" aria-hidden="true"></svg>
+              </button>
+            </div>
           }
-        </div>
-      </form>
-    </main>
+        </form>
+      </app-wizard-shell>
+    }
   }
 }
