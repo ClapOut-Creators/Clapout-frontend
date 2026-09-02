@@ -56,9 +56,31 @@ body {
   background: var(--clapout-surface-canvas);
   color: var(--clapout-text-default);
   font-family: inherit;
+  /* Brands paste raw links into campaign copy. One unbreakable 50-character
+     URL is wider than a phone's viewport, and iOS answers by zooming the whole
+     page out. Breaking long tokens is the app-wide default. */
+  overflow-wrap: break-word;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Belt and braces for the above: nothing may create a horizontal scrollbar.
+   `clip` rather than `hidden` so it does not turn the page into a scroll
+   container and break `position: sticky`. */
+html,
+body {
+  overflow-x: clip;
+}
+
+/*
+ * Blocks whose text comes from brands and creators rather than from us:
+ * campaign titles and briefs, requirement notes, resource labels. `anywhere`
+ * (not just `break-word`) also keeps a long token out of the block's
+ * min-content width, so a flex or grid parent cannot stretch to fit it.
+ */
+.co-user-text {
+  overflow-wrap: anywhere;
 }
 
 * {
@@ -68,6 +90,30 @@ body {
 :focus-visible {
   outline: 2px solid var(--clapout-border-focus);
   outline-offset: 3px;
+}
+
+/*
+ * Mobile gutters and tap targets.
+ *
+ * The signed-in shell pads its content column by 34px (`src/app/app.html`).
+ * That is nearly a fifth of a 390px phone, so below Tailwind's `sm` it drops to
+ * the standard 16px gutter. The utility class is the hook because that element
+ * has no other, and it appears exactly once in the app.
+ */
+@media (max-width: 639px) {
+  .px-\[34px\] {
+    padding-inline: 1rem;
+  }
+}
+
+/* Touch devices get a finger-sized minimum on the shared button primitives.
+   Keyed off the pointer, so the desktop designs keep their exact heights. */
+@media (pointer: coarse) {
+  .p-button,
+  .p-paginator button,
+  .p-datepicker button {
+    min-height: 2.5rem;
+  }
 }
 
 /* Slim budget/progress meter used by campaign cards and the budget panel. */
@@ -84,5 +130,73 @@ body {
     animation-iteration-count: 1 !important;
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Desktop scale
+   --------------------------------------------------------------------------
+   Every screen was built at the 1728px Figma width with the design's literal
+   pixel values (18-20px body copy, 47px h1, 358px cards). At a normal desktop
+   window that reads ~25% larger than clapoutcreators.com, which the studio is
+   supposed to feel continuous with. `zoom` is the right knob: unlike
+   `transform: scale` it reflows layout (so nothing overflows or gets clipped),
+   it keeps text crisp at any size, and applied to `body` it also covers the
+   PrimeNG overlays that get appended to the document body.
+   -------------------------------------------------------------------------- */
+@media (min-width: 1024px) {
+  :root {
+    --ui-scale: 0.8;
+  }
+
+  body {
+    zoom: var(--ui-scale);
+  }
+
+  /* Viewport units are resolved against the real viewport and are NOT divided
+     by `zoom`, so `100vh` inside the zoomed body renders 20% short. Grow the
+     full-height utilities back by 1/scale. These sit outside `@layer` on
+     purpose: unlayered rules beat Tailwind's layered utilities. */
+  .h-screen {
+    height: calc(100vh / var(--ui-scale));
+  }
+
+  .min-h-screen {
+    min-height: calc(100vh / var(--ui-scale));
+  }
+
+  .min-h-svh {
+    min-height: calc(100svh / var(--ui-scale));
+  }
+
+  /* PrimeNG positions the overlays it appends to <body> from
+     `getBoundingClientRect()`, which reports *visual* pixels, and writes the
+     result straight back as an inline `px` offset — which body's zoom then
+     scales a second time, landing every panel 20% short of its trigger.
+     Cancelling the zoom on the positioned box restores an effective zoom of 1,
+     so those coordinates mean what PrimeNG thinks they mean; re-applying it to
+     the box's own content keeps the panel itself at page scale. Only overlays
+     that were appended to the body are affected — `appendTo="self"` overlays
+     are positioned relatively and are already correct. */
+  body > .p-popover,
+  body > .p-overlay,
+  body > .p-tooltip,
+  body > .p-datepicker-panel,
+  body > .p-confirmpopup,
+  body > .p-menu,
+  body > .p-tieredmenu,
+  body > .p-contextmenu {
+    zoom: calc(1 / var(--ui-scale));
+  }
+
+  body > .p-popover > *,
+  body > .p-overlay > *,
+  body > .p-tooltip > *,
+  body > .p-datepicker-panel > *,
+  body > .p-confirmpopup > *,
+  body > .p-menu > *,
+  body > .p-tieredmenu > *,
+  body > .p-contextmenu > * {
+    zoom: var(--ui-scale);
   }
 }
