@@ -147,10 +147,14 @@ interface Registration {
   accountUrl: string;   // creator's account/profile URL on that platform
   note: string | null;
   createdAt: string;
-  campaign: {           // embedded summary for dashboard rendering (mirrors the campaign row,
-    slug: string; title: string; brandName: string; brandLogoUrl: string | null;
-    brandLogoBg: string; currency: string; cpm: number | null; endDate: string | null;
-    status: 'UPCOMING' | 'ACTIVE' | 'CLOSED';
+  // The FULL PublicCampaign (brand block, brandId, effective status,
+  // registrationOpen, registrationCount, platforms, money, dates, tags,
+  // bannerUrl, requirements/resources, updatedAt) so the dashboard can reuse
+  // the discovery card, plus three legacy flat brand keys kept for one release.
+  campaign: PublicCampaign & {
+    brandName: string;          // @deprecated — use campaign.brand.name
+    brandLogoUrl: string | null; // @deprecated — use campaign.brand.logoUrl
+    brandLogoBg: string;        // @deprecated — use campaign.brand.logoBg
   };
 }
 ```
