@@ -504,3 +504,36 @@ submit button reads "Create account" rather than the design's "Sign in".
   content submission does not exist in the product and no endpoint was invented.
 - The card's verified glyph shows for every brand; `PublicCampaign` has no
   verified flag.
+
+## Desktop scale, mobile overflow, landing chrome and Share (2026-09-02)
+
+- **`src/styles.css` is now the platform's scale knob.** `--ui-scale` is `0.8`
+  from 1024px and `body` takes it as `zoom`, matching clapoutcreators.com. Two
+  compensations live beside it and must move together with the scale: viewport
+  units (`h-screen`, `min-h-screen`, `min-h-svh`) are divided by the scale
+  because `zoom` does not divide them, and body-appended PrimeNG overlays get
+  the zoom cancelled on the positioned box and re-applied to its content —
+  without that, every panel lands `20%` of its trigger's height too low. A
+  residual of `triggerSize x (1 - scale)` remains (~9px under a 46px button)
+  because PrimeNG mixes `offsetHeight` (layout px) with rect coordinates
+  (visual px); it reads as a slightly larger anchor gutter.
+- **User-authored copy must carry `co-user-text`.** Brands paste raw links into
+  campaign briefs and requirement notes; one unbroken URL is wider than a phone
+  viewport and iOS answers by zooming the page out. `body` breaks long words by
+  default, `co-user-text` adds `overflow-wrap: anywhere` so the token also stays
+  out of the block's min-content width.
+- **`shared/text/linkified-text`** turns bare `https://` and `www.` runs into
+  new-tab anchors without touching the text, and `splitLinks()` is unit-tested.
+  Use it for any field a brand types into.
+- **`shared/public/share-campaign-button`** is the one Share control:
+  `pill | text | icon | secondary | block` variants, `navigator.share` first,
+  clipboard + toast second, dialog last. Its click stops propagation because two
+  of its placements sit inside a card link.
+- **`shared/admin/campaign-compact-card` no longer wraps the card in an `<a>`** —
+  a button may not live inside an anchor, so the link is a transparent overlay
+  stretched across the card and the Share control lifts above it.
+- **`Registration.campaign` is in transition.** It is typed as a partial
+  `PublicCampaign` plus the legacy flat fields; always render it through
+  `registrationCampaign()`, which fills the gaps with the card's
+  "not announced" states rather than zeros.
+- The public navbar collapses at `md`, not `lg`, matching the landing site.

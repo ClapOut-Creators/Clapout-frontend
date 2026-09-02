@@ -144,6 +144,60 @@ joining the project can catch up fast. Companion doc: `INTEGRATION-PLAN.md`
 - Product decisions: no faked trend pills; Earned/Views/Submissions are honest zeros
   until those features exist; verified badge shows for every brand (no flag yet).
 
+### Desktop scale, mobile overflow, the landing chrome and Share (2026-09-02)
+
+A production review turned up three things, plus two follow-ons.
+
+**Desktop was ~25% too big.** Every screen carries the Figma 1728px pixel
+values, which read as zoomed-in beside clapoutcreators.com at the same window
+width. `src/styles.css` now applies `body { zoom: 0.8 }` from 1024px — the same
+step the landing site takes, so the two stay in lockstep. `zoom` reflows rather
+than scaling a bitmap, so nothing overflows and text stays crisp. Two
+consequences had to be handled:
+
+- Viewport units are not divided by `zoom`, so `h-screen` / `min-h-screen` /
+  `min-h-svh` are grown back by `1 / --ui-scale`. The sticky admin rail measures
+  a full 900px at a 900px viewport again.
+- PrimeNG positions body-appended overlays from `getBoundingClientRect()`
+  (visual px) and writes the result back as inline `px`, which the body zoom
+  then scaled a second time — every panel landed 20% short of its trigger.
+  Cancelling the zoom on the positioned box and re-applying it to the box's
+  content puts them back. Verified in Chromium: both popovers, the side-nav
+  tooltip, the select overlay, the toast, the dialog + mask, the wizard modal
+  and the sticky rail. The datepicker is `[inline]` and never overlays.
+
+**Mobile was broken on real phones.** `/campaigns/e-wale-clipping` measured
+408px wide on a 390px iPhone 13 because the campaign's requirements note holds a
+52-character WhatsApp invite that never wraps, so iOS zoomed the whole page out.
+Fixed by a `body { overflow-wrap: break-word }` default plus `.co-user-text`
+(`overflow-wrap: anywhere`) on brand-authored blocks, `overflow-x: clip` on
+html/body, and a new `shared/text/linkified-text` that renders bare URLs in the
+requirements note as real `target="_blank"` links. All twelve mobile routes now
+report `scrollWidth === clientWidth` with no element painting past the viewport.
+Gutters are 16px everywhere (the signed-in shell's 34px drops below `sm`), and
+touch devices get a 40px minimum on the shared button primitives.
+
+**The footer and navbar are the landing site's.** Both ported from
+`ClapOut website/src/components/layout/` — the footer's four columns
+(Explore / Guides / Legal / Contact), copyright rule and giant wordmark, and the
+navbar's white pill with its full nav from `md` up (it used to collapse to a
+hamburger at `lg`, so a 1000px window showed a phone menu beside the landing's
+full nav). Every destination is an absolute clapoutcreators.com URL except
+Campaigns, which stays on the platform.
+
+**Share.** `shared/public/share-campaign-button` shares
+`${origin}/campaigns/${slug}` — the OS share sheet where `navigator.share`
+exists, otherwise clipboard + a "Link copied" toast, with a dialog holding the
+URL when the clipboard is unavailable. It sits on the public campaign detail
+(beside Back), on each non-draft admin campaign card and detail header, and on
+the wizard's "Campaign Published!" screen.
+
+**Clipper dashboard joined campaigns** now use the public campaign card, with
+the registration status tag overlaid on the banner and the applied date in the
+meta row. `Registration.campaign` is typed as a partial `PublicCampaign` and
+normalised by `registrationCampaign()`, so it renders correctly both before and
+after the backend starts embedding the full campaign body.
+
 ## In progress
 
 - Nothing mid-flight. The admin section passed its full live pass on
