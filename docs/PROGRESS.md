@@ -58,6 +58,22 @@ joining the project can catch up fast. Companion doc: `INTEGRATION-PLAN.md`
   signed-in non-admins → `/forbidden`), role-aware side nav. Campaigns gained a
   `DRAFT` status that the public API never returns.
 
+### Brands + brand-first campaign creation (platform UI)
+
+- **Brands section**: list (stat cards, search, table with logo/email/industry/phone/
+  country/owner/status and view + delete with a `BRAND_IN_USE` guard, pagination), a
+  3-step create/edit wizard (Brand Details -> Brand Location -> Primary Contact ->
+  "Brand Saved!"), and a brand detail page (header with primary contact + account
+  manager, Pause/Edit, stats, campaigns grid, recent registered clippers).
+- **Campaign creation now starts from a brand**: the wizard's first step selects an
+  existing brand or creates one inline; the old "Brand details" step is gone and
+  `POST /admin/campaigns` sends `brandId`. `?brandId=` preselects.
+- **1:1 Figma pass** over the admin screens (campaigns list/detail, registrations
+  table, both wizards, sign-in) against the exported node specs, on a shared kit:
+  wizard modal shell, page header, stat card, brand logo tile, compact campaign card.
+- Contract: `Brand`/`BrandDetail`/`BrandInput`, `PublicCampaign.brandId`,
+  `CampaignDraftInput.brandId`, and the five `/admin/brands` endpoints.
+
 ### Infrastructure
 
 - Database: **Supabase Postgres** (project `acjxrhugfjlhawpyoaam`, eu-west-1)

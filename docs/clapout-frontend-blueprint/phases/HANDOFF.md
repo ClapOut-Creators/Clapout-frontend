@@ -367,3 +367,48 @@ campaign cards. The dashboard canvas now uses the requested exact `#F9F9F9` back
 Reason: Phase 04 code and static/browser smoke gates are complete, but the admin-only dashboard still
 needs a manual signed-in admin browser pass for desktop/tablet/mobile framing and AXE before moving to
 Phase 05.
+
+## Brands section + brand-first campaign flow (2026-09-02)
+
+Adds the Brands section, moves campaign creation to start from a brand, and takes a
+1:1 pass over the admin screens against the Figma exports in
+`scratchpad/figma` (design width 1728, 80px rail, 1648 content column).
+
+### Contract
+
+`Brand` / `BrandDetail` / `BrandInput` land in `core/models/brand.ts` exactly as specified.
+`PublicCampaign` gains `brandId`, and `CampaignDraftInput` drops its inline `brand` block for
+`brandId` — campaign identity now comes from the Brand relation. `AdminRepository` gains
+`brands(search?)`, `brand(id)`, `createBrand`, `updateBrand`, `deleteBrand`.
+
+### Shared kit (so every admin page shares one set of styles)
+
+- `shared/admin/wizard-shell.ts` — the full-viewport modal chrome both wizards use, built
+  from the 172:823 node spec: `#FFFFFF`/90 overlay, round `#CDCDCD` close button at
+  top-right, 53px orange app-icon tile inside a 326x125 header block, a 236x10 `#E0E0E0`
+  progress track with an `#F26522` fill, Poppins SemiBold 40 title over SF Pro 22 subtitle,
+  and a **546px** centred content column.
+- `shared/admin/page-header.ts` — breadcrumb pill (`#F1F1F1`, home glyph) + title + subtitle
+  with the page CTA projected on the right, matching the dashboard header exactly.
+- `shared/admin/stat-card.ts`, `shared/admin/brand-logo-tile.ts`.
+- `core/util/admin-options.ts` — countries (Ghana first), cities per country, industries,
+  campaign tags, currencies, and `estimatedViews(budget, cpm)`.
+
+### Sign-in aligned to 147:3105
+
+66px/`r-20` orange logo tile with a 50px mark, Poppins SemiBold 32 "Welcome back",
+SF Pro 18 `#464646` subtitle, a 423px form column, 50px/`r-12` fields with `#D7D7D7`
+borders and `#DFDFDF` placeholders, an 18px remember-me / forgot row, and a 50px orange
+submit.
+
+### Deviations from the design, and why
+
+- **"Views" (budget step)** is not in the API contract. Rendered as a read-only
+  "Estimated views" = budget / CPM x 1000 rather than a free input that could not be saved.
+- **"Product" (details step)** is not a contract field; it maps onto the campaign's `tags`.
+- **Registrations have no brand filter.** `GET /admin/registrations` takes
+  `campaignSlug|status|search` only, so a brand's clippers table is scoped by offering the
+  brand's campaigns as filter options. Adding `?brandId=` to that endpoint would fix it
+  properly.
+- **Revenue formatting** (`GHS ₵ 40,000.00`) derives its currency from the brand's first
+  campaign, since `BrandDetail.stats.revenue` is a bare number with no currency.
