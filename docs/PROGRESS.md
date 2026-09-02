@@ -198,6 +198,86 @@ meta row. `Registration.campaign` is typed as a partial `PublicCampaign` and
 normalised by `registrationCampaign()`, so it renders correctly both before and
 after the backend starts embedding the full campaign body.
 
+### Content submissions and partnership inquiries (2026-09-02)
+
+The workflow's last two gaps closed in one slice: clippers can now hand in a
+posted clip, and the brand inquiries the landing page collects land somewhere an
+admin can work them.
+
+**Clipper side.** `/creator/campaigns/:slug/submit` loads the campaign and the
+clipper's registration for it, then either shows the form or an explanatory panel
+— not registered (with the apply CTA), still under review, rejected, or a
+campaign that is not ACTIVE. The form takes the post link, a screenshot, and
+optional views / posted date / caption / reviewer note behind a confirmation
+checkbox. Two checks run before the round trip: `httpUrlValidator`, and a
+client-side copy of the contract's host table (`core/util/platform-url.ts`), so a
+YouTube link pasted into a TikTok registration is answered with "That doesn't
+look like a TikTok link" rather than a 422. Server codes still map to inline copy
+(`REGISTRATION_NOT_ACCEPTED`, `SUBMISSIONS_CLOSED`,
+`POST_URL_PLATFORM_MISMATCH`, `DUPLICATE_SUBMISSION`, `VALIDATION`).
+
+**Screenshots are resized in the browser.** `Submission.screenshotUrl` travels in
+the JSON body and the API caps it at 700 000 characters, so a phone screenshot
+had to shrink client-side: `shared/forms/image-resize.ts` draws the image onto a
+canvas at most 1600px on its longest edge and encodes JPEG at 0.82, dropping the
+quality and then the edge until it fits. A 900×1600 PNG came out at 67 KB in the
+live pass. The wizards' existing `readAsDataURL` helpers only cap size, which
+would have rejected most real screenshots, so this is a new helper rather than a
+reuse.
+
+`/creator/submissions` lists every clip with the totals from `GET /me/stats`
+(Submissions, Pending, Verified views, Earned) and a campaign picker that skips
+straight to the submit page when only one campaign has accepted the clipper. The
+dashboard's tiles now come from the same endpoint, checklist step 5 completes as
+soon as one clip exists (its button is disabled with "Available once a campaign
+accepts you" until then), and every ACCEPTED joined-campaign card grows a
+"Submit clip" pill in a footer row under it. On the public campaign detail, an
+accepted clipper on an ACTIVE campaign sees "Submit content" where the register
+CTA was.
+
+**Admin side.** `shared/admin/submissions-table` mirrors `clippers-table`:
+server-side search and campaign/status filters, CSV export of exactly the rows on
+screen, and columns for clipper (with the `wa.me` link), campaign, post link,
+screenshot thumbnail, claimed → verified views, payout, status and date. The
+review dialog carries the full screenshot, an open-post button, contact + payout
+details, the clipper's caption and note, a verified-views input prefilled with
+the claim, a live payout preview (`verifiedViews / 1000 × cpm`, or a "no CPM"
+warning), a note to the clipper, and the state-aware actions — Under review,
+Approve, Reject, Mark paid (APPROVED only, behind a confirm naming the amount)
+and Undo to Submitted. `/admin/submissions` adds Pending / Approved awaiting
+payment / Paid cards over it, and the campaign detail gets a Submissions section
+with its own Export beside the clippers one.
+
+`/admin/inquiries` is the landing form's queue: New / Contacted / Converted
+cards, status + search filters, a table (company, contact with `mailto:`/`tel:`,
+promoting, budget, timeline, content type, an email-delivered tick, status,
+received) and a right drawer with every field, the admin note, the status select
+and "Create brand from inquiry". That hands `?inquiryId=` to the brand wizard,
+which prefills name ← company, website ← link and the primary contact from the
+inquiry, then PATCHes the inquiry to CONVERTED with the new `brandId` after a
+successful create — best effort, so a failure there shows a notice on the success
+screen instead of losing the brand.
+
+Side nav gains Submissions for clippers, and Submissions + Inquiries for admins.
+
+### Live verification of the submissions phase (2026-09-02)
+
+- Full round trip on the live database with the demo clipper and the E-WALE
+  campaign: submitted a clip with a generated fake analytics screenshot (resized
+  to 67 KB), reviewed it as admin with 11,800 verified views → payout preview and
+  the frozen `payoutAmount` both read ₵ 118.00, marked it Paid (the campaign's
+  `budgetSpent` moved 0 → 118), then undid it to Submitted (`budgetSpent` back to 0) and withdrew it as the clipper. Nothing test-shaped is left in the database
+  beyond the demo clipper's ACCEPTED registration for E-WALE, which is
+  intentionally kept.
+- The wrong-platform check, the duplicate/closed/not-accepted error mapping, the
+  withdraw confirm, the campaign picker and the brand-wizard prefill were all
+  exercised through the UI. Screenshots at 1728×1048, 1000×800 and iPhone 13
+  (390px) show no horizontal overflow on any of the new screens, and the console
+  is clean on all of them.
+- No partnership inquiry was created: the contract has no delete endpoint, so the
+  admin queue was verified against the real (empty) state plus a Playwright route
+  mock for the populated table and drawer.
+
 ## In progress
 
 - Nothing mid-flight. The admin section passed its full live pass on
@@ -208,13 +288,14 @@ after the backend starts embedding the full campaign body.
   campaign created through the 8-step wizard ("ClapOut QA Test") published
   straight onto the landing page's campaign list with no extra step. The QA
   campaign is still live in the dev database — close or delete it whenever.
-- Out of scope so far and still open: brands directory pages, payout
-  processing, view verification.
+- Out of scope so far and still open: brands directory pages, automated view
+  verification, and the payout transfer itself (admins mark clips Paid by hand
+  once the MoMo transfer has gone out).
 
 ## Not started / later
 
-- Brand workspace, manual view verification + payout prep, content-link
-  submission, CSV exports beyond the clippers table, profile editing,
+- Brand workspace, automated view verification, payout transfers, profile
+  editing,
   Supabase Storage for uploaded images (wizard currently stores image URLs /
   small data-URLs), domain-verified email, deployment wiring (all URLs are
   env-driven and ready).
