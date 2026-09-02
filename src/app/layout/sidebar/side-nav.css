@@ -8,13 +8,13 @@
   border-radius: 8px;
   color: var(--clapout-text-muted);
   display: inline-flex;
-  height: 32px;
+  height: 36px;
   justify-content: center;
   text-decoration: none;
   transition:
     background-color 150ms ease,
     color 150ms ease;
-  width: 32px;
+  width: 36px;
 }
 
 .co-rail-link:hover,

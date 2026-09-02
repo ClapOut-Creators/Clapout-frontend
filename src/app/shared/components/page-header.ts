@@ -13,9 +13,9 @@ import { Home } from '@primeicons/angular/home';
     <header class="flex flex-wrap items-start justify-between gap-4">
       <div>
         <p
-          class="inline-flex items-center gap-1 rounded-md bg-[#F1F1F1] px-3 py-1.5 text-xs font-semibold text-surface-800"
+          class="inline-flex items-center gap-1.5 rounded-md bg-[#F1F1F1] px-3 py-1.5 text-sm font-semibold text-surface-800"
         >
-          <svg data-p-icon="home" [size]="12" aria-hidden="true"></svg>
+          <svg data-p-icon="home" [size]="14" aria-hidden="true"></svg>
           <span>{{ breadcrumb() }}</span>
           @if (breadcrumbTrail(); as trail) {
             <span class="text-surface-500">/ {{ trail }}</span>
