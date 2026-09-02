@@ -105,6 +105,11 @@ const MESSAGES: Record<string, Record<string, string>> = {
 export class BrandWizard {
   /** Present on `/admin/brands/:id/edit`; absent when creating. */
   readonly id = input<string>();
+  /**
+   * `?inquiryId=` from `/admin/inquiries` — prefills the form from a
+   * partnership request and marks that request CONVERTED once the brand saves.
+   */
+  readonly inquiryId = input<string>();
 
   private readonly admin = inject(AdminRepository);
   private readonly confirmations = inject(ConfirmationService);
@@ -125,6 +130,8 @@ export class BrandWizard {
   protected readonly logoErrorMessage = signal('');
   /** Id returned by the API, so the success screen can link to the brand. */
   protected readonly savedBrandId = signal<string | null>(null);
+  /** Notice about the inquiry this brand was seeded from, when there was one. */
+  protected readonly prefillNotice = signal('');
   /** The paste-a-URL escape hatch stays collapsed until it is asked for. */
   protected readonly urlEntryOpen = signal(false);
   protected readonly logoUrlDraft = signal('');
@@ -160,6 +167,14 @@ export class BrandWizard {
       const id = this.id();
       if (id) {
         void this.loadExisting(id);
+      }
+    });
+
+    // Creating from an inquiry: seed the form from what the brand told us.
+    effect(() => {
+      const inquiryId = this.inquiryId();
+      if (inquiryId && !this.id()) {
+        void this.prefillFromInquiry(inquiryId);
       }
     });
   }
@@ -308,6 +323,9 @@ export class BrandWizard {
       this.savedBrandId.set(brand.id);
       this.form.markAsPristine();
       this.state.set('saved');
+      if (!existingId) {
+        await this.convertInquiry(brand.id);
+      }
     } catch (error) {
       this.handleSaveError(error);
     } finally {
@@ -344,6 +362,53 @@ export class BrandWizard {
       contactEmail: value.contactEmail.trim() || null,
       contactPhone: value.contactPhone.trim() || null,
     };
+  }
+
+  /**
+   * Seeds a new brand from a partnership request. Best effort: a failure here
+   * leaves an empty wizard with a notice rather than blocking brand creation.
+   */
+  private async prefillFromInquiry(inquiryId: string): Promise<void> {
+    this.state.set('loading');
+    try {
+      const inquiry = await this.admin.inquiry(inquiryId);
+      this.form.patchValue({
+        name: inquiry.company?.trim() || inquiry.name,
+        website: inquiry.link ?? '',
+        contactName: inquiry.name,
+        contactEmail: inquiry.email,
+        contactPhone: inquiry.phone,
+      });
+      this.form.markAsPristine();
+      this.prefillNotice.set(
+        `Prefilled from ${inquiry.company?.trim() || inquiry.name}'s partnership request.`,
+      );
+    } catch {
+      this.prefillNotice.set(
+        'We could not load that partnership request, so nothing was prefilled.',
+      );
+    } finally {
+      this.state.set('form');
+    }
+  }
+
+  /**
+   * Marks the originating inquiry CONVERTED. Deliberately best effort: the
+   * brand exists either way, so a failure here must not take the wizard out of
+   * its success state.
+   */
+  private async convertInquiry(brandId: string): Promise<void> {
+    const inquiryId = this.inquiryId();
+    if (!inquiryId) {
+      return;
+    }
+    try {
+      await this.admin.updateInquiry(inquiryId, { status: 'CONVERTED', brandId });
+    } catch {
+      this.prefillNotice.set(
+        'The brand was created, but we could not mark the partnership request as converted. Update it from Inquiries.',
+      );
+    }
   }
 
   private async loadExisting(id: string): Promise<void> {

@@ -74,6 +74,11 @@
                 Your brand has been successfully created.
               }
             </p>
+            <!-- Converting the originating inquiry is best effort; when it
+                 fails the notice says so rather than hiding it. -->
+            @if (prefillNotice(); as notice) {
+              <p class="text-[16px] leading-snug text-[#7B7B7B]">{{ notice }}</p>
+            }
           </div>
 
           <div class="flex w-full flex-col gap-3">
@@ -103,6 +108,9 @@
     >
       @if (errorMessage(); as message) {
         <p-message severity="error" [closable]="false">{{ message }}</p-message>
+      }
+      @if (prefillNotice(); as notice) {
+        <p-message severity="info" [closable]="false">{{ notice }}</p-message>
       }
 
       <form

@@ -1,0 +1,40 @@
+<main class="min-h-screen">
+  <div class="mx-auto">
+    <app-page-header
+      breadcrumb="Submissions"
+      title="Content submissions"
+      subtitle="Verify posted clips by hand, then approve and pay them out."
+    />
+
+    @if (optionsError()) {
+      <div class="mt-4">
+        <p-message severity="warn" [closable]="false">
+          {{ optionsError() }} Filtering by campaign is unavailable, but the list below still loads.
+        </p-message>
+      </div>
+    }
+
+    <section class="mt-4" aria-labelledby="admin-submissions-stats-heading">
+      <h2 id="admin-submissions-stats-heading" class="sr-only">Review queue</h2>
+      <dl class="m-0 grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <app-stat-card label="Pending review" [value]="pendingValue()" tone="attention" />
+        <app-stat-card label="Approved awaiting payment" [value]="approvedValue()" />
+        <app-stat-card label="Paid" [value]="paidValue()" />
+      </dl>
+    </section>
+
+    <section
+      class="mt-4 rounded-[18.83px] border border-[#ECECEC] bg-[#FFFFFF] p-4"
+      aria-labelledby="admin-submissions-list-heading"
+    >
+      <h2 id="admin-submissions-list-heading" class="sr-only">Submission list</h2>
+
+      <!-- The table owns its own toolbar, so it sits at the top of this panel. -->
+      <app-submissions-table
+        class="block"
+        [campaignOptions]="campaignOptions()"
+        (reviewed)="onReviewed()"
+      />
+    </section>
+  </div>
+</main>

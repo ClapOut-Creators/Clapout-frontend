@@ -28,6 +28,7 @@ import { BrandLogoTile } from '../../shared/admin/brand-logo-tile';
 import { campaignStatusPillClass } from '../../shared/admin/campaign-compact-card';
 import { ClippersTable } from '../../shared/admin/clippers-table';
 import { PageHeader } from '../../shared/admin/page-header';
+import { SubmissionsTable } from '../../shared/admin/submissions-table';
 import { ShareCampaignButton } from '../../shared/public/share-campaign-button';
 
 type DetailState = 'loading' | 'ready' | 'not-found' | 'error';
@@ -52,6 +53,7 @@ type DetailState = 'loading' | 'ready' | 'not-found' | 'error';
     RouterLink,
     ShareCampaignButton,
     SkeletonModule,
+    SubmissionsTable,
     Tiktok,
     Twitter,
     Youtube,
@@ -68,8 +70,9 @@ export class AdminCampaignDetail {
   private readonly messages = inject(MessageService);
   private readonly confirmations = inject(ConfirmationService);
 
-  /** The embedded table owns the rows, so Export delegates straight to it. */
+  /** The embedded tables own their rows, so Export delegates straight to them. */
   private readonly clippers = viewChild(ClippersTable);
+  private readonly submissions = viewChild(SubmissionsTable);
 
   protected readonly state = signal<DetailState>('loading');
   protected readonly campaign = signal<PublicCampaign | null>(null);
@@ -133,6 +136,14 @@ export class AdminCampaignDetail {
 
   protected canExportClippers(): boolean {
     return this.clippers()?.canExport() ?? false;
+  }
+
+  protected exportSubmissions(): void {
+    this.submissions()?.exportCsv();
+  }
+
+  protected canExportSubmissions(): boolean {
+    return this.submissions()?.canExport() ?? false;
   }
 
   protected async publish(): Promise<void> {

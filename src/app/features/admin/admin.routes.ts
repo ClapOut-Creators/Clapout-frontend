@@ -18,6 +18,18 @@ export const ADMIN_ROUTES: Routes = [
     title: 'Registered clippers - ClapOut Studio',
   },
   {
+    path: 'submissions',
+    canActivate: [adminGuard],
+    loadComponent: () => import('./admin-submissions').then((module) => module.AdminSubmissions),
+    title: 'Content submissions - ClapOut Studio',
+  },
+  {
+    path: 'inquiries',
+    canActivate: [adminGuard],
+    loadComponent: () => import('./admin-inquiries').then((module) => module.AdminInquiries),
+    title: 'Partnership requests - ClapOut Studio',
+  },
+  {
     path: 'brands',
     pathMatch: 'full',
     canActivate: [adminGuard],

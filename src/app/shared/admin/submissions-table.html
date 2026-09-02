@@ -1,0 +1,571 @@
+@if (showToolbar()) {
+  <div class="flex flex-wrap items-center gap-3">
+    <input
+      pInputText
+      type="search"
+      class="!min-w-0 !flex-1 !rounded-[10px] !border-[#DDDDDD] !bg-[#F4F4F4] sm:!max-w-xs"
+      placeholder="Search clipper, email or post link"
+      aria-label="Search submissions"
+      [ngModel]="searchInput()"
+      (ngModelChange)="onSearchInput($event)"
+    />
+
+    @if (!campaignSlug()) {
+      <p-select
+        class="w-full sm:w-56"
+        placeholder="All campaigns"
+        optionLabel="label"
+        optionValue="value"
+        ariaLabel="Filter by campaign"
+        [options]="campaignOptions()"
+        [showClear]="true"
+        [ngModel]="campaignFilter()"
+        (ngModelChange)="campaignFilter.set($event)"
+      />
+    }
+
+    <p-select
+      class="w-full sm:w-48"
+      placeholder="All statuses"
+      optionLabel="label"
+      optionValue="value"
+      ariaLabel="Filter by status"
+      [options]="statusOptions"
+      [showClear]="true"
+      [ngModel]="statusFilter()"
+      (ngModelChange)="statusFilter.set($event)"
+    />
+
+    <p-button
+      label="Export CSV"
+      severity="secondary"
+      size="small"
+      [outlined]="true"
+      [disabled]="!canExport()"
+      (onClick)="exportCsv()"
+    />
+  </div>
+}
+
+@switch (state()) {
+  @case ('loading') {
+    <div class="mt-4 flex flex-col gap-2" aria-busy="true" aria-live="polite">
+      <span class="sr-only">Loading submissions</span>
+      @for (row of skeletonRows; track row) {
+        <p-skeleton width="100%" height="4rem" borderRadius="12.11px" />
+      }
+    </div>
+  }
+
+  @case ('error') {
+    <div class="mt-4 rounded-[12.11px] border border-[#ECECEC] bg-white p-6">
+      <p-message severity="error" [closable]="false">{{ errorMessage() }}</p-message>
+      <p-button label="Try again" size="small" styleClass="mt-4" (onClick)="reload()" />
+    </div>
+  }
+
+  @default {
+    @if (rows().length === 0) {
+      <div class="mt-4 flex flex-col items-center rounded-[12.11px] px-4 py-14 text-center">
+        <span
+          class="flex size-[200px] items-center justify-center rounded-full bg-[#F9F9F9]"
+          aria-hidden="true"
+        >
+          <span class="relative flex size-[120px] items-center justify-center">
+            <span class="absolute inset-0 rounded-full bg-[#EC612C]/10"></span>
+            <span class="absolute top-0 left-0 size-6 rounded-full bg-[#EC612C]/20"></span>
+            <span class="absolute right-0 bottom-0 size-4 rounded-full bg-[#FFC93C]/60"></span>
+          </span>
+        </span>
+
+        @if (hasActiveFilters()) {
+          <h3 class="mt-8 text-[26px] font-semibold text-[#171A1C]">
+            No submissions match these filters
+          </h3>
+          <p class="mt-3 max-w-xl text-[18px] text-[#464646]">
+            Try a different search term, or clear the filters to see every clip.
+          </p>
+          <p-button
+            label="Clear filters"
+            size="small"
+            [outlined]="true"
+            styleClass="mt-6"
+            (onClick)="clearFilters()"
+          />
+        } @else if (campaignSlug()) {
+          <h3 class="mt-8 text-[26px] font-semibold text-[#171A1C]">No clips submitted yet</h3>
+          <p class="mt-3 max-w-xl text-[18px] text-[#464646]">
+            Clips submitted for this campaign land here for review.
+          </p>
+        } @else {
+          <h3 class="mt-8 text-[26px] font-semibold text-[#171A1C]">Nothing to review yet</h3>
+          <p class="mt-3 max-w-xl text-[18px] text-[#464646]">
+            Submissions appear here as soon as accepted clippers start posting clips.
+          </p>
+        }
+      </div>
+    } @else {
+      <!--
+        Ten columns is more than the 1400px the clippers table needs, so this one
+        scrolls horizontally below ~1560px and fills the panel above it.
+      -->
+      <div class="mt-4 overflow-x-auto rounded-[12.11px] bg-white">
+        <p-table [value]="rows()" [tableStyle]="{ 'min-width': '1560px', 'table-layout': 'fixed' }">
+          <ng-template #header>
+            <tr>
+              <th
+                scope="col"
+                class="!w-[220px] !rounded-l-[12.11px] !border-0 !bg-[#F9F9F9] !px-6 !py-[22px] !text-[17.49px] !font-medium !whitespace-nowrap !text-[#171A1C]"
+              >
+                Clipper
+              </th>
+              <th
+                scope="col"
+                class="!w-[180px] !border-0 !bg-[#F9F9F9] !px-6 !py-[22px] !text-[17.49px] !font-medium !whitespace-nowrap !text-[#171A1C]"
+              >
+                Campaign
+              </th>
+              <th
+                scope="col"
+                class="!w-[240px] !border-0 !bg-[#F9F9F9] !px-6 !py-[22px] !text-[17.49px] !font-medium !whitespace-nowrap !text-[#171A1C]"
+              >
+                Post
+              </th>
+              <th
+                scope="col"
+                class="!w-[110px] !border-0 !bg-[#F9F9F9] !px-6 !py-[22px] !text-[17.49px] !font-medium !whitespace-nowrap !text-[#171A1C]"
+              >
+                Proof
+              </th>
+              <th
+                scope="col"
+                class="!w-[200px] !border-0 !bg-[#F9F9F9] !px-6 !py-[22px] !text-right !text-[17.49px] !font-medium !whitespace-nowrap !text-[#171A1C]"
+              >
+                Views
+              </th>
+              <th
+                scope="col"
+                class="!w-[130px] !border-0 !bg-[#F9F9F9] !px-6 !py-[22px] !text-right !text-[17.49px] !font-medium !whitespace-nowrap !text-[#171A1C]"
+              >
+                Payout
+              </th>
+              <th
+                scope="col"
+                class="!w-[140px] !border-0 !bg-[#F9F9F9] !px-6 !py-[22px] !text-[17.49px] !font-medium !whitespace-nowrap !text-[#171A1C]"
+              >
+                Status
+              </th>
+              <th
+                scope="col"
+                class="!w-[140px] !border-0 !bg-[#F9F9F9] !px-6 !py-[22px] !text-[17.49px] !font-medium !whitespace-nowrap !text-[#171A1C]"
+              >
+                Submitted
+              </th>
+              <th
+                scope="col"
+                class="!w-[130px] !rounded-r-[12.11px] !border-0 !bg-[#F9F9F9] !px-6 !py-[22px] !text-[17.49px] !font-medium !whitespace-nowrap !text-[#171A1C]"
+              >
+                Review
+              </th>
+            </tr>
+          </ng-template>
+
+          <ng-template #body let-row>
+            <tr>
+              <td class="!border-0 !px-6 !py-3">
+                <span class="flex items-center gap-[9px]">
+                  <span
+                    class="flex size-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#FFC93C] to-[#EC612C] text-xs font-semibold text-white"
+                    aria-hidden="true"
+                    >{{ initials(row.creator.fullName) }}</span
+                  >
+                  <span class="min-w-0">
+                    <span class="block truncate text-[16px] text-[#444444]">{{
+                      row.creator.fullName
+                    }}</span>
+                    <a
+                      [href]="'mailto:' + row.creator.email"
+                      class="block truncate text-xs text-[#7B7B7B] no-underline hover:underline"
+                      >{{ row.creator.email }}</a
+                    >
+                    @if (whatsappLink(row.creator.whatsapp); as chatUrl) {
+                      <a
+                        [href]="chatUrl"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        [attr.aria-label]="'Chat with ' + row.creator.fullName + ' on WhatsApp'"
+                        class="mt-0.5 inline-flex items-center gap-1.5 text-xs text-[#1A1A1A] no-underline hover:underline"
+                      >
+                        <svg
+                          data-p-icon="whatsapp"
+                          [size]="14"
+                          class="shrink-0 text-[#25D366]"
+                          aria-hidden="true"
+                        ></svg>
+                        <span>{{ row.creator.whatsapp }}</span>
+                      </a>
+                    }
+                  </span>
+                </span>
+              </td>
+
+              <td class="!border-0 !px-6 !py-5">
+                <span class="block truncate text-[16px] text-[#444444]">{{
+                  row.campaign.title || row.campaign.brandName
+                }}</span>
+                <span class="mt-0.5 block truncate text-xs text-[#7B7B7B]">{{
+                  row.campaign.brandName
+                }}</span>
+              </td>
+
+              <td class="!border-0 !px-6 !py-5">
+                <a
+                  [href]="row.postUrl"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="inline-flex max-w-full items-center gap-2 text-[16px] text-[#1A1A1A] no-underline hover:underline"
+                >
+                  @switch (row.platform) {
+                    @case ('tiktok') {
+                      <svg data-p-icon="tiktok" [size]="16" aria-hidden="true"></svg>
+                    }
+                    @case ('facebook') {
+                      <svg data-p-icon="facebook" [size]="16" aria-hidden="true"></svg>
+                    }
+                    @case ('instagram') {
+                      <svg data-p-icon="instagram" [size]="16" aria-hidden="true"></svg>
+                    }
+                    @case ('youtube') {
+                      <svg data-p-icon="youtube" [size]="16" aria-hidden="true"></svg>
+                    }
+                    @default {
+                      <svg data-p-icon="twitter" [size]="16" aria-hidden="true"></svg>
+                    }
+                  }
+                  <span class="truncate">{{ postUrlLabel(row.postUrl, 30) }}</span>
+                  <span class="sr-only">on {{ platformLabel(row.platform) }}</span>
+                </a>
+              </td>
+
+              <td class="!border-0 !px-6 !py-3">
+                @if (row.screenshotUrl) {
+                  <button
+                    type="button"
+                    class="block h-[52px] w-[52px] overflow-hidden rounded-lg border border-[#ECECEC] bg-[#F9F9F9]"
+                    [attr.aria-label]="'Open the screenshot from ' + row.creator.fullName"
+                    (click)="openPreview(row)"
+                  >
+                    <img
+                      [src]="row.screenshotUrl"
+                      alt=""
+                      class="h-full w-full object-cover"
+                      loading="lazy"
+                    />
+                  </button>
+                } @else {
+                  <span class="text-[16px] text-[#7B7B7B]">{{ notAnnounced }}</span>
+                }
+              </td>
+
+              <td class="!border-0 !px-6 !py-5 !text-right !text-[16px] !text-[#444444]">
+                <span class="whitespace-nowrap text-[#7B7B7B]"
+                  >{{ formatViews(row.claimedViews) }} claimed</span
+                >
+                <span class="mt-0.5 block whitespace-nowrap font-medium text-[#171A1C]"
+                  >{{ formatViews(row.verifiedViews) }} verified</span
+                >
+              </td>
+
+              <td class="!border-0 !px-6 !py-5 !text-right !text-[16px] !text-[#444444]">
+                @if (row.payoutAmount !== null) {
+                  {{ formatMoneyExact(row.campaign.currency, row.payoutAmount) }}
+                } @else {
+                  <span class="text-[#7B7B7B]">{{ notAnnounced }}</span>
+                }
+              </td>
+
+              <td class="!border-0 !px-6 !py-5">
+                <p-tag
+                  [value]="submissionStatusLabel(row.status)"
+                  [severity]="submissionStatusTone(row.status)"
+                  [rounded]="true"
+                />
+              </td>
+
+              <td class="!border-0 !px-6 !py-5 !text-[16px] !text-[#444444]">
+                {{ formatDate(row.createdAt) }}
+              </td>
+
+              <td class="!border-0 !px-6 !py-5">
+                <button
+                  type="button"
+                  class="inline-flex cursor-pointer items-center gap-2 rounded-[10px] border-0 bg-[#ECECEC] px-[15px] py-2 text-[16px] text-[#525252] hover:bg-[#E2E2E2]"
+                  (click)="openReview(row)"
+                >
+                  Review
+                </button>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+
+      <p class="mt-3 text-sm text-[#7B7B7B]">
+        {{ rows().length }} {{ rows().length === 1 ? 'submission' : 'submissions' }}
+      </p>
+    }
+  }
+}
+
+<!-- Screenshot preview -->
+<p-dialog
+  header="Proof screenshot"
+  [visible]="previewRow() !== null"
+  (visibleChange)="onPreviewVisibleChange($event)"
+  [modal]="true"
+  [draggable]="false"
+  [dismissableMask]="true"
+  [style]="{ width: '48rem' }"
+  [breakpoints]="{ '960px': '92vw' }"
+>
+  @if (previewRow(); as row) {
+    <img
+      [src]="row.screenshotUrl"
+      [alt]="'Screenshot submitted by ' + row.creator.fullName"
+      class="max-h-[70vh] w-full rounded-xl object-contain"
+    />
+  }
+</p-dialog>
+
+<!-- Review -->
+<p-dialog
+  header="Review submission"
+  [visible]="reviewRow() !== null"
+  (visibleChange)="onReviewVisibleChange($event)"
+  [modal]="true"
+  [draggable]="false"
+  [dismissableMask]="true"
+  [style]="{ width: '62rem' }"
+  [breakpoints]="{ '1100px': '94vw' }"
+>
+  @if (reviewRow(); as row) {
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
+      <!-- Proof -->
+      <div>
+        @if (row.screenshotUrl) {
+          <img
+            [src]="row.screenshotUrl"
+            [alt]="'Screenshot submitted by ' + row.creator.fullName"
+            class="max-h-[420px] w-full rounded-xl border border-[#ECECEC] bg-[#F9F9F9] object-contain"
+          />
+        } @else {
+          <div
+            class="flex min-h-[220px] items-center justify-center rounded-xl border border-[#ECECEC] bg-[#F9F9F9] text-sm text-[#7B7B7B]"
+          >
+            No screenshot was attached.
+          </div>
+        }
+
+        <a
+          [href]="row.postUrl"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="mt-3 inline-flex items-center gap-2 rounded-[10px] bg-[#ECECEC] px-[15px] py-2 text-[16px] text-[#525252] no-underline hover:bg-[#E2E2E2]"
+        >
+          <span>Open the post on {{ platformLabel(row.platform) }}</span>
+          <svg data-p-icon="external-link" [size]="14" aria-hidden="true"></svg>
+        </a>
+
+        @if (row.caption) {
+          <p class="mt-3 mb-0 text-sm text-[#7B7B7B]">
+            <span class="font-medium text-[#171A1C]">Caption:</span>&ngsp;
+            <span class="co-user-text">{{ row.caption }}</span>
+          </p>
+        }
+        @if (row.note) {
+          <p class="mt-2 mb-0 text-sm text-[#7B7B7B]">
+            <span class="font-medium text-[#171A1C]">Clipper's note:</span>&ngsp;
+            <span class="co-user-text">{{ row.note }}</span>
+          </p>
+        }
+      </div>
+
+      <!-- Verification -->
+      <div>
+        <dl class="m-0 grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+          <div class="col-span-2">
+            <dt class="text-[#7B7B7B]">Clipper</dt>
+            <dd class="m-0 mt-0.5 text-[16px] text-[#171A1C]">
+              {{ row.creator.fullName }}
+              <a
+                [href]="'mailto:' + row.creator.email"
+                class="ml-1 text-[#7B7B7B] no-underline hover:underline"
+                >{{ row.creator.email }}</a
+              >
+            </dd>
+          </div>
+          <div>
+            <dt class="text-[#7B7B7B]">WhatsApp</dt>
+            <dd class="m-0 mt-0.5 text-[16px] text-[#171A1C]">
+              @if (whatsappLink(row.creator.whatsapp); as chatUrl) {
+                <a
+                  [href]="chatUrl"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="inline-flex items-center gap-1.5 text-[#171A1C] no-underline hover:underline"
+                >
+                  <svg
+                    data-p-icon="whatsapp"
+                    [size]="14"
+                    class="text-[#25D366]"
+                    aria-hidden="true"
+                  ></svg>
+                  {{ row.creator.whatsapp }}
+                </a>
+              } @else {
+                {{ notAnnounced }}
+              }
+            </dd>
+          </div>
+          <div>
+            <dt class="text-[#7B7B7B]">Phone</dt>
+            <dd class="m-0 mt-0.5 text-[16px] text-[#171A1C]">
+              {{ row.creator.phone || notAnnounced }}
+            </dd>
+          </div>
+          <div class="col-span-2">
+            <dt class="text-[#7B7B7B]">Payout details</dt>
+            <dd class="m-0 mt-0.5 text-[16px] text-[#171A1C]">
+              @if (row.creator.payout; as payout) {
+                <span class="inline-flex flex-wrap items-center gap-2">
+                  <span>{{ payoutMethodLabel(row) }}</span>
+                  <span class="rounded-lg bg-[#F7F7F7] px-1.5 py-1">{{
+                    payout.accountNumber
+                  }}</span>
+                  <span>{{ payout.accountName }}</span>
+                </span>
+              } @else {
+                <span class="text-[#7B7B7B]"
+                  >No payout details on file — ask before approving.</span
+                >
+              }
+            </dd>
+          </div>
+          <div>
+            <dt class="text-[#7B7B7B]">Posted</dt>
+            <dd class="m-0 mt-0.5 text-[16px] text-[#171A1C]">
+              {{ row.postedAt ? formatDate(row.postedAt) : notAnnounced }}
+            </dd>
+          </div>
+          <div>
+            <dt class="text-[#7B7B7B]">Claimed views</dt>
+            <dd class="m-0 mt-0.5 text-[16px] text-[#171A1C]">
+              {{ formatViews(row.claimedViews) }}
+            </dd>
+          </div>
+        </dl>
+
+        <div class="mt-5 flex flex-col gap-2">
+          <label class="text-sm font-medium text-[#171A1C]" for="review-verified-views"
+            >Verified views</label
+          >
+          <p-inputnumber
+            inputId="review-verified-views"
+            class="w-full"
+            mode="decimal"
+            placeholder="0"
+            [min]="0"
+            [useGrouping]="true"
+            [maxFractionDigits]="0"
+            [ngModel]="verifiedViews()"
+            (ngModelChange)="verifiedViews.set($event)"
+          />
+          @if (row.campaign.cpm === null) {
+            <p-message severity="warn" [closable]="false"
+              >Campaign has no CPM, so this clip cannot be approved yet.</p-message
+            >
+          } @else {
+            <p class="m-0 text-sm text-[#7B7B7B]">
+              Payout at {{ formatMoneyExact(row.campaign.currency, row.campaign.cpm) }}/1k:
+              <span class="font-medium text-[#171A1C]">{{
+                formatMoneyExact(row.campaign.currency, payoutPreview())
+              }}</span>
+            </p>
+          }
+        </div>
+
+        <div class="mt-4 flex flex-col gap-2">
+          <label class="text-sm font-medium text-[#171A1C]" for="review-note"
+            >Note to clipper</label
+          >
+          <textarea
+            pTextarea
+            id="review-note"
+            rows="3"
+            class="w-full"
+            placeholder="Why it was rejected, or anything the clipper should know."
+            [ngModel]="reviewNote()"
+            (ngModelChange)="reviewNote.set($event)"
+          ></textarea>
+        </div>
+
+        @if (reviewError(); as message) {
+          <div class="mt-4">
+            <p-message severity="error" [closable]="false">{{ message }}</p-message>
+          </div>
+        }
+
+        <div class="mt-5 flex flex-wrap items-center gap-2">
+          @if (row.status !== 'UNDER_REVIEW') {
+            <p-button
+              label="Under review"
+              severity="secondary"
+              size="small"
+              [outlined]="true"
+              [disabled]="saving()"
+              (onClick)="setStatus('UNDER_REVIEW')"
+            />
+          }
+          @if (row.status !== 'APPROVED' && row.status !== 'PAID') {
+            <p-button
+              label="Approve"
+              size="small"
+              [loading]="saving()"
+              [disabled]="saving()"
+              (onClick)="setStatus('APPROVED')"
+            />
+          }
+          @if (row.status !== 'REJECTED') {
+            <p-button
+              label="Reject"
+              severity="danger"
+              size="small"
+              [outlined]="true"
+              [disabled]="saving()"
+              (onClick)="setStatus('REJECTED')"
+            />
+          }
+          @if (row.status === 'APPROVED') {
+            <p-button
+              label="Mark paid"
+              severity="success"
+              size="small"
+              [disabled]="saving()"
+              (onClick)="confirmMarkPaid()"
+            />
+          }
+          @if (row.status !== 'SUBMITTED') {
+            <p-button
+              label="Undo to Submitted"
+              severity="secondary"
+              size="small"
+              [text]="true"
+              [disabled]="saving()"
+              (onClick)="setStatus('SUBMITTED')"
+            />
+          }
+        </div>
+      </div>
+    </div>
+  }
+</p-dialog>

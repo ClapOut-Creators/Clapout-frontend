@@ -363,6 +363,34 @@
               <app-clippers-table [campaignSlug]="campaign.slug" [showToolbar]="false" />
             </div>
           </section>
+
+          <!-- Clips submitted against this campaign -->
+          <section
+            class="mt-4 rounded-[18.83px] border border-[#ECECEC] bg-[#FFFFFF] p-5 sm:p-8"
+            aria-labelledby="admin-campaign-submissions-heading"
+          >
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <h2
+                id="admin-campaign-submissions-heading"
+                class="text-[22px] font-bold text-[#171A1C]"
+              >
+                Submissions
+              </h2>
+              <button
+                type="button"
+                class="inline-flex cursor-pointer items-center gap-2 rounded-[10px] border-0 bg-[#ECECEC] px-[15px] py-2 text-[16px] text-[#525252] hover:bg-[#E2E2E2] disabled:cursor-not-allowed disabled:opacity-50"
+                [disabled]="!canExportSubmissions()"
+                (click)="exportSubmissions()"
+              >
+                <svg data-p-icon="download" [size]="14" aria-hidden="true"></svg>
+                <span>Export</span>
+              </button>
+            </div>
+
+            <div class="mt-5">
+              <app-submissions-table [campaignSlug]="campaign.slug" [showToolbar]="false" />
+            </div>
+          </section>
         }
       }
     }
