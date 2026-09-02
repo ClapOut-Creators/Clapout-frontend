@@ -1,4 +1,4 @@
-import { PublicCampaign } from '../../features/campaigns/models/campaign';
+import { PublicCampaign } from '../../campaigns/models/campaign';
 
 /** Brand contracts (`/admin/brands`). Every campaign belongs to exactly one brand. */
 

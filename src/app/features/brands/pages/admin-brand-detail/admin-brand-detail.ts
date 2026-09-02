@@ -7,16 +7,16 @@ import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { SkeletonModule } from 'primeng/skeleton';
-import { ApiError } from '../../core/api/api-error';
-import { AuthService } from '../../core/auth/auth-service';
-import { AdminRepository } from '../../core/data/admin-repository';
-import { BrandDetail, BrandStatus } from '../../core/models/brand';
-import { NOT_ANNOUNCED } from '../../shared/utils/campaign-format';
-import { BrandLogoTile } from '../../shared/components/brand-logo-tile';
-import { CampaignCompactCard } from '../../shared/components/campaign-compact-card';
-import { ClippersTable } from '../../shared/components/clippers-table';
-import { PageHeader } from '../../shared/components/page-header';
-import { StatCard } from '../../shared/components/stat-card';
+import { ApiError } from '../../../../core/api/api-error';
+import { AuthService } from '../../../../core/auth/auth-service';
+import { BrandsRepository } from '../../data-access/brands-repository';
+import { BrandDetail, BrandStatus } from '../../models/brand';
+import { NOT_ANNOUNCED } from '../../../../shared/utils/campaign-format';
+import { BrandLogoTile } from '../../../../shared/components/brand-logo-tile';
+import { CampaignCompactCard } from '../../../../shared/components/campaign-compact-card';
+import { ClippersTable } from '../../../../shared/components/clippers-table';
+import { PageHeader } from '../../../../shared/components/page-header';
+import { StatCard } from '../../../../shared/components/stat-card';
 
 type DetailState = 'loading' | 'ready' | 'not-found' | 'error';
 
@@ -63,7 +63,7 @@ export class AdminBrandDetail {
   /** Bound from the `:id` segment via `withComponentInputBinding()`. */
   readonly id = input.required<string>();
 
-  private readonly admin = inject(AdminRepository);
+  private readonly admin = inject(BrandsRepository);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   private readonly messages = inject(MessageService);

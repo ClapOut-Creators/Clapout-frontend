@@ -12,18 +12,18 @@ import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { SelectModule } from 'primeng/select';
 import { SkeletonModule } from 'primeng/skeleton';
-import { ApiError } from '../../core/api/api-error';
-import { AdminRepository } from '../../core/data/admin-repository';
-import { BrandInput } from '../../core/models/brand';
+import { ApiError } from '../../../../core/api/api-error';
+import { BrandsRepository } from '../../data-access/brands-repository';
+import { BrandInput } from '../../models/brand';
 import {
   CITY_OPTIONS,
   COUNTRY_OPTIONS,
   INDUSTRY_OPTIONS,
   Option,
-} from '../../shared/constants/admin-options';
-import { WizardShell } from '../../shared/components/wizard-shell';
-import { firstErrorMessage, httpUrlValidator } from '../../shared/components/form-errors';
-import { MAX_IMAGE_BYTES } from '../../shared/forms/image-input';
+} from '../../../../shared/constants/admin-options';
+import { WizardShell } from '../../../../shared/components/wizard-shell';
+import { firstErrorMessage, httpUrlValidator } from '../../../../shared/components/form-errors';
+import { MAX_IMAGE_BYTES } from '../../components/image-input';
 
 type WizardState = 'loading' | 'form' | 'saved' | 'error';
 
@@ -106,7 +106,7 @@ export class BrandWizard {
   /** Present on `/admin/brands/:id/edit`; absent when creating. */
   readonly id = input<string>();
 
-  private readonly admin = inject(AdminRepository);
+  private readonly admin = inject(BrandsRepository);
   private readonly confirmations = inject(ConfirmationService);
   private readonly formBuilder = inject(NonNullableFormBuilder);
   private readonly router = inject(Router);

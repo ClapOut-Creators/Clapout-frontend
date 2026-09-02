@@ -29,10 +29,10 @@ import { SelectModule } from 'primeng/select';
 import { SkeletonModule } from 'primeng/skeleton';
 import { TextareaModule } from 'primeng/textarea';
 import { ApiError } from '../../../../core/api/api-error';
-import { AdminRepository } from '../../../../core/data/admin-repository';
 import { CampaignsAdminRepository } from '../../data-access/campaigns-admin-repository';
+import { BrandsRepository } from '../../../brands/data-access/brands-repository';
 import { CampaignDraftInput } from '../../models/campaign-admin';
-import { Brand } from '../../../../core/models/brand';
+import { Brand } from '../../../brands/models/brand';
 import { CampaignBrand, CampaignPlatform, PublicCampaign } from '../../models/campaign';
 import {
   CAMPAIGN_CATEGORY_OPTIONS,
@@ -260,8 +260,8 @@ export class CampaignWizard {
   /** `?brandId=` preselects the owning brand (e.g. from a brand detail page). */
   readonly brandId = input<string>();
 
-  private readonly admin = inject(AdminRepository);
   private readonly campaignsAdmin = inject(CampaignsAdminRepository);
+  private readonly brandsAdmin = inject(BrandsRepository);
   private readonly confirmations = inject(ConfirmationService);
   private readonly formBuilder = inject(NonNullableFormBuilder);
   private readonly messages = inject(MessageService);
@@ -519,7 +519,7 @@ export class CampaignWizard {
     this.brandsLoading.set(true);
     this.brandsErrorMessage.set('');
     try {
-      this.brands.set(await this.admin.brands());
+      this.brands.set(await this.brandsAdmin.brands());
     } catch (error) {
       this.brandsErrorMessage.set(
         error instanceof ApiError
@@ -587,7 +587,7 @@ export class CampaignWizard {
     this.brandSaving.set(true);
     try {
       const value = this.brandForm.getRawValue();
-      const brand = await this.admin.createBrand({
+      const brand = await this.brandsAdmin.createBrand({
         name: value.name.trim(),
         logoUrl: value.logoUrl,
         logoBg: '#0B51F0',

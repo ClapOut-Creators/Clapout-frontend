@@ -14,13 +14,13 @@ import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { SkeletonModule } from 'primeng/skeleton';
 import { TableModule } from 'primeng/table';
-import { ApiError } from '../../core/api/api-error';
-import { AdminRepository } from '../../core/data/admin-repository';
-import { Brand } from '../../core/models/brand';
-import { NOT_ANNOUNCED } from '../../shared/utils/campaign-format';
-import { BrandLogoTile } from '../../shared/components/brand-logo-tile';
-import { PageHeader } from '../../shared/components/page-header';
-import { StatCard } from '../../shared/components/stat-card';
+import { ApiError } from '../../../../core/api/api-error';
+import { BrandsRepository } from '../../data-access/brands-repository';
+import { Brand } from '../../models/brand';
+import { NOT_ANNOUNCED } from '../../../../shared/utils/campaign-format';
+import { BrandLogoTile } from '../../../../shared/components/brand-logo-tile';
+import { PageHeader } from '../../../../shared/components/page-header';
+import { StatCard } from '../../../../shared/components/stat-card';
 
 type ListState = 'loading' | 'ready' | 'error';
 
@@ -73,7 +73,7 @@ function formatCount(value: number): string {
   templateUrl: './admin-brands.html',
 })
 export class AdminBrands {
-  private readonly admin = inject(AdminRepository);
+  private readonly admin = inject(BrandsRepository);
   private readonly router = inject(Router);
   private readonly messages = inject(MessageService);
   private readonly confirmations = inject(ConfirmationService);

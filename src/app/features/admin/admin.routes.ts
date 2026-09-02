@@ -17,36 +17,17 @@ export const ADMIN_ROUTES: Routes = [
       import('./admin-registrations').then((module) => module.AdminRegistrations),
     title: 'Registered clippers - ClapOut Studio',
   },
+  /**
+   * The brands and campaigns domains own and guard their own admin routes
+   * now (see features/brands/brands.routes.ts#BRAND_ADMIN_ROUTES and
+   * features/campaigns/campaigns.routes.ts#CAMPAIGN_ADMIN_ROUTES) — this
+   * file just mounts them at /admin/brands and /admin/campaigns.
+   */
   {
     path: 'brands',
-    pathMatch: 'full',
-    canActivate: [adminGuard],
-    loadComponent: () => import('./admin-brands').then((module) => module.AdminBrands),
-    title: 'Brands - ClapOut Studio',
+    loadChildren: () =>
+      import('../brands/brands.routes').then((module) => module.BRAND_ADMIN_ROUTES),
   },
-  {
-    path: 'brands/new',
-    canActivate: [adminGuard],
-    loadComponent: () => import('./brand-wizard').then((module) => module.BrandWizard),
-    title: 'Create brand - ClapOut Studio',
-  },
-  {
-    path: 'brands/:id/edit',
-    canActivate: [adminGuard],
-    loadComponent: () => import('./brand-wizard').then((module) => module.BrandWizard),
-    title: 'Edit brand - ClapOut Studio',
-  },
-  {
-    path: 'brands/:id',
-    canActivate: [adminGuard],
-    loadComponent: () => import('./admin-brand-detail').then((module) => module.AdminBrandDetail),
-    title: 'Brand - ClapOut Studio',
-  },
-  /**
-   * The campaigns domain owns and guards its own admin routes now (see
-   * features/campaigns/campaigns.routes.ts#CAMPAIGN_ADMIN_ROUTES) — this file
-   * just mounts them at /admin/campaigns.
-   */
   {
     path: 'campaigns',
     loadChildren: () =>
