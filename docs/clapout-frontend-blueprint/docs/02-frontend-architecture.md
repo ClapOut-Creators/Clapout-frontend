@@ -28,54 +28,109 @@ Do not add NgRx for the MVP by default. Introduce it only if cross-feature event
 
 ## Recommended workspace
 
+This is the canonical feature-first layout for the app. It is also documented in full (with the rationale for each folder) in the repository's `AGENTS.md` and `CLAUDE.md` — keep all three in sync when the structure changes.
+
 ```text
-src/app/
-  core/
-    auth/
-    guards/
-    http/
-    layout/
-    config/
-  shared/
-    ui/
-    directives/
-    pipes/
-    utils/
-    models/
-  features/
-    dashboard/
-    campaigns/
-    brands/
-    registrations/
-    creators/
-    profile/
-    settings/
-  app.config.ts
-  app.routes.ts
-src/styles/
-  tokens.css
-  theme.css
-  tailwind.css
+src/
+  app/
+    app.component.ts
+    app.config.ts
+    app.routes.ts
+    core/               # app-wide infrastructure, imported once
+      auth/
+        guards/
+        interceptors/
+        services/
+        models/
+      api/
+      errors/
+      services/
+      models/
+    layout/              # app shell only, independent of any feature
+      app-shell/
+      sidebar/
+      header/
+      breadcrumbs/
+      layout.routes.ts
+    shared/               # reusable across two or more domains
+      components/
+      directives/
+      pipes/
+      utils/
+      constants/
+      types/
+    features/             # one folder per business domain
+      dashboard/
+      brands/
+      campaigns/
+      creators/
+      registrations/
+      submissions/
+      payments/
+      analytics/
+      team/
+      settings/
+    ui/                   # dumb, presentation-only primitives
+      button/
+      card/
+      dialog/
+      input/
+      table/
+  assets/
+    images/
+    icons/
+    fonts/
+  environments/
+    environment.ts
+    environment.production.ts
+  styles/
+    _variables.scss
+    _primeng.scss
+    _utilities.scss
+    styles.scss
+  index.html
+  main.ts
 ```
 
 Each feature follows this boundary:
 
 ```text
 features/campaigns/
-  data-access/       # repositories, DTOs, API adapters, mock adapters
-  domain/            # domain models, status rules, calculations
-  feature/           # routed pages and orchestration
-  ui/                # campaign-specific presentational components
-  campaigns.routes.ts
+  pages/              # routed, top-level views; one folder per route
+    campaign-list/
+    campaign-details/
+    campaign-create/
+    campaign-edit/
+  components/         # presentational components used only within this feature
+    campaign-card/
+    campaign-status/
+    campaign-summary/
+    campaign-form/
+  data-access/        # repositories, DTOs, API adapters, mock adapters, stores
+    campaign.service.ts
+    campaign.api.ts
+    campaign.store.ts
+    campaign.queries.ts
+  models/             # domain models, DTOs, status/enum types for this feature
+    campaign.model.ts
+    campaign.dto.ts
+    campaign-status.ts
+  utils/              # pure helpers specific to this feature
+    campaign.utils.ts
+  campaign.routes.ts
 ```
+
+Apply this same shape to every domain feature (brands, creators, registrations, submissions, payments, analytics, team, settings), not just campaigns.
 
 ## Dependency rules
 
 - `core` may not import feature code.
-- `shared` may not import feature code or make business API calls.
-- A feature may import `core`, `shared`, and its own folders.
+- `layout` is the app shell only and may not import feature code.
+- `shared` may not import feature code or make business API calls; a component belongs in `shared/components` only once it is used by two or more features, otherwise it stays in that feature's own `components/`.
+- `ui` holds domain-agnostic presentational primitives (button, card, dialog, input, table) with no business logic; `shared/components` and feature components are composed from `ui` primitives, not the other way around.
+- A feature may import `core`, `layout` (read-only, e.g. shell contracts), `shared`, `ui`, and its own folders.
 - Cross-feature navigation uses routes and IDs, not direct component imports.
-- Cross-feature domain types live in the owning feature; truly shared primitives may move to `shared/models`.
+- Cross-feature domain types live in the owning feature's `models/`; truly shared primitives may move to `shared/types`.
 - PrimeNG components are wrapped only when ClapOut behavior or styling must be consistent. Do not create empty pass-through wrappers.
 
 ## State strategy
@@ -83,7 +138,7 @@ features/campaigns/
 Use four distinct state categories:
 
 1. Route state: resource IDs, tabs, filters worth sharing, and pagination belong in URL params/query params.
-2. Server state: loaded through repositories; pages own loading/error/refresh behavior.
+2. Server state: loaded through repositories in each feature's `data-access/` folder; pages own loading/error/refresh behavior.
 3. Form state: Signal Forms preferred for new forms; typed Reactive Forms are acceptable when they are the cleaner fit. Preserve multi-step drafts in a feature-scoped wizard store.
 4. UI state: signals for drawers, selection, view mode, and derived totals.
 
@@ -100,7 +155,7 @@ export abstract class CampaignRepository {
 }
 ```
 
-Provide either `HttpCampaignRepository` or `MockCampaignRepository` through dependency injection. Mock data must be realistic, deterministic, and kept outside components.
+Provide either `HttpCampaignRepository` or `MockCampaignRepository` through dependency injection, defined in the feature's `data-access/` folder. Mock data must be realistic, deterministic, and kept outside components.
 
 ## Authentication and authorization
 
