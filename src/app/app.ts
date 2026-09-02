@@ -6,10 +6,11 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ToastModule } from 'primeng/toast';
 import { AuthService } from './core/auth/auth-service';
 import { SideNav } from './shared/layout/side-nav';
-import { TopNav } from './shared/layout/top-nav';
+import { PublicFooter } from './shared/public/public-footer';
+import { PublicNavbar } from './shared/public/public-navbar';
 
 @Component({
-  imports: [ConfirmDialogModule, RouterOutlet, ToastModule, SideNav, TopNav],
+  imports: [ConfirmDialogModule, PublicFooter, PublicNavbar, RouterOutlet, SideNav, ToastModule],
   selector: 'app-root',
   styleUrl: './app.css',
   templateUrl: './app.html',
@@ -22,9 +23,17 @@ export class App {
 
   /** Auth pages are chromeless — no nav of either kind. */
   protected readonly isAuthRoute = computed(() => this.currentUrl().startsWith('/auth'));
-  /** Side nav is a signed-in (dashboard) affordance; anonymous visitors get the top bar. */
+  /** Side nav is a signed-in (dashboard) affordance. */
   protected readonly showSideNav = computed(() => !this.isAuthRoute() && this.auth.isSignedIn());
-  protected readonly showTopNav = computed(() => !this.isAuthRoute() && !this.auth.isSignedIn());
+  /**
+   * Anonymous visitors get the landing site's chrome — floating pill navbar and
+   * dark footer — so the public campaign pages read as part of clapoutcreators.com
+   * rather than the studio. The design has no signed-in variant of these pages,
+   * so signed-in users keep the rail.
+   */
+  protected readonly showPublicChrome = computed(
+    () => !this.isAuthRoute() && !this.auth.isSignedIn(),
+  );
 
   constructor() {
     this.router.events

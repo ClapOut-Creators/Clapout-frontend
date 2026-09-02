@@ -22,6 +22,18 @@ export const routes: Routes = [
       import('./features/admin/admin.routes').then((module) => module.ADMIN_ROUTES),
   },
   {
+    path: 'terms',
+    loadComponent: () => import('./features/legal/legal-page').then((m) => m.LegalPage),
+    data: { title: 'Terms of Service' },
+    title: 'Terms of Service - ClapOut',
+  },
+  {
+    path: 'privacy',
+    loadComponent: () => import('./features/legal/legal-page').then((m) => m.LegalPage),
+    data: { title: 'Privacy Policy' },
+    title: 'Privacy Policy - ClapOut',
+  },
+  {
     path: 'forbidden',
     loadComponent: () => import('./features/forbidden/forbidden').then((route) => route.Forbidden),
     title: 'No access - ClapOut Studio',

@@ -1,0 +1,99 @@
+<footer class="relative mt-16 overflow-hidden bg-[#0C0C0C]">
+  <div class="mx-auto max-w-[1410px] px-6 pb-10 pt-[84px] lg:px-0">
+    <div class="grid grid-cols-1 gap-12 lg:grid-cols-[minmax(0,446px)_1fr_1fr_1fr]">
+      <div>
+        <img
+          src="/logo/clapout-logo.png"
+          alt="ClapOut"
+          class="h-20 w-20 select-none"
+          draggable="false"
+        />
+        <p class="mt-4 max-w-[446px] text-[19px] leading-relaxed text-[#D7E2EA]/70">
+          A creator distribution platform connecting brands with micro-influencers who make content
+          travel — and get paid for verified performance.
+        </p>
+      </div>
+
+      <div>
+        <h2 class="text-[11px] font-medium uppercase tracking-[0.18em] text-[#D7E2EA]/40">
+          Explore
+        </h2>
+        <ul class="mt-4 flex list-none flex-col gap-[15px] p-0">
+          @for (link of explore; track link.label) {
+            <li>
+              @if (isInternal(link.href)) {
+                <a
+                  [routerLink]="link.href"
+                  class="text-[19px] text-[#D7E2EA]/70 no-underline hover:text-white"
+                  >{{ link.label }}</a
+                >
+              } @else {
+                <a
+                  [href]="link.href"
+                  class="text-[19px] text-[#D7E2EA]/70 no-underline hover:text-white"
+                  >{{ link.label }}</a
+                >
+              }
+            </li>
+          }
+        </ul>
+      </div>
+
+      <div>
+        <h2 class="text-[11px] font-medium uppercase tracking-[0.18em] text-[#D7E2EA]/40">Legal</h2>
+        <ul class="mt-4 flex list-none flex-col gap-[15px] p-0">
+          @for (link of legal; track link.label) {
+            <li>
+              <a
+                [routerLink]="link.href"
+                class="text-[19px] text-[#D7E2EA]/70 no-underline hover:text-white"
+                >{{ link.label }}</a
+              >
+            </li>
+          }
+        </ul>
+      </div>
+
+      <div>
+        <h2 class="text-[11px] font-medium uppercase tracking-[0.18em] text-[#D7E2EA]/40">
+          Contact
+        </h2>
+        <ul class="mt-4 flex list-none flex-col gap-[15px] p-0">
+          @for (link of contact; track link.label) {
+            <li>
+              @if (!link.href) {
+                <span class="text-[19px] text-[#D7E2EA]/70">{{ link.label }}</span>
+              } @else if (isInternal(link.href)) {
+                <a
+                  [routerLink]="link.href"
+                  class="text-[19px] text-[#D7E2EA]/70 no-underline hover:text-white"
+                  >{{ link.label }}</a
+                >
+              } @else {
+                <a
+                  [href]="link.href"
+                  class="text-[19px] text-[#D7E2EA]/70 no-underline hover:text-white"
+                  >{{ link.label }}</a
+                >
+              }
+            </li>
+          }
+        </ul>
+      </div>
+    </div>
+
+    <div
+      class="mt-16 flex flex-col gap-3 border-t border-[#D7E2EA]/10 pt-6 text-[16px] text-[#D7E2EA]/40 sm:flex-row sm:items-center sm:justify-between"
+    >
+      <span>&copy; {{ year }} Clapout. All rights reserved.</span>
+      <span>Create. Post. Get Paid.</span>
+    </div>
+  </div>
+
+  <!-- Oversized wordmark bleeding off the bottom edge. -->
+  <span
+    aria-hidden="true"
+    class="pointer-events-none block select-none text-center text-[18vw] font-black leading-[0.75] tracking-tight text-[#D7E2EA]/[0.06]"
+    >CLAPOUT</span
+  >
+</footer>
