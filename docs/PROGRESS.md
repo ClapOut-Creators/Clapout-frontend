@@ -98,6 +98,22 @@ joining the project can catch up fast. Companion doc: `INTEGRATION-PLAN.md`
 - Bundle size: platform initial bundle is ~65 kB over the 700 kB _warning_
   budget (error budget 850 kB still clear).
 
+### Live verification of the brands phase (2026-09-02)
+
+- Screenshots of every admin route at the Figma viewport (1728×1048) were compared
+  against the exports in `docs/design/figma/` over three rounds; all reviewed screens
+  (campaigns list, both wizards, campaign detail, brands list, brand detail,
+  registrations, sign-in) now match the designs structurally and in type/spacing.
+- End-to-end on the live database: brand created through the 3-step wizard →
+  campaign created under it through the brand-first wizard → published → appeared on
+  clapoutcreators.com within seconds (then removed again so only E-WALE is listed).
+- Fixes that fell out of the pass: closed/draft campaigns no longer show "N days
+  left"; money renders with two decimals; `budgetSpent` is `0` (not null) whenever a
+  budget is announced, so meters start empty; the landing card never renders a full
+  bar for a missing value; WhatsApp handles in clipper tables open `wa.me` chats.
+- The admin JWT minted for verification lives only in agent transcripts; changing
+  the seeded admin password (or rotating `JWT_SECRET`) invalidates it.
+
 ## In progress
 
 - Nothing mid-flight. The admin section passed its full live pass on
