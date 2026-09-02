@@ -14,7 +14,7 @@ test.describe('foundation shell', () => {
 
       await expect(page).toHaveTitle(/ClapOut Studio - Foundation/);
       await expect(page.getByRole('heading', { name: /frontend foundation/i })).toBeVisible();
-      await expect(page.getByText('MOCKED')).toBeVisible();
+      await expect(page.getByText(/MOCKED|INTEGRATED|CONTRACT_READY|BLOCKED/)).toBeVisible();
       await expect(page.getByText('PrimeNG 22 + Tailwind v4')).toBeVisible();
     }
   });

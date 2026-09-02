@@ -73,6 +73,7 @@ body {
 /* Slim budget/progress meter used by campaign cards and the budget panel. */
 .co-meter .p-progressbar {
   height: 0.5rem;
+  --p-progressbar-background: #eceaea;
 }
 
 @media (prefers-reduced-motion: reduce) {

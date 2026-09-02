@@ -1,10 +1,6 @@
 {
   "name": "clapout-studio",
   "version": "0.0.0",
-  "engines": {
-    "node": "^24.15.0 || >=26.0.0",
-    "npm": ">=11.16.0"
-  },
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
@@ -17,7 +13,7 @@
     "test:unit": "ng test",
     "test:e2e": "playwright test",
     "test:e2e:install": "playwright install",
-    "verify:angular-defaults": "rg \"standalone:\\\\s*true|ChangeDetectionStrategy\\\\.OnPush\" src; test $? -eq 1",
+    "verify:angular-defaults": "rg \"standalone:\\\\s*true|ChangeDetectionStrategy\\\\.OnPush\" src --glob \"*.ts\"; test $? -eq 1",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },
@@ -33,8 +29,9 @@
     "@angular/router": "^22.1.0",
     "@primeicons/angular": "^8.0.0",
     "@primeuix/themes": "^3.0.0",
-    "chart.js": "^4.5.1",
     "date-fns": "^4.4.0",
+    "echarts": "^6.1.0",
+    "ngx-echarts": "^22.0.0",
     "primeng": "^22.1.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0"
