@@ -13,11 +13,11 @@ import { MessageModule } from 'primeng/message';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { SkeletonModule } from 'primeng/skeleton';
 import { TagModule } from 'primeng/tag';
-import { ApiError } from '../../core/api/api-error';
-import { AdminRepository } from '../../core/data/admin-repository';
-import { CampaignsAdminRepository } from '../campaigns/data-access/campaigns-admin-repository';
-import { AdminStats } from '../../core/models/admin';
-import { PublicCampaign } from '../campaigns/models/campaign';
+import { ApiError } from '../../../../core/api/api-error';
+import { DashboardRepository } from '../../data-access/dashboard-repository';
+import { CampaignsAdminRepository } from '../../../campaigns/data-access/campaigns-admin-repository';
+import { AdminStats } from '../../models/admin';
+import { PublicCampaign } from '../../../campaigns/models/campaign';
 import {
   budgetPercent,
   campaignStatusLabel,
@@ -25,8 +25,8 @@ import {
   formatDate,
   formatMoney,
   hasBudget,
-} from '../../shared/utils/campaign-format';
-import { BarChart } from '../../shared/charts/bar-chart';
+} from '../../../../shared/utils/campaign-format';
+import { BarChart } from '../../components/bar-chart';
 
 type DashboardState = 'loading' | 'ready' | 'error';
 
@@ -116,7 +116,7 @@ function endsWithinDays(campaign: PublicCampaign, days: number): boolean {
   templateUrl: './admin-dashboard.html',
 })
 export class AdminDashboard {
-  private readonly admin = inject(AdminRepository);
+  private readonly admin = inject(DashboardRepository);
   private readonly campaignsAdmin = inject(CampaignsAdminRepository);
   private readonly router = inject(Router);
 

@@ -1,9 +1,9 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { AdminRepository } from '../../core/data/admin-repository';
-import { AdminStats } from '../../core/models/admin';
-import { CampaignsAdminRepository } from '../campaigns/data-access/campaigns-admin-repository';
-import { PublicCampaign } from '../campaigns/models/campaign';
+import { DashboardRepository } from '../../data-access/dashboard-repository';
+import { AdminStats } from '../../models/admin';
+import { CampaignsAdminRepository } from '../../../campaigns/data-access/campaigns-admin-repository';
+import { PublicCampaign } from '../../../campaigns/models/campaign';
 import { AdminDashboard } from './admin-dashboard';
 
 const stats: AdminStats = {
@@ -60,7 +60,7 @@ const pendingBudgetCampaign: PublicCampaign = {
   updatedAt: '2026-08-29T00:00:00.000Z',
 };
 
-function repositoryDouble(overrides: Partial<AdminRepository> = {}) {
+function repositoryDouble(overrides: Partial<DashboardRepository> = {}) {
   return {
     stats: vi.fn().mockResolvedValue(stats),
     ...overrides,
@@ -99,7 +99,7 @@ describe('AdminDashboard', () => {
       imports: [AdminDashboard],
       providers: [
         provideRouter([]),
-        { provide: AdminRepository, useValue: admin },
+        { provide: DashboardRepository, useValue: admin },
         { provide: CampaignsAdminRepository, useValue: campaignsAdmin },
       ],
     }).compileComponents();
@@ -148,7 +148,7 @@ describe('AdminDashboard', () => {
       imports: [AdminDashboard],
       providers: [
         provideRouter([]),
-        { provide: AdminRepository, useValue: admin },
+        { provide: DashboardRepository, useValue: admin },
         { provide: CampaignsAdminRepository, useValue: campaignsAdminDouble() },
       ],
     }).compileComponents();

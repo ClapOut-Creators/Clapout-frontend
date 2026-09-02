@@ -1,20 +1,17 @@
 import { Routes } from '@angular/router';
-import { adminGuard } from '../../core/auth/admin-guard';
 
-/** Everything below `/admin` requires a signed-in user with role ADMIN. */
+/**
+ * Everything below `/admin` requires a signed-in user with role ADMIN. Every
+ * domain owns and guards its own admin routes now (see each feature's own
+ * *.routes.ts) — this file just mounts them at their /admin/* prefixes.
+ */
 export const ADMIN_ROUTES: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
   {
     path: 'dashboard',
-    canActivate: [adminGuard],
-    loadComponent: () => import('./admin-dashboard').then((module) => module.AdminDashboard),
-    title: 'Admin dashboard - ClapOut Studio',
+    loadChildren: () =>
+      import('../dashboard/dashboard.routes').then((module) => module.DASHBOARD_ADMIN_ROUTES),
   },
-  /**
-   * The registrations, brands and campaigns domains own and guard their own
-   * admin routes now (see each feature's own *.routes.ts) — this file just
-   * mounts them at /admin/registrations, /admin/brands and /admin/campaigns.
-   */
   {
     path: 'registrations',
     loadChildren: () =>
