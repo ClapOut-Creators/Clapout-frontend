@@ -22,6 +22,7 @@ const activeCampaign: PublicCampaign = {
   slug: 'e-wale',
   title: 'E-wale tech',
   demo: false,
+  brandId: 'brand-1',
   brand: {
     name: 'E-wale',
     logoUrl: null,

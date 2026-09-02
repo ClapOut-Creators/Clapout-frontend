@@ -31,6 +31,9 @@ export interface PublicCampaign {
   title: string;
   /** Demo/dummy campaigns seeded for the landing page. */
   demo: boolean;
+  /** FK to the owning Brand. */
+  brandId: string;
+  /** Denormalised from the Brand relation for rendering. */
   brand: CampaignBrand;
   status: CampaignStatus;
   /**

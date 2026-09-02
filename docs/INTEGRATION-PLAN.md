@@ -170,7 +170,8 @@ published campaign appears on the landing page automatically (`demo: false`).
 - `GET /admin/stats` → `200 { data: { publishedCampaigns, totalCreators, totalBrands,
   newRegistrations7d, awaitingReview, registrationActivity: { date: 'YYYY-MM-DD',
   count: number }[] } }` (activity = last 21 days of registrations, zero-filled)
-- `GET /admin/registrations?campaignSlug=&status=&search=` → `200 { data: AdminRegistration[] }`
+- `GET /admin/registrations?campaignSlug=&brandId=&status=&search=` → `200 { data: AdminRegistration[] }`
+  (`brandId` scopes to the registrations of that brand’s campaigns; all filters combine)
   newest first. `AdminRegistration = { id, status, platform, accountUrl, note, createdAt,
   creator: { id, fullName, email, whatsapp, phone, socials, payout }, campaign: { slug,
   title, brandName } }` — this powers the "Registered Clippers" tables (top priority).

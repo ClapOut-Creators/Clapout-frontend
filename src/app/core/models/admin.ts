@@ -50,17 +50,11 @@ export interface AdminRegistration {
 }
 
 export interface AdminRegistrationQuery {
+  /** Scopes to every campaign owned by one brand; composes with the others. */
+  brandId?: string;
   campaignSlug?: string;
   status?: RegistrationStatus;
   search?: string;
-}
-
-/** Brand fields carried inline on a campaign row. */
-export interface CampaignBrandInput {
-  name: string;
-  logoUrl?: string | null;
-  logoBg?: string;
-  logoFit?: 'cover' | 'contain';
 }
 
 /**
@@ -72,7 +66,8 @@ export interface CampaignDraftInput {
   title: string;
   slug?: string;
   demo?: boolean;
-  brand: CampaignBrandInput;
+  /** Campaigns are owned by a Brand; identity comes from the brand record. */
+  brandId: string;
   description: string;
   category: string;
   currency: string;

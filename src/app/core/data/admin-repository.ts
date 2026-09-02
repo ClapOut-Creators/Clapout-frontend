@@ -9,6 +9,7 @@ import {
   AdminStats,
   CampaignDraftInput,
 } from '../models/admin';
+import { Brand, BrandDetail, BrandInput } from '../models/brand';
 import { PublicCampaign } from '../models/campaign';
 import { RegistrationStatus } from '../models/registration';
 
@@ -36,6 +37,9 @@ export class AdminRepository {
   /** `GET /admin/registrations` — newest first. Filters are applied server side. */
   async registrations(query: AdminRegistrationQuery = {}): Promise<AdminRegistration[]> {
     let params = new HttpParams();
+    if (query.brandId) {
+      params = params.set('brandId', query.brandId);
+    }
     if (query.campaignSlug) {
       params = params.set('campaignSlug', query.campaignSlug);
     }
@@ -165,6 +169,71 @@ export class AdminRepository {
         ),
       );
       return response.data;
+    } catch (error) {
+      throw toApiError(error);
+    }
+  }
+
+  // ---------------------------------------------------------------- brands
+
+  /** `GET /admin/brands?search=` — name ascending. */
+  async brands(search?: string): Promise<Brand[]> {
+    let params = new HttpParams();
+    if (search?.trim()) {
+      params = params.set('search', search.trim());
+    }
+    try {
+      const response = await firstValueFrom(
+        this.http.get<{ data: Brand[] }>(`${this.baseUrl}/brands`, { params }),
+      );
+      return response.data ?? [];
+    } catch (error) {
+      throw toApiError(error);
+    }
+  }
+
+  /** `GET /admin/brands/:id` — includes stats and the brand's campaigns. */
+  async brand(id: string): Promise<BrandDetail> {
+    try {
+      const response = await firstValueFrom(
+        this.http.get<{ data: BrandDetail }>(`${this.baseUrl}/brands/${encodeURIComponent(id)}`),
+      );
+      return response.data;
+    } catch (error) {
+      throw toApiError(error);
+    }
+  }
+
+  /** `POST /admin/brands` — `409 BRAND_EXISTS` on a duplicate name. */
+  async createBrand(input: BrandInput): Promise<Brand> {
+    try {
+      const response = await firstValueFrom(
+        this.http.post<{ data: Brand }>(`${this.baseUrl}/brands`, input),
+      );
+      return response.data;
+    } catch (error) {
+      throw toApiError(error);
+    }
+  }
+
+  /** `PATCH /admin/brands/:id` — partial, `status` included. */
+  async updateBrand(id: string, input: Partial<BrandInput>): Promise<Brand> {
+    try {
+      const response = await firstValueFrom(
+        this.http.patch<{ data: Brand }>(`${this.baseUrl}/brands/${encodeURIComponent(id)}`, input),
+      );
+      return response.data;
+    } catch (error) {
+      throw toApiError(error);
+    }
+  }
+
+  /** `DELETE /admin/brands/:id` — `409 BRAND_IN_USE` when campaigns reference it. */
+  async deleteBrand(id: string): Promise<void> {
+    try {
+      await firstValueFrom(
+        this.http.delete<void>(`${this.baseUrl}/brands/${encodeURIComponent(id)}`),
+      );
     } catch (error) {
       throw toApiError(error);
     }
