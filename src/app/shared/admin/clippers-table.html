@@ -203,8 +203,14 @@
               </td>
 
               <td class="!border-0 !px-6 !py-5">
-                @if (row.creator.whatsapp) {
-                  <span class="inline-flex items-center gap-2.5 text-[16px] text-[#1A1A1A]">
+                @if (whatsappLink(row.creator.whatsapp); as chatUrl) {
+                  <a
+                    [href]="chatUrl"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    [attr.aria-label]="'Chat with ' + row.creator.fullName + ' on WhatsApp'"
+                    class="inline-flex items-center gap-2.5 text-[16px] text-[#1A1A1A] no-underline hover:underline"
+                  >
                     <span>{{ row.creator.whatsapp }}</span>
                     <svg
                       data-p-icon="whatsapp"
@@ -212,7 +218,7 @@
                       class="shrink-0 text-[#25D366]"
                       aria-hidden="true"
                     ></svg>
-                  </span>
+                  </a>
                 } @else {
                   <span class="text-[16px] text-[#7B7B7B]">{{ notAnnounced }}</span>
                 }

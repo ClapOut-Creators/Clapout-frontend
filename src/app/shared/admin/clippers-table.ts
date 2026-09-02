@@ -185,6 +185,23 @@ export class ClippersTable {
   }
 
   /**
+   * wa.me target for a creator's WhatsApp value. Steve stores either a username
+   * ("@theboywinner") or a phone number ("+233 20 123 4567"), and wa.me accepts
+   * both — but a number must be digits only, with no "+", spaces or dashes.
+   * A leading "@" is always dropped; anything that is not phone-shaped is passed
+   * through as a username.
+   */
+  protected whatsappLink(value: string | null | undefined): string | null {
+    const raw = (value ?? '').trim().replace(/^@+/, '');
+    if (!raw) {
+      return null;
+    }
+    const isPhoneNumber = /^\+?[\d\s().-]+$/.test(raw);
+    const target = isPhoneNumber ? raw.replace(/\D/g, '') : raw;
+    return target ? `https://wa.me/${encodeURIComponent(target)}` : null;
+  }
+
+  /**
    * A display handle for the Social column. The contract only carries a profile
    * URL, so the last path segment is the closest thing to a handle; a URL with
    * no path (or an unparsable one) falls back to the host.
