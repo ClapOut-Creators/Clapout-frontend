@@ -551,7 +551,7 @@ phase-by-phase plan and file-level mapping: see the migration commits on
 
 - **Phase 0 (commit `5fae550`)** — new top-level `layout/` (the app shell
   `app.ts` composes: `layout/sidebar/side-nav`, `layout/public/{public-navbar,
-  public-footer,public-links}`, previously under `shared/`). Promoted
+public-footer,public-links}`, previously under `shared/`). Promoted
   `shared/admin/*` (page-header, stat-card, wizard-shell, clippers-table,
   campaign-compact-card, brand-logo-tile), `clock`, and `form-errors` into
   `shared/components/` — each has 2+ consumers across domains, so a
@@ -561,7 +561,7 @@ phase-by-phase plan and file-level mapping: see the migration commits on
   `shared/constants`.
 - **Phase 1 (commit `d92048f`)** — `features/campaigns/` reorganized into
   `pages/{campaign-list,campaign-detail,admin-campaigns,admin-campaign-detail,
-  campaign-wizard}`, `components/`, `data-access/`, `models/`, `utils/`. Split
+campaign-wizard}`, `components/`, `data-access/`, `models/`, `utils/`. Split
   `core/data/admin-repository.ts`'s campaign methods into a new
   `campaigns-admin-repository.ts` (same HTTP calls/paths/error handling, just
   relocated) and `core/models/admin.ts`'s `CampaignDraftInput`/
