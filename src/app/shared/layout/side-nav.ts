@@ -25,10 +25,13 @@ const CREATOR_LINKS: NavLink[] = [
   { label: 'Dashboard', path: '/creator/dashboard', exact: false, icon: 'home' },
 ];
 
+// Order and glyphs follow the Figma rail: home → brands (shop) → campaigns
+// (clipboard); registrations is our addition and keeps the compass glyph.
 const ADMIN_LINKS: NavLink[] = [
   { label: 'Dashboard', path: '/admin/dashboard', exact: false, icon: 'home' },
-  { label: 'Campaigns', path: '/admin/campaigns', exact: false, icon: 'shop' },
-  { label: 'Registrations', path: '/admin/registrations', exact: false, icon: 'clipboard' },
+  { label: 'Brands', path: '/admin/brands', exact: false, icon: 'shop' },
+  { label: 'Campaigns', path: '/admin/campaigns', exact: false, icon: 'clipboard' },
+  { label: 'Registrations', path: '/admin/registrations', exact: false, icon: 'compass' },
 ];
 
 /**
