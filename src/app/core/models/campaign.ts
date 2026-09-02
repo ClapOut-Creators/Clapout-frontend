@@ -58,6 +58,12 @@ export interface PublicCampaign {
   endDate: string | null;
   /** Human readable review turnaround, e.g. '1d'. */
   avgReviewTime: string;
+  /**
+   * Registrations received so far — the participants pill on the public card.
+   * Optional while the backend rolls the field out; clients must render the
+   * unannounced em dash rather than 0 when it is absent.
+   */
+  registrationCount?: number;
   tags: string[];
   bannerUrl: string | null;
   requirementsNote: string | null;

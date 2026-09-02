@@ -1,36 +1,168 @@
-<main class="mx-auto max-w-6xl px-4 py-10">
-  <header class="max-w-2xl">
-    <h1 class="text-2xl font-semibold tracking-tight text-surface-900 sm:text-3xl">Campaigns</h1>
-    <p class="mt-2 text-surface-600">
-      Browse live clipping campaigns, check the payout budget and CPM, then register to start
-      clipping.
+<!--
+  Public campaigns list. The floating navbar and dark footer come from the app
+  shell, so this template renders page content only, on white.
+  Geometry from Figma 344:1182 (desktop 1728) and 344:1295 (mobile 402): a
+  1487-wide content column inset 120px, a 464x46 search box on the search row
+  with the 56x46 filter button pinned right, and 358x361 cards on a 10/18px grid.
+-->
+<main
+  class="mx-auto w-full max-w-[1728px] bg-white px-3 pb-20 pt-6 sm:px-6 lg:px-10 xl:px-[120px] xl:pb-[140px] xl:pt-[50px]"
+>
+  <header class="text-center">
+    <h1
+      class="m-0 text-[20px] font-medium leading-[30px] text-black/80 xl:text-[31px] xl:leading-[47px]"
+    >
+      Campaigns
+    </h1>
+    <p
+      class="mx-auto mb-0 mt-0.5 max-w-[331px] text-[16px] leading-[19px] text-[#464646] xl:mt-0 xl:max-w-none xl:text-[22px] xl:leading-[30px]"
+    >
+      Discover active campaigns from this Content Rewards community
     </p>
   </header>
+
+  <div class="mt-[21px] flex items-center justify-between gap-[18px] xl:mt-[41px]">
+    <label class="sr-only" for="campaign-search">Search campaigns</label>
+    <div
+      class="flex h-[46px] min-w-0 flex-1 items-center gap-[10px] rounded-[10px] border border-[#DDDDDD] bg-[#F4F4F4] px-[15px] xl:max-w-[464px]"
+    >
+      <svg
+        data-p-icon="search"
+        [size]="18"
+        class="shrink-0 text-[#525252]"
+        aria-hidden="true"
+      ></svg>
+      <input
+        id="campaign-search"
+        type="search"
+        autocomplete="off"
+        placeholder="Search campaign.."
+        class="h-full w-full min-w-0 border-0 bg-transparent p-0 text-[16px] text-[#383838] outline-none placeholder:text-[#919191] xl:text-[20px]"
+        [value]="searchTerm()"
+        (input)="onSearch($any($event.target).value)"
+      />
+    </div>
+
+    <button
+      type="button"
+      class="relative flex h-[46px] w-[56px] shrink-0 cursor-pointer items-center justify-center rounded-[10px] border border-[#DDDDDD] bg-[#F4F4F4] text-[#525252] transition-colors hover:bg-[#ECECEC]"
+      [attr.aria-label]="filterButtonLabel()"
+      aria-haspopup="dialog"
+      [attr.aria-expanded]="filtersOpen()"
+      (click)="filterPanel.toggle($event)"
+    >
+      <!-- Figma "Outline / Essentional, UI / Sort": three centred 22/16/10 bars. -->
+      <svg viewBox="0 0 24 24" class="h-6 w-6" fill="currentColor" aria-hidden="true">
+        <rect x="1" y="6" width="22" height="2" rx="1" />
+        <rect x="4" y="11" width="16" height="2" rx="1" />
+        <rect x="7" y="16" width="10" height="2" rx="1" />
+      </svg>
+      @if (activeFilterCount() > 0) {
+        <span
+          class="absolute -right-1.5 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#EC612C] px-1 text-[11px] font-semibold text-white"
+          aria-hidden="true"
+          >{{ activeFilterCount() }}</span
+        >
+      }
+    </button>
+  </div>
+
+  <!-- Outside the search row: an empty flex child would eat a `justify-between` gap. -->
+  <p-popover #filterPanel (onShow)="filtersOpen.set(true)" (onHide)="filtersOpen.set(false)">
+    <div class="w-[248px]">
+      <fieldset class="m-0 border-0 p-0">
+        <legend class="mb-2 p-0 text-xs font-semibold uppercase tracking-wide text-[#8C8C94]">
+          Status
+        </legend>
+        <div class="flex flex-col gap-2">
+          @for (option of statusOptions; track option.value) {
+            <div class="flex items-center gap-2.5">
+              <p-checkbox
+                [binary]="true"
+                [inputId]="'filter-status-' + option.value"
+                [ngModelOptions]="{ standalone: true }"
+                [ngModel]="isStatusSelected(option.value)"
+                (ngModelChange)="toggleStatus(option.value, $event)"
+              />
+              <label class="text-sm text-surface-700" [for]="'filter-status-' + option.value">{{
+                option.label
+              }}</label>
+            </div>
+          }
+        </div>
+      </fieldset>
+
+      <fieldset class="m-0 mt-4 border-0 p-0">
+        <legend class="mb-2 p-0 text-xs font-semibold uppercase tracking-wide text-[#8C8C94]">
+          Platform
+        </legend>
+        <div class="flex flex-col gap-2">
+          @for (option of platformOptions; track option.value) {
+            <div class="flex items-center gap-2.5">
+              <p-checkbox
+                [binary]="true"
+                [inputId]="'filter-platform-' + option.value"
+                [ngModelOptions]="{ standalone: true }"
+                [ngModel]="isPlatformSelected(option.value)"
+                (ngModelChange)="togglePlatform(option.value, $event)"
+              />
+              <label class="text-sm text-surface-700" [for]="'filter-platform-' + option.value">{{
+                option.label
+              }}</label>
+            </div>
+          }
+        </div>
+      </fieldset>
+
+      <p-button
+        label="Clear filters"
+        size="small"
+        [text]="true"
+        styleClass="mt-3 !px-0"
+        [disabled]="!isFiltering()"
+        (onClick)="clearFilters()"
+      />
+    </div>
+  </p-popover>
+
+  @if (state() !== 'error') {
+    <h2
+      class="mb-0 mt-[26px] text-[18px] font-semibold text-black/80 xl:mt-[60px] xl:text-[24px]"
+      id="featured-campaigns"
+    >
+      Featured campaigns
+    </h2>
+  }
 
   @switch (state()) {
     @case ('loading') {
       <div
-        class="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
+        class="mt-[29px] grid grid-cols-1 gap-x-[18px] gap-y-[10px] md:grid-cols-2 xl:mt-[25px] xl:max-w-[1110px] xl:grid-cols-3"
         aria-busy="true"
         aria-live="polite"
       >
         <span class="sr-only">Loading campaigns</span>
         @for (row of skeletonRows; track row) {
-          <div class="rounded-xl border border-surface-200 bg-surface-0 p-5">
-            <div class="flex items-start justify-between">
-              <p-skeleton width="7rem" height="4rem" borderRadius="0.75rem" />
-              <p-skeleton width="4.5rem" height="1.5rem" borderRadius="999px" />
+          <div
+            class="rounded-[15.5px] border border-[#E5E5E8] bg-white pb-[9.7px] pl-[3.9px] pr-[3.9px] pt-[3.2px]"
+          >
+            <div class="aspect-[350/192] w-full overflow-hidden rounded-[16.5px]">
+              <p-skeleton width="100%" height="100%" borderRadius="16.5px" />
             </div>
-            <div class="mt-4"><p-skeleton width="60%" height="1.25rem" /></div>
-            <div class="mt-3"><p-skeleton width="40%" height="0.875rem" /></div>
-            <div class="mt-6"><p-skeleton width="100%" height="0.5rem" /></div>
+            <div class="mt-[14.2px] flex items-center justify-between gap-3 px-[14px]">
+              <p-skeleton width="9rem" height="1.7rem" borderRadius="0.5rem" />
+              <p-skeleton width="4.5rem" height="1.4rem" borderRadius="999px" />
+            </div>
+            <div class="mt-2 px-[14px]"><p-skeleton width="90%" height="1.6rem" /></div>
+            <div class="mt-2 px-[14px]"><p-skeleton width="60%" height="1.6rem" /></div>
+            <div class="mt-4 px-[14px]"><p-skeleton width="100%" height="5px" /></div>
           </div>
         }
       </div>
     }
 
     @case ('error') {
-      <div class="mt-8 rounded-xl border border-surface-200 bg-surface-0 p-6">
+      <div class="mt-8 rounded-xl border border-[#E5E5E8] bg-white p-6">
         <p-message severity="error" [closable]="false">{{ errorMessage() }}</p-message>
         <p class="mt-3 text-sm text-surface-600">
           The campaigns service did not respond. You can retry without losing your place.
@@ -42,9 +174,9 @@
     @default {
       @if (campaigns().length === 0) {
         <div
-          class="mt-8 rounded-xl border border-dashed border-surface-300 bg-surface-0 p-10 text-center"
+          class="mt-[29px] rounded-xl border border-dashed border-[#DDDDDD] bg-white p-10 text-center xl:mt-[25px]"
         >
-          <h2 class="text-lg font-semibold text-surface-900">No campaigns are live yet</h2>
+          <h3 class="m-0 text-lg font-semibold text-[#0F0F12]">No campaigns are live yet</h3>
           <p class="mx-auto mt-2 max-w-md text-surface-600">
             New brand campaigns are published regularly. Check back soon, or create an account so
             you are ready to apply the moment one opens.
@@ -57,84 +189,31 @@
             (onClick)="load()"
           />
         </div>
+      } @else if (visibleCampaigns().length === 0) {
+        <div
+          class="mt-[29px] rounded-xl border border-dashed border-[#DDDDDD] bg-white p-10 text-center xl:mt-[25px]"
+        >
+          <h3 class="m-0 text-lg font-semibold text-[#0F0F12]">No campaigns match your filters</h3>
+          <p class="mx-auto mt-2 max-w-md text-surface-600">
+            {{ liveCountLabel() }} — try a different search term, or clear the status and platform
+            filters.
+          </p>
+          <p-button
+            label="Clear filters"
+            size="small"
+            [outlined]="true"
+            styleClass="mt-5"
+            (onClick)="clearFilters()"
+          />
+        </div>
       } @else {
-        <ul class="mt-8 grid list-none grid-cols-1 gap-4 p-0 sm:grid-cols-2 lg:grid-cols-3">
-          @for (campaign of campaigns(); track campaign.slug) {
-            <li>
-              <a
-                [routerLink]="['/campaigns', campaign.slug]"
-                class="flex h-full flex-col rounded-xl border border-surface-200 bg-surface-0 p-5 no-underline transition-colors hover:border-surface-300 hover:bg-surface-50"
-              >
-                <div class="flex items-start justify-between gap-3">
-                  <span
-                    class="flex h-16 w-28 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-surface-200"
-                    [style.background-color]="campaign.brand.logoBg"
-                  >
-                    @if (campaign.brand.logoUrl) {
-                      <img
-                        [src]="campaign.brand.logoUrl"
-                        [alt]="campaign.brand.name + ' logo'"
-                        [class]="
-                          campaign.brand.logoFit === 'contain'
-                            ? 'h-full w-full object-contain p-3'
-                            : 'h-full w-full object-cover'
-                        "
-                      />
-                    }
-                  </span>
-                  <span class="text-right">
-                    <p-tag
-                      [value]="campaignStatusLabel(campaign.status)"
-                      [severity]="campaignStatusTone(campaign.status)"
-                      [rounded]="true"
-                    />
-                    <span class="mt-2 block text-xs text-surface-500">{{
-                      timeLabel(campaign)
-                    }}</span>
-                  </span>
-                </div>
-
-                <h2 class="mt-4 text-lg font-semibold text-surface-900">
-                  {{ campaign.brand.name }}
-                </h2>
-                <p class="mt-1 line-clamp-2 text-sm text-surface-600">
-                  {{ campaign.title || campaign.category }}
-                </p>
-
-                <p class="mt-2 text-xs text-surface-500">
-                  Platform <span class="text-surface-700">{{ platformSummary(campaign) }}</span>
-                </p>
-
-                <div class="mt-4 flex items-end justify-between gap-3 text-sm">
-                  <span>
-                    <span class="block text-xs text-surface-500">Paid Out</span>
-                    <span class="font-semibold text-surface-900">
-                      {{ formatMoney(campaign.currency, campaign.budgetSpent) }}
-                      <span class="font-normal text-surface-500"
-                        >/ {{ formatMoney(campaign.currency, campaign.budgetTotal) }}</span
-                      >
-                    </span>
-                  </span>
-                  <span class="text-right">
-                    <span class="block text-xs text-surface-500">CPM</span>
-                    <span class="font-semibold text-surface-900">
-                      {{ formatMoney(campaign.currency, campaign.cpm) }}
-                      <span class="font-normal text-surface-500">/1k views</span>
-                    </span>
-                  </span>
-                </div>
-
-                @if (hasBudget(campaign.budgetTotal)) {
-                  <div class="co-meter mt-auto pt-4">
-                    <p-progressbar
-                      [value]="budgetPercent(campaign.budgetSpent, campaign.budgetTotal)"
-                      [showValue]="false"
-                    />
-                  </div>
-                } @else {
-                  <p class="mt-auto pt-4 text-xs text-surface-500">Budget not announced yet</p>
-                }
-              </a>
+        <ul
+          class="mt-[29px] grid list-none grid-cols-1 gap-x-[18px] gap-y-[10px] p-0 md:grid-cols-2 xl:mt-[25px] xl:max-w-[1110px] xl:grid-cols-3"
+          aria-labelledby="featured-campaigns"
+        >
+          @for (campaign of visibleCampaigns(); track campaign.slug) {
+            <li class="flex">
+              <app-public-campaign-card class="flex w-full" [campaign]="campaign" />
             </li>
           }
         </ul>

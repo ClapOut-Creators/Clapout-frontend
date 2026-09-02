@@ -1,8 +1,16 @@
 import { Component, computed, effect, inject, input, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
+import { ChevronDown } from '@primeicons/angular/chevron-down';
+import { ChevronLeft } from '@primeicons/angular/chevron-left';
+import { ExternalLink } from '@primeicons/angular/external-link';
+import { Facebook } from '@primeicons/angular/facebook';
+import { Instagram } from '@primeicons/angular/instagram';
+import { Link } from '@primeicons/angular/link';
+import { Tiktok } from '@primeicons/angular/tiktok';
+import { Twitter } from '@primeicons/angular/twitter';
+import { Youtube } from '@primeicons/angular/youtube';
 import { ButtonModule } from 'primeng/button';
 import { MessageModule } from 'primeng/message';
-import { ProgressBarModule } from 'primeng/progressbar';
 import { SkeletonModule } from 'primeng/skeleton';
 import { TagModule } from 'primeng/tag';
 import { ApiError } from '../../core/api/api-error';
@@ -17,19 +25,46 @@ import {
   campaignStatusTone,
   formatDate,
   formatDateTime,
-  formatMoney,
+  formatMoneyExact,
   hasBudget,
+  NOT_ANNOUNCED,
   openCountdownLabel,
   platformLabel,
   registrationStatusLabel,
 } from '../../core/util/campaign-format';
+import { BrandLogoTile } from '../../shared/admin/brand-logo-tile';
 import { createNowSignal } from '../../shared/time/clock';
 
 type DetailState = 'loading' | 'ready' | 'not-found' | 'error';
 
-/** Public campaign detail. Mirrors the landing detail layout and owns the register CTA. */
+/**
+ * Public campaign detail (Figma 344:2763 desktop / 344:2929 mobile).
+ *
+ * Desktop is a 1249px content column split into two rows: identity + banner
+ * above the rule, brief/requirements/resources beside the money panel below it.
+ * Mobile keeps a single column and hoists the money panel and register CTA
+ * above the long-form sections, exactly as the 380px board does.
+ *
+ * The page renders inside the public chrome, so it draws no navbar or footer.
+ */
 @Component({
-  imports: [ButtonModule, MessageModule, ProgressBarModule, RouterLink, SkeletonModule, TagModule],
+  imports: [
+    BrandLogoTile,
+    ButtonModule,
+    ChevronDown,
+    ChevronLeft,
+    ExternalLink,
+    Facebook,
+    Instagram,
+    Link,
+    MessageModule,
+    RouterLink,
+    SkeletonModule,
+    TagModule,
+    Tiktok,
+    Twitter,
+    Youtube,
+  ],
   selector: 'app-campaign-detail',
   templateUrl: './campaign-detail.html',
 })
@@ -58,13 +93,18 @@ export class CampaignDetail {
     this.isUpcoming() ? openCountdownLabel(this.campaign()?.startDate, this.now()) : null,
   );
 
+  /** Figma's register button: 556x40, r=12, #EC612C. */
+  protected readonly ctaClass =
+    '!h-10 !w-full !justify-center !rounded-xl !border-[#EC612C] !bg-[#EC612C] !text-[18px] !font-medium !text-white';
+
   protected readonly budgetPercent = budgetPercent;
   protected readonly campaignStatusLabel = campaignStatusLabel;
   protected readonly campaignStatusTone = campaignStatusTone;
   protected readonly formatDate = formatDate;
   protected readonly formatDateTime = formatDateTime;
-  protected readonly formatMoney = formatMoney;
+  protected readonly formatMoneyExact = formatMoneyExact;
   protected readonly hasBudget = hasBudget;
+  protected readonly notAnnounced = NOT_ANNOUNCED;
   protected readonly platformLabel = platformLabel;
   protected readonly registrationStatusLabel = registrationStatusLabel;
 
@@ -88,6 +128,14 @@ export class CampaignDetail {
     this.descriptionExpanded.update((expanded) => !expanded);
   }
 
+  /**
+   * The collapsed brief is three lines on the desktop board and four on the
+   * 380px one; expanding drops the clamp entirely.
+   */
+  protected descriptionClampClass(): string {
+    return this.descriptionExpanded() ? '' : 'line-clamp-4 lg:line-clamp-3';
+  }
+
   /** Where the register CTA sends the visitor once they have an account. */
   protected applyUrl(): string {
     return `/creator/campaigns/${this.slug()}/apply`;
@@ -104,6 +152,28 @@ export class CampaignDetail {
 
   protected platformSummary(campaign: PublicCampaign): string {
     return campaign.platforms.map(platformLabel).join(', ') || 'Not specified';
+  }
+
+  /**
+   * The facts panel prints the schedule as one range, null-safe on both ends.
+   * A range inside one year prints that year once ("12 July - 28 August 2026"),
+   * as the board does; anything unparsable or unannounced falls back to the
+   * plain `formatDate` output, so a missing end date still reads "14 July 2026 - —".
+   */
+  protected dateRangeLabel(campaign: PublicCampaign): string {
+    const end = formatDate(campaign.endDate);
+    const start = new Date(campaign.startDate);
+    const endDate = campaign.endDate ? new Date(campaign.endDate) : null;
+    const sameYear =
+      endDate !== null &&
+      !Number.isNaN(start.getTime()) &&
+      !Number.isNaN(endDate.getTime()) &&
+      start.getFullYear() === endDate.getFullYear();
+
+    if (sameYear) {
+      return `${start.toLocaleDateString('en-GB', { day: 'numeric', month: 'long' })} - ${end}`;
+    }
+    return `${formatDate(campaign.startDate)} - ${end}`;
   }
 
   private async load(slug: string): Promise<void> {

@@ -1,71 +1,83 @@
-<main class="mx-auto max-w-6xl px-4 py-10">
+<main class="mx-auto w-full max-w-[1249px] px-4 pb-16 pt-[18px] lg:px-6 lg:pb-24 lg:pt-8 xl:px-0">
   <a
     routerLink="/campaigns"
-    class="inline-flex items-center gap-2 rounded-lg border border-surface-200 px-3 py-1.5 text-sm text-surface-700 no-underline hover:bg-surface-100"
+    class="inline-flex items-center gap-2.5 rounded-full border border-[#CDCDCD] px-2 py-0.5 text-[16px] leading-6 text-[#212121] no-underline hover:bg-[#F6F6F6]"
   >
-    <span aria-hidden="true">&larr;</span> Back to campaigns
+    <svg data-p-icon="chevron-left" [size]="14" class="text-[#2D2D2D]" aria-hidden="true"></svg>
+    Back
   </a>
 
   @switch (state()) {
     @case ('loading') {
-      <div class="mt-8" aria-busy="true" aria-live="polite">
+      <div class="mt-[15px] lg:mt-[41px]" aria-busy="true" aria-live="polite">
         <span class="sr-only">Loading campaign</span>
-        <p-skeleton width="60%" height="2rem" />
-        <div class="mt-4"><p-skeleton width="100%" height="5rem" /></div>
-        <div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
-          <p-skeleton width="100%" height="14rem" borderRadius="1rem" />
-          <p-skeleton width="100%" height="14rem" borderRadius="1rem" />
+        <div
+          class="grid grid-cols-1 gap-y-6 lg:grid-cols-[minmax(0,508fr)_minmax(0,628fr)] lg:items-center lg:gap-x-[113px]"
+        >
+          <div>
+            <p-skeleton width="11rem" height="2.5rem" borderRadius="0.75rem" />
+            <div class="mt-4"><p-skeleton width="100%" height="4.5rem" /></div>
+            <div class="mt-4"><p-skeleton width="90%" height="4.5rem" /></div>
+          </div>
+          <p-skeleton width="100%" height="21.5rem" borderRadius="1.75rem" />
+        </div>
+        <div
+          class="mt-8 grid grid-cols-1 gap-y-6 lg:mt-[102px] lg:grid-cols-[minmax(0,579fr)_minmax(0,557fr)] lg:gap-x-[113px]"
+        >
+          <p-skeleton width="100%" height="12rem" borderRadius="1.25rem" />
+          <p-skeleton width="100%" height="12rem" borderRadius="1.25rem" />
         </div>
       </div>
     }
 
     @case ('not-found') {
-      <section class="mt-10 rounded-xl border border-surface-200 bg-surface-0 p-10 text-center">
-        <h1 class="text-2xl font-semibold text-surface-900">Campaign not found</h1>
-        <p class="mx-auto mt-3 max-w-md text-surface-600">
+      <section
+        class="mt-8 rounded-[20px] border border-[#DDDDDD] bg-[#F8F8F8] p-10 text-center lg:mt-[41px]"
+      >
+        <h1 class="text-[24px] font-medium text-black/80 lg:text-[30px]">Campaign not found</h1>
+        <p class="mx-auto mt-3 max-w-md text-[16px] leading-6 text-[#464646]">
           No campaign matches &ldquo;{{ slug() }}&rdquo;. It may have been unpublished or the link
           may be out of date.
         </p>
         <a
           routerLink="/campaigns"
-          class="mt-6 inline-block rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-contrast no-underline"
+          class="mt-6 inline-block rounded-xl bg-[#EC612C] px-6 py-2 text-[16px] font-medium text-white no-underline"
           >Browse campaigns</a
         >
       </section>
     }
 
     @case ('error') {
-      <section class="mt-10 rounded-xl border border-surface-200 bg-surface-0 p-6">
+      <section
+        class="mt-8 rounded-[20px] border border-[#DDDDDD] bg-[#F8F8F8] p-6 lg:mt-[41px]"
+        aria-live="polite"
+      >
         <p-message severity="error" [closable]="false">{{ errorMessage() }}</p-message>
+        <p class="mt-3 text-[16px] leading-6 text-[#464646]">
+          The campaigns service did not respond. You can retry without losing your place.
+        </p>
         <p-button label="Try again" size="small" styleClass="mt-4" (onClick)="reload()" />
       </section>
     }
 
     @default {
       @if (campaign(); as campaign) {
-        <!-- Top: identity + banner -->
+        <!-- Identity + banner (Figma "Frame 141") -->
         <div
-          class="mt-8 grid grid-cols-1 items-start gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)]"
+          class="mt-[15px] grid grid-cols-1 gap-y-6 lg:mt-[41px] lg:grid-cols-[minmax(0,508fr)_minmax(0,628fr)] lg:items-center lg:gap-x-[113px]"
         >
-          <div>
-            <div class="flex items-center gap-3">
-              <span
-                class="flex h-12 w-20 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-surface-200"
-                [style.background-color]="campaign.brand.logoBg"
-              >
-                @if (campaign.brand.logoUrl) {
-                  <img
-                    [src]="campaign.brand.logoUrl"
-                    [alt]="campaign.brand.name + ' logo'"
-                    [class]="
-                      campaign.brand.logoFit === 'contain'
-                        ? 'h-full w-full object-contain p-2'
-                        : 'h-full w-full object-cover'
-                    "
-                  />
-                }
-              </span>
-              <span class="text-sm font-medium text-surface-600">{{ campaign.brand.name }}</span>
+          <div class="min-w-0">
+            <div class="flex flex-wrap items-center gap-x-2 gap-y-2 lg:gap-x-[7px]">
+              <app-brand-logo-tile
+                [name]="campaign.brand.name"
+                [logoUrl]="campaign.brand.logoUrl"
+                [logoBg]="campaign.brand.logoBg"
+                [logoFit]="campaign.brand.logoFit"
+                sizeClass="h-[42px] w-[42px] lg:h-[37px] lg:w-[37px]"
+              />
+              <span class="text-[20px] font-medium leading-6 text-[#5C5C61] lg:text-[18px]">{{
+                campaign.brand.name
+              }}</span>
               <p-tag
                 [value]="campaignStatusLabel(campaign.status)"
                 [severity]="campaignStatusTone(campaign.status)"
@@ -73,220 +85,365 @@
               />
             </div>
 
-            <h1 class="mt-4 text-2xl font-semibold leading-snug text-surface-900 md:text-3xl">
+            <h1
+              class="mt-[15px] text-[30px] font-medium leading-[41px] text-black/80 lg:mt-[7px] lg:text-[38px] lg:leading-[1.5]"
+            >
               {{ campaign.title || campaign.brand.name }}
             </h1>
 
             <p
-              class="mt-4 whitespace-pre-line text-surface-600"
-              [class.line-clamp-3]="!descriptionExpanded()"
+              id="campaign-brief"
+              class="mt-[15px] whitespace-pre-line text-[16px] leading-[23px] text-[#464646] lg:mt-[7px] lg:text-[18px] lg:leading-[26px]"
+              [class]="descriptionClampClass()"
             >
               {{ campaign.description }}
             </p>
+
             <button
               type="button"
-              class="mt-1 cursor-pointer border-0 bg-transparent p-0 text-sm font-medium text-primary"
+              class="mt-[15px] inline-flex cursor-pointer items-center gap-2.5 rounded-full border-0 bg-[#F6F6F6] px-3 py-1 text-[16px] font-medium leading-6 text-[#383838] hover:bg-[#EFEFEF] lg:mt-2.5 lg:text-[18px]"
+              aria-controls="campaign-brief"
               [attr.aria-expanded]="descriptionExpanded()"
               (click)="toggleDescription()"
             >
               {{ descriptionExpanded() ? 'Collapse' : 'Expand' }}
+              <svg
+                data-p-icon="chevron-down"
+                [size]="16"
+                class="transition-transform"
+                [class.rotate-180]="descriptionExpanded()"
+                aria-hidden="true"
+              ></svg>
             </button>
 
-            <div class="mt-5 flex flex-wrap items-center gap-2">
-              @for (tag of campaign.tags; track tag) {
-                <span class="rounded-full bg-primary-100 px-3 py-1 text-sm text-surface-800">{{
-                  tag
-                }}</span>
+            <div class="mt-[15px] flex flex-wrap items-center gap-x-[18px] gap-y-3 lg:mt-[11px]">
+              @if (campaign.tags.length) {
+                <span class="flex flex-wrap items-center gap-3">
+                  @for (tag of campaign.tags; track tag) {
+                    <span
+                      class="inline-flex items-center rounded-full bg-[#FFC93C] px-2.5 py-0.5 text-[16px] leading-6 text-[#383838] lg:text-[18px] lg:leading-[27px]"
+                      >{{ tag }}</span
+                    >
+                  }
+                </span>
+                <span class="h-5 w-px bg-[#DCDCDC]" aria-hidden="true"></span>
               }
-              <span class="text-sm font-semibold text-surface-900"
-                >{{ formatMoney(campaign.currency, campaign.cpm) }} / 1k views</span
+
+              <span
+                class="inline-flex items-center gap-1.5 rounded-full border border-[#E5E5E8] bg-white px-2 py-[3px] text-[16px] font-medium leading-[22px] text-[#EC612C]"
               >
+                <!-- The coin carries the campaign's own symbol; a "$" glyph beside a
+                     cedi amount reads as a second, wrong currency. -->
+                <span
+                  class="flex h-[13px] w-[13px] shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#FC5404] to-[#F27002] text-[8px] font-semibold leading-none text-white"
+                  aria-hidden="true"
+                  >{{ campaign.currency }}</span
+                >
+                {{ formatMoneyExact(campaign.currency, campaign.cpm) }}/1k
+                <span class="sr-only">views</span>
+              </span>
+
+              @if (campaign.platforms.length) {
+                <!-- The icons take their own row on the 380 board, where a rule would dangle. -->
+                <span class="hidden h-5 w-px bg-[#DCDCDC] lg:block" aria-hidden="true"></span>
+                <span class="flex items-center gap-3 text-[#151515]">
+                  @for (platform of campaign.platforms; track platform) {
+                    <span class="inline-flex items-center">
+                      @switch (platform) {
+                        @case ('tiktok') {
+                          <svg data-p-icon="tiktok" [size]="23" aria-hidden="true"></svg>
+                        }
+                        @case ('facebook') {
+                          <svg data-p-icon="facebook" [size]="23" aria-hidden="true"></svg>
+                        }
+                        @case ('instagram') {
+                          <svg data-p-icon="instagram" [size]="23" aria-hidden="true"></svg>
+                        }
+                        @case ('youtube') {
+                          <svg data-p-icon="youtube" [size]="23" aria-hidden="true"></svg>
+                        }
+                        @default {
+                          <svg data-p-icon="twitter" [size]="23" aria-hidden="true"></svg>
+                        }
+                      }
+                      <span class="sr-only">{{ platformLabel(platform) }}</span>
+                    </span>
+                  }
+                </span>
+              }
             </div>
 
-            <div class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-surface-600">
+            <div
+              class="mt-[15px] flex flex-wrap items-center gap-x-2.5 gap-y-2 text-[14px] leading-6 text-[#686868] lg:mt-[11px]"
+            >
               <span
                 >Avg review time:
-                <span class="font-medium text-surface-900">{{ campaign.avgReviewTime }}</span></span
+                <span class="text-[#00CF60]">{{
+                  campaign.avgReviewTime || notAnnounced
+                }}</span></span
               >
+              <span class="h-5 w-px bg-[#DCDCDC]" aria-hidden="true"></span>
               <span
                 >Start date:
-                <span class="font-medium text-surface-900">{{
-                  formatDate(campaign.startDate)
-                }}</span></span
+                <span class="text-[#0C0C0C]">{{ formatDate(campaign.startDate) }}</span></span
               >
+              <span class="h-5 w-px bg-[#DCDCDC]" aria-hidden="true"></span>
               <span
                 >End date:
-                <span class="font-medium text-surface-900">{{
-                  formatDate(campaign.endDate)
-                }}</span></span
+                <span class="text-[#0C0C0C]">{{ formatDate(campaign.endDate) }}</span></span
               >
               @if (openCountdown(); as countdown) {
+                <span class="h-5 w-px bg-[#DCDCDC]" aria-hidden="true"></span>
                 <span
-                  >Opens in: <span class="font-medium text-surface-900">{{ countdown }}</span></span
+                  >Opens in: <span class="text-[#0C0C0C]">{{ countdown }}</span></span
                 >
               }
             </div>
           </div>
 
-          <div class="w-full overflow-hidden rounded-2xl border border-surface-200">
+          <div class="min-w-0">
             @if (campaign.bannerUrl) {
               <img
                 [src]="campaign.bannerUrl"
                 [alt]="campaign.brand.name + ' campaign banner'"
-                class="h-auto w-full"
+                class="aspect-[628/344] w-full rounded-[17px] object-cover lg:rounded-[28px]"
               />
             } @else {
               <div
-                class="flex aspect-video w-full items-center justify-center bg-surface-100 text-xs uppercase tracking-widest text-surface-500"
+                class="flex aspect-[628/344] w-full items-center justify-center rounded-[17px] bg-[#151515] px-6 text-center text-[16px] text-[#A6A6A6] lg:rounded-[28px] lg:text-[18px]"
               >
-                Banner image coming soon
+                No campaign banner uploaded yet
               </div>
             }
           </div>
         </div>
 
-        <hr class="mt-8 border-surface-200" />
+        <hr class="mt-[51px] hidden border-t border-[#E2E2E2] lg:block" />
 
-        <!-- Bottom: requirements/resources + budget/facts/CTA -->
+        <!-- Money panel + long-form sections (Figma "Frame 142") -->
         <div
-          class="mt-8 grid grid-cols-1 items-start gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)]"
+          class="mt-6 grid grid-cols-1 gap-y-6 lg:mt-[51px] lg:grid-cols-[minmax(0,579fr)_minmax(0,557fr)] lg:items-start lg:gap-x-[113px]"
         >
-          <div>
-            <section>
-              <h2 class="text-sm font-semibold text-surface-900">Requirements</h2>
-              @if (campaign.requirementsNote) {
-                <p class="mt-2 whitespace-pre-line text-sm text-surface-600">
-                  {{ campaign.requirementsNote }}
-                </p>
-              } @else {
-                <p class="mt-2 text-sm text-surface-500">
-                  The brand has not published detailed requirements for this campaign yet.
-                </p>
-              }
-              @if (campaign.requirementsDocUrl) {
-                <a
-                  [href]="campaign.requirementsDocUrl"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="mt-2 inline-block text-sm text-primary underline underline-offset-2"
-                  >Read the campaign brief</a
-                >
-              }
-            </section>
-
-            <section class="mt-8">
-              <h2 class="text-sm font-semibold text-surface-900">Resources</h2>
-              @if (campaign.resourceUrl || campaign.resourceLabel) {
-                <div
-                  class="mt-2 flex w-full max-w-sm items-center justify-between gap-3 rounded-xl border border-surface-200 bg-surface-50 p-3"
-                >
-                  <span class="text-sm">
-                    <span class="block font-medium text-surface-900">{{
-                      campaign.resourceLabel || 'Campaign resource'
-                    }}</span>
-                    <span class="block text-xs text-surface-500">Resource</span>
-                  </span>
-                  @if (campaign.resourceUrl) {
-                    <a
-                      [href]="campaign.resourceUrl"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      class="text-sm text-primary underline underline-offset-2"
-                      >Open</a
-                    >
-                  } @else {
-                    <span class="text-sm text-surface-400">Link coming soon</span>
-                  }
-                </div>
-              } @else {
-                <p class="mt-2 text-sm text-surface-500">No resources shared for this campaign.</p>
-              }
-            </section>
-          </div>
-
-          <div class="flex flex-col gap-4">
-            <section class="rounded-2xl border border-surface-200 bg-surface-0 p-5">
-              <h2 class="text-lg font-semibold text-surface-900">
-                {{ formatMoney(campaign.currency, campaign.budgetTotal) }}
-                <span class="text-sm font-normal text-surface-500">budget</span>
+          <div class="flex min-w-0 flex-col gap-2.5 lg:col-start-2 lg:row-start-1">
+            <section
+              class="rounded-[20px] border border-[#DDDDDD] bg-[#F8F8F8] px-[21px] py-[22px]"
+              aria-labelledby="campaign-budget-heading"
+            >
+              <h2
+                id="campaign-budget-heading"
+                class="m-0 text-[18px] font-semibold leading-[27px] text-[#151515] lg:text-[22px] lg:leading-[33px]"
+              >
+                {{ formatMoneyExact(campaign.currency, campaign.budgetTotal) }}
+                <span class="text-[#868686]">budget</span>
               </h2>
+
               @if (hasBudget(campaign.budgetTotal)) {
-                <div class="co-meter mt-3">
-                  <p-progressbar
-                    [value]="budgetPercent(campaign.budgetSpent, campaign.budgetTotal)"
-                    [showValue]="false"
-                  />
+                <div class="mt-[13px] h-[9px] w-full overflow-hidden rounded-full bg-white">
+                  <div
+                    class="h-full rounded-full bg-gradient-to-r from-[#EC612C] to-[#FFC93C]"
+                    [style.width.%]="budgetPercent(campaign.budgetSpent, campaign.budgetTotal)"
+                  ></div>
                 </div>
-                <div class="mt-2 flex justify-between text-sm text-surface-600">
-                  <span>{{ formatMoney(campaign.currency, campaign.budgetSpent) }} paid out</span>
-                  <span>{{ formatMoney(campaign.currency, campaign.budgetTotal) }}</span>
+                <div
+                  class="mt-[18px] flex items-center justify-between gap-3 text-[16px] font-medium leading-5 text-[#585858] lg:text-[18px]"
+                >
+                  <span
+                    >{{ formatMoneyExact(campaign.currency, campaign.budgetSpent)
+                    }}<span class="sr-only"> paid out</span></span
+                  >
+                  <span>{{ formatMoneyExact(campaign.currency, campaign.budgetTotal) }}</span>
                 </div>
               } @else {
-                <p class="mt-2 text-sm text-surface-500">
+                <p class="m-0 mt-[13px] text-[14px] leading-6 text-[#7B7B7B]">
                   The brand has not announced the budget for this campaign yet.
                 </p>
               }
             </section>
 
             <dl
-              class="divide-y divide-surface-200 rounded-2xl border border-surface-200 bg-surface-0"
+              class="m-0 divide-y divide-[#DDDDDD] overflow-hidden rounded-[20px] border border-[#DDDDDD] bg-[#F8F8F8]"
             >
-              <div class="flex items-center justify-between px-5 py-3.5 text-sm">
-                <dt class="text-surface-600">Category</dt>
-                <dd class="m-0 font-medium text-surface-900">{{ campaign.category }}</dd>
-              </div>
-              <div class="flex items-center justify-between gap-4 px-5 py-3.5 text-sm">
-                <dt class="text-surface-600">Start - End date</dt>
-                <dd class="m-0 text-right font-medium text-surface-900">
-                  {{ formatDate(campaign.startDate) }} - {{ formatDate(campaign.endDate) }}
+              <div class="flex min-h-[56px] items-center justify-between gap-4 px-[17px] py-[14px]">
+                <dt class="text-[15.8px] leading-7 whitespace-nowrap text-[#7F7F7F]">Category</dt>
+                <dd class="m-0 text-right text-[15.8px] leading-7 text-[#272727]">
+                  {{ campaign.category || notAnnounced }}
                 </dd>
               </div>
-              <div class="flex items-center justify-between gap-4 px-5 py-3.5 text-sm">
-                <dt class="text-surface-600">Platforms</dt>
-                <dd class="m-0 text-right font-medium text-surface-900">
-                  {{ platformSummary(campaign) }}
+              <div class="flex min-h-[56px] items-center justify-between gap-4 px-[17px] py-[14px]">
+                <dt class="text-[15.8px] leading-7 whitespace-nowrap text-[#7F7F7F]">
+                  Start - End date
+                </dt>
+                <dd class="m-0 text-right text-[15.8px] leading-7 text-[#272727]">
+                  {{ dateRangeLabel(campaign) }}
                 </dd>
               </div>
-              <div class="flex items-center justify-between px-5 py-3.5 text-sm">
-                <dt class="text-surface-600">Last updated</dt>
-                <dd class="m-0 font-medium text-surface-900">
+              <div class="flex min-h-[56px] items-center justify-between gap-4 px-[17px] py-[14px]">
+                <dt class="text-[15.8px] leading-7 whitespace-nowrap text-[#7F7F7F]">Platforms</dt>
+                <dd class="m-0 flex items-center gap-3 text-[#151515]">
+                  @if (campaign.platforms.length) {
+                    @for (platform of campaign.platforms; track platform) {
+                      @switch (platform) {
+                        @case ('tiktok') {
+                          <svg data-p-icon="tiktok" [size]="23" aria-hidden="true"></svg>
+                        }
+                        @case ('facebook') {
+                          <svg data-p-icon="facebook" [size]="23" aria-hidden="true"></svg>
+                        }
+                        @case ('instagram') {
+                          <svg data-p-icon="instagram" [size]="23" aria-hidden="true"></svg>
+                        }
+                        @case ('youtube') {
+                          <svg data-p-icon="youtube" [size]="23" aria-hidden="true"></svg>
+                        }
+                        @default {
+                          <svg data-p-icon="twitter" [size]="23" aria-hidden="true"></svg>
+                        }
+                      }
+                    }
+                    <span class="sr-only">{{ platformSummary(campaign) }}</span>
+                  } @else {
+                    <span class="text-right text-[15.8px] leading-7 text-[#272727]">{{
+                      platformSummary(campaign)
+                    }}</span>
+                  }
+                </dd>
+              </div>
+              <div class="flex min-h-[56px] items-center justify-between gap-4 px-[17px] py-[14px]">
+                <dt class="text-[15.8px] leading-7 whitespace-nowrap text-[#7F7F7F]">
+                  Last updated
+                </dt>
+                <dd class="m-0 text-right text-[15.8px] leading-7 text-[#272727]">
                   {{ formatDate(campaign.updatedAt) }}
                 </dd>
               </div>
             </dl>
 
             @if (isUpcoming()) {
-              <p-button [label]="upcomingCtaLabel()" [disabled]="true" [fluid]="true" />
-              <p class="text-center text-sm text-surface-500">
+              <p-button
+                [label]="upcomingCtaLabel()"
+                [disabled]="true"
+                [fluid]="true"
+                [styleClass]="ctaClass"
+              />
+              <p class="m-0 text-center text-[14px] leading-6 text-[#7B7B7B]">
                 Registration opens {{ formatDateTime(campaign.startDate) }}.
               </p>
             } @else if (existingRegistration(); as registration) {
-              <div class="rounded-2xl border border-surface-200 bg-surface-50 p-5 text-center">
-                <p class="font-medium text-surface-900">Already applied</p>
-                <p class="mt-1 text-sm text-surface-600">
+              <div class="rounded-[20px] border border-[#DDDDDD] bg-[#F8F8F8] p-5 text-center">
+                <p class="m-0 text-[18px] font-medium text-[#151515]">Already applied</p>
+                <p class="m-0 mt-1 text-[14px] leading-6 text-[#585858]">
                   Your application is
-                  <span class="font-medium">{{ registrationStatusLabel(registration.status) }}</span
+                  <span class="font-medium text-[#272727]">{{
+                    registrationStatusLabel(registration.status)
+                  }}</span
                   >.
                 </p>
                 <a
                   routerLink="/creator/dashboard"
-                  class="mt-4 inline-block rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-contrast no-underline"
+                  class="mt-4 inline-block rounded-xl bg-[#EC612C] px-6 py-2 text-[16px] font-medium text-white no-underline"
                   >Go to your dashboard</a
                 >
               </div>
             } @else if (!campaign.registrationOpen) {
-              <p-button label="Registration closed" [disabled]="true" [fluid]="true" />
-              <p class="text-center text-sm text-surface-500">
+              <p-button
+                label="Registration closed"
+                [disabled]="true"
+                [fluid]="true"
+                [styleClass]="ctaClass"
+              />
+              <p class="m-0 text-center text-[14px] leading-6 text-[#7B7B7B]">
                 This campaign is no longer accepting new creators.
               </p>
             } @else {
-              <p-button label="Register for this campaign" [fluid]="true" (onClick)="register()" />
+              <p-button
+                label="Register for this campaign"
+                [fluid]="true"
+                [styleClass]="ctaClass"
+                (onClick)="register()"
+              />
               @if (!isSignedIn()) {
-                <p class="text-center text-sm text-surface-500">
+                <p class="m-0 text-center text-[14px] leading-6 text-[#7B7B7B]">
                   You will create a free creator account first - it takes under a minute.
                 </p>
               }
             }
+          </div>
+
+          <div class="min-w-0 lg:col-start-1 lg:row-start-1 lg:max-w-[497px]">
+            <section aria-labelledby="campaign-requirements-heading">
+              <h2
+                id="campaign-requirements-heading"
+                class="m-0 text-[18px] font-medium leading-6 text-[#383838]"
+              >
+                Requirements
+              </h2>
+              <p class="m-0 mt-2.5 text-[14px] leading-6 text-[#7A7A7A]">Content Requirements</p>
+              <p class="m-0 mt-0.5 whitespace-pre-line text-[16px] leading-6 text-[#464646]">
+                {{
+                  campaign.requirementsNote ||
+                    'The brand has not published detailed requirements for this campaign yet.'
+                }}
+              </p>
+              @if (campaign.requirementsDocUrl) {
+                <a
+                  [href]="campaign.requirementsDocUrl"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="mt-2 inline-flex items-center gap-2 text-[16px] leading-6 text-[#EC612C] underline underline-offset-2"
+                >
+                  Read the campaign brief
+                  <svg data-p-icon="external-link" [size]="14" aria-hidden="true"></svg>
+                </a>
+              }
+            </section>
+
+            <section class="mt-[34px]" aria-labelledby="campaign-resources-heading">
+              <h2
+                id="campaign-resources-heading"
+                class="m-0 text-[18px] font-medium leading-6 text-[#383838]"
+              >
+                Resources
+              </h2>
+              @if (campaign.resourceUrl) {
+                <a
+                  [href]="campaign.resourceUrl"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="mt-2.5 block w-full max-w-[254px] rounded-[10px] border border-[#DDDDDD] bg-[#F8F8F8] px-[15px] py-[9px] no-underline hover:bg-[#F2F2F2]"
+                >
+                  <span class="flex items-center justify-between gap-3">
+                    <span class="flex items-center gap-2 text-[16px] leading-6 text-[#464646]">
+                      <svg data-p-icon="link" [size]="14" aria-hidden="true"></svg>
+                      {{ campaign.resourceLabel || 'Campaign resource' }}
+                    </span>
+                    <svg
+                      data-p-icon="external-link"
+                      [size]="14"
+                      class="shrink-0 text-[#464646]"
+                      aria-hidden="true"
+                    ></svg>
+                  </span>
+                  <span class="mt-[11px] block text-[14px] leading-[17px] text-[#909090]"
+                    >Resource</span
+                  >
+                </a>
+              } @else if (campaign.resourceLabel) {
+                <div
+                  class="mt-2.5 w-full max-w-[254px] rounded-[10px] border border-[#DDDDDD] bg-[#F8F8F8] px-[15px] py-[9px]"
+                >
+                  <p class="m-0 text-[16px] leading-6 text-[#464646]">
+                    {{ campaign.resourceLabel }}
+                  </p>
+                  <p class="m-0 mt-[11px] text-[14px] leading-[17px] text-[#909090]">
+                    Link coming soon
+                  </p>
+                </div>
+              } @else {
+                <p class="m-0 mt-2.5 text-[16px] leading-6 text-[#909090]">
+                  No resources shared for this campaign.
+                </p>
+              }
+            </section>
           </div>
         </div>
       }
