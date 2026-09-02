@@ -52,7 +52,7 @@
     <div class="mt-4 flex flex-col gap-2" aria-busy="true" aria-live="polite">
       <span class="sr-only">Loading registered clippers</span>
       @for (row of skeletonRows; track row) {
-        <p-skeleton width="100%" height="3.5rem" borderRadius="12.11px" />
+        <p-skeleton width="100%" height="4rem" borderRadius="12.11px" />
       }
     </div>
   }
@@ -105,61 +105,66 @@
         }
       </div>
     } @else {
+      <!--
+        Every column carries an explicit min-width so nine columns never squeeze
+        ("Phone number" used to wrap onto two lines), and the wrapper scrolls
+        horizontally instead of clipping the last three columns.
+      -->
       <div class="mt-4 overflow-x-auto rounded-[12.11px] bg-white">
-        <p-table [value]="rows()" [tableStyle]="{ 'min-width': '84rem' }">
+        <p-table [value]="rows()" [tableStyle]="{ 'min-width': '120rem' }">
           <ng-template #header>
             <tr>
               <th
                 scope="col"
-                class="!rounded-l-[12.11px] !border-0 !bg-[#F9F9F9] !px-5 !py-4 !text-[17.49px] !font-medium !text-[#171A1C]"
+                class="!min-w-[240px] !whitespace-nowrap !rounded-l-[12.11px] !border-0 !bg-[#F9F9F9] !px-6 !py-[22px] !text-[17.49px] !font-medium !text-[#171A1C]"
               >
                 Clippers
               </th>
               <th
                 scope="col"
-                class="!border-0 !bg-[#F9F9F9] !px-5 !py-4 !text-[17.49px] !font-medium !text-[#171A1C]"
+                class="!min-w-[260px] !whitespace-nowrap !border-0 !bg-[#F9F9F9] !px-6 !py-[22px] !text-[17.49px] !font-medium !text-[#171A1C]"
               >
                 Email
               </th>
               <th
                 scope="col"
-                class="!border-0 !bg-[#F9F9F9] !px-5 !py-4 !text-[17.49px] !font-medium !text-[#171A1C]"
+                class="!min-w-[210px] !whitespace-nowrap !border-0 !bg-[#F9F9F9] !px-6 !py-[22px] !text-[17.49px] !font-medium !text-[#171A1C]"
               >
                 WhatsApp
               </th>
               <th
                 scope="col"
-                class="!border-0 !bg-[#F9F9F9] !px-5 !py-4 !text-[17.49px] !font-medium !text-[#171A1C]"
+                class="!min-w-[190px] !whitespace-nowrap !border-0 !bg-[#F9F9F9] !px-6 !py-[22px] !text-[17.49px] !font-medium !text-[#171A1C]"
               >
                 Phone number
               </th>
               <th
                 scope="col"
-                class="!border-0 !bg-[#F9F9F9] !px-5 !py-4 !text-[17.49px] !font-medium !text-[#171A1C]"
+                class="!min-w-[210px] !whitespace-nowrap !border-0 !bg-[#F9F9F9] !px-6 !py-[22px] !text-[17.49px] !font-medium !text-[#171A1C]"
               >
                 Social
               </th>
               <th
                 scope="col"
-                class="!border-0 !bg-[#F9F9F9] !px-5 !py-4 !text-[17.49px] !font-medium !text-[#171A1C]"
+                class="!min-w-[300px] !whitespace-nowrap !border-0 !bg-[#F9F9F9] !px-6 !py-[22px] !text-[17.49px] !font-medium !text-[#171A1C]"
               >
                 Payment
               </th>
               <th
                 scope="col"
-                class="!border-0 !bg-[#F9F9F9] !px-5 !py-4 !text-right !text-[17.49px] !font-semibold !text-[#171A1C]"
+                class="!min-w-[150px] !whitespace-nowrap !border-0 !bg-[#F9F9F9] !px-6 !py-[22px] !text-right !text-[17.49px] !font-semibold !text-[#171A1C]"
               >
                 View/Amount
               </th>
               <th
                 scope="col"
-                class="!border-0 !bg-[#F9F9F9] !px-5 !py-4 !text-[17.49px] !font-medium !text-[#171A1C]"
+                class="!min-w-[150px] !whitespace-nowrap !border-0 !bg-[#F9F9F9] !px-6 !py-[22px] !text-[17.49px] !font-medium !text-[#171A1C]"
               >
                 Status
               </th>
               <th
                 scope="col"
-                class="!rounded-r-[12.11px] !border-0 !bg-[#F9F9F9] !px-5 !py-4 !text-[17.49px] !font-medium !text-[#171A1C]"
+                class="!min-w-[210px] !whitespace-nowrap !rounded-r-[12.11px] !border-0 !bg-[#F9F9F9] !px-6 !py-[22px] !text-[17.49px] !font-medium !text-[#171A1C]"
               >
                 Review
               </th>
@@ -168,7 +173,12 @@
 
           <ng-template #body let-row>
             <tr>
-              <td class="!border-0 !px-5 !py-3.5">
+              <!--
+                The avatar is already 40px tall, so this cell takes less vertical
+                padding than the text-only cells; both land on the ~65px row the
+                design asks for, and either can still grow when content wraps.
+              -->
+              <td class="!border-0 !px-6 !py-3">
                 <span class="flex items-center gap-[9px]">
                   <span
                     class="flex size-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#FFC93C] to-[#EC612C] text-xs font-semibold text-white"
@@ -188,7 +198,7 @@
                 </span>
               </td>
 
-              <td class="!border-0 !px-5 !py-3.5">
+              <td class="!border-0 !px-6 !py-5">
                 <a
                   [href]="'mailto:' + row.creator.email"
                   class="text-[16px] text-[#444444] no-underline hover:underline"
@@ -196,7 +206,7 @@
                 >
               </td>
 
-              <td class="!border-0 !px-5 !py-3.5">
+              <td class="!border-0 !px-6 !py-5">
                 @if (row.creator.whatsapp) {
                   <span class="inline-flex items-center gap-2.5 text-[16px] text-[#1A1A1A]">
                     <span>{{ row.creator.whatsapp }}</span>
@@ -212,11 +222,11 @@
                 }
               </td>
 
-              <td class="!border-0 !px-5 !py-3.5 !text-[16px] !text-[#444444]">
+              <td class="!border-0 !px-6 !py-5 !text-[16px] !text-[#444444]">
                 {{ row.creator.phone || notAnnounced }}
               </td>
 
-              <td class="!border-0 !px-5 !py-3.5">
+              <td class="!border-0 !px-6 !py-5">
                 <a
                   [href]="row.accountUrl"
                   target="_blank"
@@ -245,7 +255,7 @@
                 </a>
               </td>
 
-              <td class="!border-0 !px-5 !py-3.5">
+              <td class="!border-0 !px-6 !py-5">
                 @if (row.creator.payout; as payout) {
                   <span class="inline-flex items-center gap-2.5 text-[16px] text-[#1A1A1A]">
                     <span>{{ payoutMethodLabel(row) }}</span>
@@ -259,11 +269,11 @@
                 }
               </td>
 
-              <td class="!border-0 !px-5 !py-3.5 !text-right !text-[16px] !text-[#7B7B7B]">
+              <td class="!border-0 !px-6 !py-5 !text-right !text-[16px] !text-[#7B7B7B]">
                 {{ notAnnounced }}
               </td>
 
-              <td class="!border-0 !px-5 !py-3.5">
+              <td class="!border-0 !px-6 !py-5">
                 <p-tag
                   [value]="registrationStatusLabel(row.status)"
                   [severity]="registrationStatusTone(row.status)"
@@ -271,7 +281,7 @@
                 />
               </td>
 
-              <td class="!border-0 !px-5 !py-3.5">
+              <td class="!border-0 !px-6 !py-5">
                 <p-select
                   class="w-40"
                   optionLabel="label"

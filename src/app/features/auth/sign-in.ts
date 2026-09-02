@@ -45,6 +45,21 @@ export class SignIn {
     rememberMe: [false],
   });
 
+  constructor() {
+    // A signed-in visitor landing here should go where they belong, not stare
+    // at a form they don't need.
+    void this.redirectIfSignedIn();
+  }
+
+  private async redirectIfSignedIn(): Promise<void> {
+    await this.auth.whenSessionReady();
+    if (!this.auth.isSignedIn()) {
+      return;
+    }
+    const fallback = this.auth.isAdmin() ? '/admin/dashboard' : '/creator/dashboard';
+    await this.router.navigateByUrl(this.returnUrl() || fallback);
+  }
+
   protected readonly submitted = signal(false);
   protected readonly submitting = signal(false);
   protected readonly errorMessage = signal<string>('');

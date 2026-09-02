@@ -3,6 +3,7 @@ import { MessageModule } from 'primeng/message';
 import { ApiError } from '../../core/api/api-error';
 import { AdminRepository } from '../../core/data/admin-repository';
 import { ClippersTable } from '../../shared/admin/clippers-table';
+import { PageHeader } from '../../shared/admin/page-header';
 
 interface CampaignOption {
   label: string;
@@ -17,7 +18,7 @@ interface CampaignOption {
  * campaign list that feeds the table's campaign dropdown.
  */
 @Component({
-  imports: [ClippersTable, MessageModule],
+  imports: [ClippersTable, MessageModule, PageHeader],
   selector: 'app-admin-registrations',
   templateUrl: './admin-registrations.html',
 })

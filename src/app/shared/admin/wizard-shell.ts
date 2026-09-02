@@ -15,10 +15,10 @@ import { Times } from '@primeicons/angular/times';
   imports: [Times],
   selector: 'app-wizard-shell',
   template: `
-    <div class="fixed inset-0 z-30 overflow-y-auto bg-[#FFFFFF]/90">
+    <div class="fixed inset-0 z-50 overflow-y-auto bg-white">
       <button
         type="button"
-        class="absolute right-8 top-[60px] flex h-11 w-11 cursor-pointer items-center justify-center rounded-full border-0 bg-[#CDCDCD] text-[#393939]"
+        class="absolute right-[86px] top-[82px] flex h-11 w-11 cursor-pointer items-center justify-center rounded-full border-0 bg-[#CDCDCD] text-[#393939]"
         aria-label="Close"
         (click)="closed.emit()"
       >
@@ -34,7 +34,7 @@ import { Times } from '@primeicons/angular/times';
             class="flex h-[53px] w-[53px] items-center justify-center rounded-2xl bg-primary"
             aria-hidden="true"
           >
-            <img src="/logo/clapout-logo.png" alt="" class="h-[43px] w-[43px]" draggable="false" />
+            <img src="/logo/clapout-hand.png" alt="" class="h-[43px] w-[43px]" draggable="false" />
           </span>
 
           <div

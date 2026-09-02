@@ -12,8 +12,8 @@ import {
   budgetPercent,
   campaignStatusLabel,
   campaignStatusTone,
-  daysLeftLabel,
-  formatMoney,
+  campaignTimeLabel,
+  formatMoneyExact,
   hasBudget,
   platformLabel,
   TagTone,
@@ -71,7 +71,7 @@ export function campaignStatusPillClass(status: CampaignStatus): string {
           [logoUrl]="campaign().brand.logoUrl"
           [logoBg]="campaign().brand.logoBg"
           [logoFit]="campaign().brand.logoFit"
-          sizeClass="h-[66px] w-[152px] !rounded-[13.13px]"
+          sizeClass="h-[66px] w-[120px] xl:w-[152px] !rounded-[13.13px]"
         />
 
         <span class="flex shrink-0 flex-col items-end gap-2.5">
@@ -87,7 +87,7 @@ export function campaignStatusPillClass(status: CampaignStatus): string {
         </span>
       </div>
 
-      <h3 class="mt-3 truncate text-[25px] font-semibold leading-tight text-[#151515]">
+      <h3 class="mt-3 truncate text-[24px] font-semibold leading-tight text-[#151515]">
         {{ campaign().brand.name }}
       </h3>
 
@@ -131,11 +131,11 @@ export function campaignStatusPillClass(status: CampaignStatus): string {
         </div>
 
         <div class="mt-1 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-          <span class="text-[18.39px] font-semibold text-[#151515]">
+          <span class="text-[20px] font-semibold text-[#151515]">
             {{ paidOut() }}
             <span class="text-[11.82px] font-medium text-[#5E5E5E]">/{{ budgetTotal() }}</span>
           </span>
-          <span class="text-[18.39px] font-semibold text-[#151515]">
+          <span class="text-[20px] font-semibold text-[#151515]">
             {{ cpm() }}
             <span class="text-[11.82px] font-medium text-[#5E5E5E]">/ 1k views</span>
           </span>
@@ -167,16 +167,18 @@ export class CampaignCompactCard {
   protected readonly statusPillClass = computed(() =>
     campaignStatusPillClass(this.campaign().status),
   );
-  protected readonly daysLeft = computed(() => daysLeftLabel(this.campaign().endDate));
+  // Only ACTIVE/UPCOMING campaigns count down; a draft has no schedule and a
+  // closed one has ended.
+  protected readonly daysLeft = computed(() => campaignTimeLabel(this.campaign()));
 
   protected readonly paidOut = computed(() =>
-    formatMoney(this.campaign().currency, this.campaign().budgetSpent),
+    formatMoneyExact(this.campaign().currency, this.campaign().budgetSpent),
   );
   protected readonly budgetTotal = computed(() =>
-    formatMoney(this.campaign().currency, this.campaign().budgetTotal),
+    formatMoneyExact(this.campaign().currency, this.campaign().budgetTotal),
   );
   protected readonly cpm = computed(() =>
-    formatMoney(this.campaign().currency, this.campaign().cpm),
+    formatMoneyExact(this.campaign().currency, this.campaign().cpm),
   );
   protected readonly spentPercent = computed(() =>
     budgetPercent(this.campaign().budgetSpent, this.campaign().budgetTotal),

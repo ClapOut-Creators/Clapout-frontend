@@ -19,7 +19,7 @@ import {
   budgetPercent,
   campaignStatusLabel,
   formatDate,
-  formatMoney,
+  formatMoneyExact,
   hasBudget,
   NOT_ANNOUNCED,
   platformLabel,
@@ -86,7 +86,8 @@ export class AdminCampaignDetail {
   protected readonly campaignStatusLabel = campaignStatusLabel;
   protected readonly campaignStatusPillClass = campaignStatusPillClass;
   protected readonly formatDate = formatDate;
-  protected readonly formatMoney = formatMoney;
+  /** Two decimals with a thin space, per the design. */
+  protected readonly formatMoney = formatMoneyExact;
   protected readonly hasBudget = hasBudget;
   protected readonly platformLabel = platformLabel;
   protected readonly notAnnounced = NOT_ANNOUNCED;

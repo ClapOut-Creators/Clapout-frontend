@@ -412,3 +412,27 @@ submit.
   properly.
 - **Revenue formatting** (`GHS ₵ 40,000.00`) derives its currency from the brand's first
   campaign, since `BrandDetail.stats.revenue` is a bare number with no currency.
+
+### Bundle budgets raised
+
+`angular.json` initial-bundle budgets go from 700 kB / 850 kB to **850 kB / 1 MB**.
+The admin section legitimately grew (brands, two wizards, the shared kit) and the
+initial bundle sits at ~835 kB with every admin route already lazy, leaving no
+headroom under the old error budget. No further code splitting was done.
+
+### Round-1 design review fixes
+
+- `campaignTimeLabel()` replaces a bare days-left everywhere a campaign card renders
+  a countdown: DRAFT reads "Not scheduled", CLOSED "Ended", UPCOMING "Opens in N
+  days", ACTIVE keeps the existing countdown. A draft with no `endDate` no longer
+  claims "30 Days left".
+- `formatMoneyExact()` renders the design's two-decimal money with a thin space
+  ("₵ 2,000.00"). The public landing-mirror pages keep the looser `formatMoney`.
+- Brand revenue renders a currency code OR a symbol, never both.
+- The wizard overlay was `bg-[#FFFFFF]/90`, which let the rail bleed through at a
+  different shade; it is now solid white at `z-50` with the close button at the
+  spec's position.
+- Admin page headers are 32px titles over 20px subtitles; campaign status pills are
+  44px tall with 18px labels; compact-card headings are 24px.
+- A signed-in visitor hitting `/auth/sign-in` is redirected to their dashboard
+  instead of `/`.

@@ -129,6 +129,50 @@ export function openCountdownLabel(
   return `${pad(Math.floor(totalSeconds / 3600))}:${pad(Math.floor((totalSeconds % 3600) / 60))}:${pad(totalSeconds % 60)}`;
 }
 
+/**
+ * Design-spec money: two decimals with a thin space after the symbol
+ * ("₵ 2,000.00"). Unannounced amounts render "₵ —".
+ */
+export function formatMoneyExact(currency: string, amount: number | null | undefined): string {
+  if (amount === null || amount === undefined || !Number.isFinite(amount)) {
+    return `${currency}\u2009${NOT_ANNOUNCED}`;
+  }
+  return `${currency}\u2009${amount.toLocaleString('en-GB', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+}
+
+/**
+ * The time label on a campaign card. Only ACTIVE and UPCOMING campaigns count
+ * down: a DRAFT has no schedule yet and a CLOSED one has ended, so neither may
+ * borrow the "N Days left" copy.
+ */
+export function campaignTimeLabel(
+  campaign: { status: CampaignStatus; startDate: string; endDate: string | null },
+  now: number = Date.now(),
+): string {
+  if (campaign.status === 'DRAFT') {
+    return 'Not scheduled';
+  }
+  if (campaign.status === 'CLOSED') {
+    return 'Ended';
+  }
+  if (campaign.status === 'UPCOMING') {
+    const start = new Date(campaign.startDate).getTime();
+    if (Number.isNaN(start)) {
+      return 'Not scheduled';
+    }
+    const remainingMs = start - now;
+    if (remainingMs <= 0) {
+      return 'Opening now';
+    }
+    const days = Math.floor(remainingMs / 86_400_000);
+    return days === 0 ? 'Opens today' : `Opens in ${days} days`;
+  }
+  return daysLeftLabel(campaign.endDate, now);
+}
+
 const CAMPAIGN_STATUS_LABELS: Record<CampaignStatus, string> = {
   DRAFT: 'Draft',
   UPCOMING: 'Upcoming',

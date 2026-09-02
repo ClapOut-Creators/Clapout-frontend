@@ -20,7 +20,7 @@
       @for (tab of statusTabs; track tab.value) {
         <button
           type="button"
-          class="cursor-pointer rounded-[10px] border-0 px-[15px] py-[9px] text-sm font-medium transition-colors"
+          class="flex h-[44px] cursor-pointer items-center rounded-[10px] border-0 px-5 text-[18px] font-medium transition-colors"
           [class]="tabClass(tab.value)"
           [attr.aria-pressed]="activeStatus() === tab.value"
           (click)="setStatus(tab.value)"

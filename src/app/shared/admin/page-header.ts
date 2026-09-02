@@ -21,9 +21,11 @@ import { Home } from '@primeicons/angular/home';
             <span class="text-surface-500">/ {{ trail }}</span>
           }
         </p>
-        <h1 class="mt-2 text-2xl font-semibold tracking-tight text-surface-950">{{ title() }}</h1>
+        <h1 class="mt-2 text-[32px] font-semibold leading-tight tracking-tight text-surface-950">
+          {{ title() }}
+        </h1>
         @if (subtitle()) {
-          <p class="mt-1 text-sm text-surface-600">{{ subtitle() }}</p>
+          <p class="mt-1 text-[20px] text-surface-600">{{ subtitle() }}</p>
         }
       </div>
       <ng-content />

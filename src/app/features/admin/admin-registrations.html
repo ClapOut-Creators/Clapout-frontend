@@ -1,23 +1,27 @@
-<main class="mx-auto max-w-6xl px-4 py-10">
-  <header class="max-w-2xl">
-    <h1 class="text-2xl font-semibold tracking-tight text-surface-900 sm:text-3xl">
-      Registered clippers
-    </h1>
-    <p class="mt-2 text-surface-600">
-      Every creator application across all campaigns. Review who applied, check the account they
-      clip from and their payout details, then move each application through review.
-    </p>
-  </header>
+<main class="min-h-screen">
+  <div class="mx-auto">
+    <app-page-header
+      breadcrumb="Registrations"
+      title="Registered clippers"
+      subtitle="Every creator application across all campaigns."
+    />
 
-  @if (optionsError()) {
-    <div class="mt-6">
-      <p-message severity="warn" [closable]="false">
-        {{ optionsError() }} Filtering by campaign is unavailable, but the list below still loads.
-      </p-message>
-    </div>
-  }
+    @if (optionsError()) {
+      <div class="mt-4">
+        <p-message severity="warn" [closable]="false">
+          {{ optionsError() }} Filtering by campaign is unavailable, but the list below still loads.
+        </p-message>
+      </div>
+    }
 
-  <section class="mt-8">
-    <app-clippers-table [campaignOptions]="campaignOptions()" />
-  </section>
+    <section
+      class="mt-4 rounded-[18.83px] border border-[#ECECEC] bg-[#FFFFFF] p-4"
+      aria-labelledby="admin-registrations-list-heading"
+    >
+      <h2 id="admin-registrations-list-heading" class="sr-only">Clipper list</h2>
+
+      <!-- The table owns its own toolbar, so it sits at the top of this panel. -->
+      <app-clippers-table class="block" [campaignOptions]="campaignOptions()" />
+    </section>
+  </div>
 </main>
