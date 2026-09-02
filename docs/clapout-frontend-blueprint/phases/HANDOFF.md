@@ -461,3 +461,46 @@ headroom under the old error budget. No further code splitting was done.
 canvas colour comes from `app.html`. Both files are outside this workstream's
 boundary, so the assertion is left failing: 9/10 unit tests pass. It needs either
 the assertion dropped or the inline style added by the dashboard's owner.
+
+## Clipper surfaces (2026-09-02) — Figma page "Web App - clippers"
+
+Four surfaces rebuilt against `docs/design/figma-clippers/` (design width 1728,
+mobile 402/380): the creator dashboard, sign-in, create-account, and the two
+public campaign pages.
+
+### Public chrome replaces the anonymous top nav
+
+Anonymous visitors on public pages now get the landing site's chrome instead of
+the studio top bar, so `/campaigns` reads as part of clapoutcreators.com:
+
+- `shared/public/public-navbar.*` — the floating pill from 344:1182 (1537x96 at
+  1728, 79.3px radius, 5% grey over a 17% white hairline), with Product ▾
+  (marketing-site sections), Campaigns, Contact, Sign in and the orange
+  "Get Started" pill. Below `lg` it collapses to logo + an orange round
+  hamburger opening a drawer.
+- `shared/public/public-footer.*` — the dark `#0C0C0C` footer: logo, blurb,
+  Explore / Legal / Contact columns, the copyright rule, and the oversized
+  "CLAPOUT" watermark bleeding off the bottom.
+- `shared/public/public-links.ts` holds both components' link sets.
+- `App` switches on three cases now: auth routes are chromeless, signed-in users
+  keep the rail, anonymous visitors get the public chrome. The design has no
+  signed-in variant of the public pages, so signed-in users keep the rail there.
+- The old `shared/layout/top-nav.*` is deleted — nothing referenced it any more.
+- `/terms` and `/privacy` are new placeholder pages, because the footer and the
+  sign-up consent checkbox link to them and the routes had to resolve.
+
+### Copy defects corrected from the design
+
+"socias" → "socials", "whatsapp" → "WhatsApp", "No campaigns joied" →
+"No campaigns joined", "Get Stared" → "Get Started", and the create-account
+submit button reads "Create account" rather than the design's "Sign in".
+
+### Design elements with no data behind them
+
+- Dashboard stat trend pills: no API returns prior-period figures, so the pills
+  are omitted rather than faked. Earned/Views/Submissions are zero placeholders;
+  only Campaigns (registration count) is real.
+- "Submit your first video" is rendered disabled with a "Coming soon" tooltip —
+  content submission does not exist in the product and no endpoint was invented.
+- The card's verified glyph shows for every brand; `PublicCampaign` has no
+  verified flag.

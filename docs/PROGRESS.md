@@ -74,6 +74,22 @@ joining the project can catch up fast. Companion doc: `INTEGRATION-PLAN.md`
 - Contract: `Brand`/`BrandDetail`/`BrandInput`, `PublicCampaign.brandId`,
   `CampaignDraftInput.brandId`, and the five `/admin/brands` endpoints.
 
+### Clipper surfaces + public landing chrome
+
+- **Public pages wear the landing chrome**: anonymous visitors get the floating
+  pill navbar and the dark footer (with the CLAPOUT watermark) instead of the
+  studio top bar, so `/campaigns` reads as part of clapoutcreators.com. Signed-in
+  users keep the rail. `/terms` and `/privacy` placeholders added.
+- **Campaigns list + detail rebuilt** to the clipper design, exact at 1728 and
+  clean at 402/380, on a new shared public campaign card (banner, brand chip,
+  "Nd ago", platform glyphs, spent/total, participants, CPM, budget meter).
+- **Create-account rebuilt**: country-code select + local number joined into one
+  international phone string (so `wa.me` links work), required terms checkbox
+  linking to /terms. Sign-in re-checked against the newer frame.
+- **Clipper dashboard rebuilt**: greeting, "Finish setting up" checklist wired to
+  real state (socials via `PATCH /me`, WhatsApp community, first campaign),
+  stat cards, and the joined-campaigns panel with its empty state.
+
 ### Infrastructure
 
 - Database: **Supabase Postgres** (project `acjxrhugfjlhawpyoaam`, eu-west-1)
