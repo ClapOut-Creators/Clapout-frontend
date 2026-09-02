@@ -130,6 +130,20 @@ joining the project can catch up fast. Companion doc: `INTEGRATION-PLAN.md`
 - The admin JWT minted for verification lives only in agent transcripts; changing
   the seeded admin password (or rotating `JWT_SECRET`) invalidates it.
 
+### Live verification of the clipper phase (2026-09-02)
+
+- Screenshots at 1728×1048 and 402×900 of the clipper dashboard, sign-in,
+  create-account, public campaigns list and campaign detail were compared against
+  `docs/design/figma-clippers/`; all match the designs structurally and in spacing.
+- End to end on the live database: created an account through the new form (phone
+  stored as `+233209876543` from the +233 selector + local number), landed on the
+  dashboard, saved two social links through the dialog (checklist row flips to
+  "2 accounts linked"), community link opens the WhatsApp invite, "Submit content"
+  is disabled (coming soon). Synthetic `@example.com` test creators were removed
+  afterwards.
+- Product decisions: no faked trend pills; Earned/Views/Submissions are honest zeros
+  until those features exist; verified badge shows for every brand (no flag yet).
+
 ## In progress
 
 - Nothing mid-flight. The admin section passed its full live pass on
