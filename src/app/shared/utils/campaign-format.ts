@@ -1,5 +1,5 @@
-import { CampaignPlatform, CampaignStatus } from '../models/campaign';
-import { RegistrationStatus } from '../models/registration';
+import { CampaignPlatform, CampaignStatus } from '../../core/models/campaign';
+import { RegistrationStatus } from '../../core/models/registration';
 
 /** Severities accepted by `p-tag` / `p-message`. */
 export type TagTone = 'success' | 'secondary' | 'info' | 'warn' | 'danger' | 'contrast';

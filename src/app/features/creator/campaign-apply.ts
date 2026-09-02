@@ -19,9 +19,9 @@ import {
   formatMoney,
   openCountdownLabel,
   platformLabel,
-} from '../../core/util/campaign-format';
-import { createNowSignal } from '../../shared/time/clock';
-import { firstErrorMessage, httpUrlValidator } from '../../shared/forms/form-errors';
+} from '../../shared/utils/campaign-format';
+import { createNowSignal } from '../../shared/components/clock';
+import { firstErrorMessage, httpUrlValidator } from '../../shared/components/form-errors';
 
 type ApplyState = 'loading' | 'ready' | 'not-found' | 'error';
 

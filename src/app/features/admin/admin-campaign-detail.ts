@@ -23,11 +23,11 @@ import {
   hasBudget,
   NOT_ANNOUNCED,
   platformLabel,
-} from '../../core/util/campaign-format';
-import { BrandLogoTile } from '../../shared/admin/brand-logo-tile';
-import { campaignStatusPillClass } from '../../shared/admin/campaign-compact-card';
-import { ClippersTable } from '../../shared/admin/clippers-table';
-import { PageHeader } from '../../shared/admin/page-header';
+} from '../../shared/utils/campaign-format';
+import { BrandLogoTile } from '../../shared/components/brand-logo-tile';
+import { campaignStatusPillClass } from '../../shared/components/campaign-compact-card';
+import { ClippersTable } from '../../shared/components/clippers-table';
+import { PageHeader } from '../../shared/components/page-header';
 import { ShareCampaignButton } from '../../shared/public/share-campaign-button';
 
 type DetailState = 'loading' | 'ready' | 'not-found' | 'error';

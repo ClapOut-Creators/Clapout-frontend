@@ -42,11 +42,11 @@ import {
   estimatedViews,
   INDUSTRY_OPTIONS,
   Option,
-} from '../../core/util/admin-options';
-import { formatDate, formatMoney, platformLabel } from '../../core/util/campaign-format';
-import { BrandLogoTile } from '../../shared/admin/brand-logo-tile';
-import { WizardShell } from '../../shared/admin/wizard-shell';
-import { firstErrorMessage, httpUrlValidator } from '../../shared/forms/form-errors';
+} from '../../shared/constants/admin-options';
+import { formatDate, formatMoney, platformLabel } from '../../shared/utils/campaign-format';
+import { BrandLogoTile } from '../../shared/components/brand-logo-tile';
+import { WizardShell } from '../../shared/components/wizard-shell';
+import { firstErrorMessage, httpUrlValidator } from '../../shared/components/form-errors';
 import { ShareCampaignButton } from '../../shared/public/share-campaign-button';
 
 type WizardState = 'loading' | 'form' | 'published' | 'error';

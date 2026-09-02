@@ -20,9 +20,9 @@ import {
   COUNTRY_OPTIONS,
   INDUSTRY_OPTIONS,
   Option,
-} from '../../core/util/admin-options';
-import { WizardShell } from '../../shared/admin/wizard-shell';
-import { firstErrorMessage, httpUrlValidator } from '../../shared/forms/form-errors';
+} from '../../shared/constants/admin-options';
+import { WizardShell } from '../../shared/components/wizard-shell';
+import { firstErrorMessage, httpUrlValidator } from '../../shared/components/form-errors';
 import { MAX_IMAGE_BYTES } from '../../shared/forms/image-input';
 
 type WizardState = 'loading' | 'form' | 'saved' | 'error';

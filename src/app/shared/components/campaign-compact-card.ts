@@ -17,7 +17,7 @@ import {
   hasBudget,
   platformLabel,
   TagTone,
-} from '../../core/util/campaign-format';
+} from '../utils/campaign-format';
 import { ShareCampaignButton } from '../public/share-campaign-button';
 import { BrandLogoTile } from './brand-logo-tile';
 

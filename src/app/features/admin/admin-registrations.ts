@@ -2,8 +2,8 @@ import { Component, inject, signal } from '@angular/core';
 import { MessageModule } from 'primeng/message';
 import { ApiError } from '../../core/api/api-error';
 import { AdminRepository } from '../../core/data/admin-repository';
-import { ClippersTable } from '../../shared/admin/clippers-table';
-import { PageHeader } from '../../shared/admin/page-header';
+import { ClippersTable } from '../../shared/components/clippers-table';
+import { PageHeader } from '../../shared/components/page-header';
 
 interface CampaignOption {
   label: string;

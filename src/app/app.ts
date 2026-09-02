@@ -5,9 +5,9 @@ import { filter } from 'rxjs';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ToastModule } from 'primeng/toast';
 import { AuthService } from './core/auth/auth-service';
-import { SideNav } from './shared/layout/side-nav';
-import { PublicFooter } from './shared/public/public-footer';
-import { PublicNavbar } from './shared/public/public-navbar';
+import { SideNav } from './layout/sidebar/side-nav';
+import { PublicFooter } from './layout/public/public-footer';
+import { PublicNavbar } from './layout/public/public-navbar';
 
 @Component({
   imports: [ConfirmDialogModule, PublicFooter, PublicNavbar, RouterOutlet, SideNav, ToastModule],

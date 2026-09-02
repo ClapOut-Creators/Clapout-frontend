@@ -13,8 +13,8 @@ import {
   hasBudget,
   NOT_ANNOUNCED,
   platformLabel,
-} from '../../core/util/campaign-format';
-import { BrandLogoTile } from '../admin/brand-logo-tile';
+} from '../utils/campaign-format';
+import { BrandLogoTile } from '../components/brand-logo-tile';
 
 /** Largest unit first so the first match wins. */
 const MONEY_UNITS: readonly (readonly [number, string])[] = [

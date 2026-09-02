@@ -23,8 +23,8 @@ import {
   NOT_ANNOUNCED,
   registrationStatusLabel,
   registrationStatusTone,
-} from '../../core/util/campaign-format';
-import { StatCard } from '../../shared/admin/stat-card';
+} from '../../shared/utils/campaign-format';
+import { StatCard } from '../../shared/components/stat-card';
 import { PublicCampaignCard } from '../../shared/public/public-campaign-card';
 import { SocialsDialog } from './socials-dialog';
 

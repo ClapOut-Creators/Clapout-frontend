@@ -17,7 +17,7 @@ import {
   dialCodeFor,
   toInternationalPhone,
 } from '../../core/util/phone-codes';
-import { firstErrorMessage } from '../../shared/forms/form-errors';
+import { firstErrorMessage } from '../../shared/components/form-errors';
 
 /**
  * Digits with the punctuation people actually type. The country code lives in

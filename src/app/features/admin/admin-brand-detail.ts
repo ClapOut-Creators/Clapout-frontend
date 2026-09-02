@@ -11,12 +11,12 @@ import { ApiError } from '../../core/api/api-error';
 import { AuthService } from '../../core/auth/auth-service';
 import { AdminRepository } from '../../core/data/admin-repository';
 import { BrandDetail, BrandStatus } from '../../core/models/brand';
-import { NOT_ANNOUNCED } from '../../core/util/campaign-format';
-import { BrandLogoTile } from '../../shared/admin/brand-logo-tile';
-import { CampaignCompactCard } from '../../shared/admin/campaign-compact-card';
-import { ClippersTable } from '../../shared/admin/clippers-table';
-import { PageHeader } from '../../shared/admin/page-header';
-import { StatCard } from '../../shared/admin/stat-card';
+import { NOT_ANNOUNCED } from '../../shared/utils/campaign-format';
+import { BrandLogoTile } from '../../shared/components/brand-logo-tile';
+import { CampaignCompactCard } from '../../shared/components/campaign-compact-card';
+import { ClippersTable } from '../../shared/components/clippers-table';
+import { PageHeader } from '../../shared/components/page-header';
+import { StatCard } from '../../shared/components/stat-card';
 
 type DetailState = 'loading' | 'ready' | 'not-found' | 'error';
 

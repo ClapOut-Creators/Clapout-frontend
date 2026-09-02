@@ -18,7 +18,7 @@ import { firstValueFrom } from 'rxjs';
 import { toApiError } from '../../core/api/api-error';
 import { APP_ENVIRONMENT } from '../../core/config/app-environment';
 import { Me, SocialAccount } from '../../core/models/user';
-import { firstErrorMessage, httpUrlValidator } from '../../shared/forms/form-errors';
+import { firstErrorMessage, httpUrlValidator } from '../../shared/components/form-errors';
 
 const LINK_MESSAGES: Record<string, string> = {
   required: 'Add the link, or remove this row.',

@@ -24,7 +24,7 @@ import {
   formatDate,
   formatMoney,
   hasBudget,
-} from '../../core/util/campaign-format';
+} from '../../shared/utils/campaign-format';
 import { BarChart } from '../../shared/charts/bar-chart';
 
 type DashboardState = 'loading' | 'ready' | 'error';

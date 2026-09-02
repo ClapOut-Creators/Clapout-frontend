@@ -17,10 +17,10 @@ import { TableModule } from 'primeng/table';
 import { ApiError } from '../../core/api/api-error';
 import { AdminRepository } from '../../core/data/admin-repository';
 import { Brand } from '../../core/models/brand';
-import { NOT_ANNOUNCED } from '../../core/util/campaign-format';
-import { BrandLogoTile } from '../../shared/admin/brand-logo-tile';
-import { PageHeader } from '../../shared/admin/page-header';
-import { StatCard } from '../../shared/admin/stat-card';
+import { NOT_ANNOUNCED } from '../../shared/utils/campaign-format';
+import { BrandLogoTile } from '../../shared/components/brand-logo-tile';
+import { PageHeader } from '../../shared/components/page-header';
+import { StatCard } from '../../shared/components/stat-card';
 
 type ListState = 'loading' | 'ready' | 'error';
 

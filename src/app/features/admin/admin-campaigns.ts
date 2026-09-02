@@ -8,8 +8,8 @@ import { SkeletonModule } from 'primeng/skeleton';
 import { ApiError } from '../../core/api/api-error';
 import { AdminRepository } from '../../core/data/admin-repository';
 import { CampaignStatus, PublicCampaign } from '../../core/models/campaign';
-import { CampaignCompactCard } from '../../shared/admin/campaign-compact-card';
-import { PageHeader } from '../../shared/admin/page-header';
+import { CampaignCompactCard } from '../../shared/components/campaign-compact-card';
+import { PageHeader } from '../../shared/components/page-header';
 
 type ListState = 'loading' | 'ready' | 'error';
 /** 'ALL' is the absent-`?status=` default rather than a backend status. */

@@ -24,8 +24,8 @@ import {
   platformLabel,
   registrationStatusLabel,
   registrationStatusTone,
-} from '../../core/util/campaign-format';
-import { downloadCsv, toCsv } from '../export/csv';
+} from '../utils/campaign-format';
+import { downloadCsv, toCsv } from '../utils/csv';
 
 type TableState = 'loading' | 'ready' | 'error';
 

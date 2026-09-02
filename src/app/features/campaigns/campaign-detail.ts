@@ -31,11 +31,11 @@ import {
   openCountdownLabel,
   platformLabel,
   registrationStatusLabel,
-} from '../../core/util/campaign-format';
-import { BrandLogoTile } from '../../shared/admin/brand-logo-tile';
+} from '../../shared/utils/campaign-format';
+import { BrandLogoTile } from '../../shared/components/brand-logo-tile';
 import { ShareCampaignButton } from '../../shared/public/share-campaign-button';
 import { LinkifiedText } from '../../shared/text/linkified-text';
-import { createNowSignal } from '../../shared/time/clock';
+import { createNowSignal } from '../../shared/components/clock';
 
 type DetailState = 'loading' | 'ready' | 'not-found' | 'error';
 

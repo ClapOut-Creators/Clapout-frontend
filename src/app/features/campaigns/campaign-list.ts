@@ -9,7 +9,7 @@ import { SkeletonModule } from 'primeng/skeleton';
 import { ApiError } from '../../core/api/api-error';
 import { CampaignsRepository } from '../../core/data/campaigns-repository';
 import { CampaignPlatform, CampaignStatus, PublicCampaign } from '../../core/models/campaign';
-import { campaignStatusLabel, platformLabel } from '../../core/util/campaign-format';
+import { campaignStatusLabel, platformLabel } from '../../shared/utils/campaign-format';
 import { PublicCampaignCard } from '../../shared/public/public-campaign-card';
 
 type ListState = 'loading' | 'ready' | 'error';
