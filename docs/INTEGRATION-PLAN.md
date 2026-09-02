@@ -65,6 +65,7 @@ interface PublicCampaign {
   status: 'UPCOMING' | 'ACTIVE' | 'CLOSED';
   // ACTIVE && startDate <= now && (endDate == null || now < endDate)
   registrationOpen: boolean;
+  registrationCount: number;   // creators registered, all statuses (for the card)
   platforms: ('tiktok' | 'x' | 'facebook' | 'instagram' | 'youtube')[];
   currency: string;             // '₵' or '$'
   cpm: number | null;           // 20; null = not announced yet
