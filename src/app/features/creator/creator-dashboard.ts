@@ -1,7 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Check } from '@primeicons/angular/check';
-import { Clock } from '@primeicons/angular/clock';
 import { Home } from '@primeicons/angular/home';
 import { Link } from '@primeicons/angular/link';
 import { Megaphone } from '@primeicons/angular/megaphone';
@@ -16,19 +15,17 @@ import { TooltipModule } from 'primeng/tooltip';
 import { ApiError } from '../../core/api/api-error';
 import { AuthService } from '../../core/auth/auth-service';
 import { RegistrationsRepository } from '../../core/data/registrations-repository';
-import { Registration, RegistrationCampaign } from '../../core/models/registration';
+import { PublicCampaign } from '../../core/models/campaign';
+import { Registration, registrationCampaign } from '../../core/models/registration';
 import { SocialAccount } from '../../core/models/user';
 import {
-  daysLeftLabel,
-  formatDate,
   formatMoneyExact,
   NOT_ANNOUNCED,
-  platformLabel,
   registrationStatusLabel,
   registrationStatusTone,
 } from '../../core/util/campaign-format';
-import { BrandLogoTile } from '../../shared/admin/brand-logo-tile';
 import { StatCard } from '../../shared/admin/stat-card';
+import { PublicCampaignCard } from '../../shared/public/public-campaign-card';
 import { SocialsDialog } from './socials-dialog';
 
 type DashboardState = 'loading' | 'ready' | 'error';
@@ -69,14 +66,13 @@ function readJoinedCommunity(): boolean {
  */
 @Component({
   imports: [
-    BrandLogoTile,
     ButtonModule,
     Check,
-    Clock,
     Home,
     Link,
     Megaphone,
     MessageModule,
+    PublicCampaignCard,
     RouterLink,
     Search,
     SkeletonModule,
@@ -176,10 +172,6 @@ export class CreatorDashboard {
     this.campaignsDone() ? this.campaignsJoinedSubtitle() : 'Browse and apply to brand campaigns.',
   );
 
-  protected readonly daysLeftLabel = daysLeftLabel;
-  protected readonly formatDate = formatDate;
-  protected readonly formatMoneyExact = formatMoneyExact;
-  protected readonly platformLabel = platformLabel;
   protected readonly registrationStatusLabel = registrationStatusLabel;
   protected readonly registrationStatusTone = registrationStatusTone;
 
@@ -188,21 +180,23 @@ export class CreatorDashboard {
   }
 
   /**
-   * A registration only carries a campaign summary - no `startDate` - so an
-   * UPCOMING campaign cannot be counted down to and says so instead of
-   * borrowing the "N days left" copy.
+   * The embedded campaign, normalised to the public contract. Environments
+   * still serving the old flat summary render the card's "not announced"
+   * states rather than crashing on a missing `brand`.
    */
-  protected campaignTime(campaign: RegistrationCampaign): string {
-    switch (campaign.status) {
-      case 'CLOSED':
-        return 'Ended';
-      case 'DRAFT':
-        return 'Not scheduled';
-      case 'UPCOMING':
-        return 'Not started';
-      default:
-        return daysLeftLabel(campaign.endDate);
-    }
+  protected campaignOf(application: Registration): PublicCampaign {
+    return registrationCampaign(application.campaign);
+  }
+
+  /**
+   * Takes the "26d ago" slot on the card, which the clipper does not need here.
+   * Abbreviated because that slot is one line beside a truncating brand name.
+   */
+  protected appliedLabel(application: Registration): string {
+    const applied = new Date(application.createdAt);
+    return Number.isNaN(applied.getTime())
+      ? NOT_ANNOUNCED
+      : applied.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
   }
 
   protected openSocialsDialog(): void {
