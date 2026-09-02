@@ -15,10 +15,10 @@ import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { firstValueFrom } from 'rxjs';
-import { toApiError } from '../../core/api/api-error';
-import { APP_ENVIRONMENT } from '../../core/config/app-environment';
-import { Me, SocialAccount } from '../../core/models/user';
-import { firstErrorMessage, httpUrlValidator } from '../../shared/components/form-errors';
+import { toApiError } from '../../../core/api/api-error';
+import { APP_ENVIRONMENT } from '../../../core/config/app-environment';
+import { Me, SocialAccount } from '../../../core/models/user';
+import { firstErrorMessage, httpUrlValidator } from '../../../shared/components/form-errors';
 
 const LINK_MESSAGES: Record<string, string> = {
   required: 'Add the link, or remove this row.',

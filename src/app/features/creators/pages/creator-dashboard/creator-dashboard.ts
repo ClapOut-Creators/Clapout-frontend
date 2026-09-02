@@ -12,21 +12,21 @@ import { MessageModule } from 'primeng/message';
 import { SkeletonModule } from 'primeng/skeleton';
 import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
-import { ApiError } from '../../core/api/api-error';
-import { AuthService } from '../../core/auth/auth-service';
-import { RegistrationsRepository } from '../registrations/data-access/registrations-repository';
-import { PublicCampaign } from '../campaigns/models/campaign';
-import { Registration, registrationCampaign } from '../registrations/models/registration';
-import { SocialAccount } from '../../core/models/user';
+import { ApiError } from '../../../../core/api/api-error';
+import { AuthService } from '../../../../core/auth/auth-service';
+import { RegistrationsRepository } from '../../../registrations/data-access/registrations-repository';
+import { PublicCampaign } from '../../../campaigns/models/campaign';
+import { Registration, registrationCampaign } from '../../../registrations/models/registration';
+import { SocialAccount } from '../../../../core/models/user';
 import {
   formatMoneyExact,
   NOT_ANNOUNCED,
   registrationStatusLabel,
   registrationStatusTone,
-} from '../../shared/utils/campaign-format';
-import { StatCard } from '../../shared/components/stat-card';
-import { PublicCampaignCard } from '../campaigns/components/public-campaign-card';
-import { SocialsDialog } from './socials-dialog';
+} from '../../../../shared/utils/campaign-format';
+import { StatCard } from '../../../../shared/components/stat-card';
+import { PublicCampaignCard } from '../../../campaigns/components/public-campaign-card';
+import { SocialsDialog } from '../../components/socials-dialog';
 
 type DashboardState = 'loading' | 'ready' | 'error';
 
