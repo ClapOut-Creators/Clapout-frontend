@@ -75,3 +75,28 @@ export function toInternationalPhone(dialCode: string, localNumber: string): str
   }
   return `+${dialCode.replace(/\D/g, '')}${digits.replace(/^0/, '')}`;
 }
+
+/**
+ * The inverse of {@link toInternationalPhone}, for forms that are prefilled
+ * with a number the API already stores internationally (a partnership
+ * inquiry's phone, say). The longest matching dial code wins, so '+1' never
+ * steals a number that belongs to a longer code, and an unrecognised country
+ * keeps the whole number in the local field with the default country selected
+ * — nothing is silently dropped.
+ */
+export function splitInternationalPhone(phone: string | null | undefined): {
+  iso: string;
+  local: string;
+} {
+  const trimmed = (phone ?? '').trim();
+  if (!trimmed.startsWith('+')) {
+    return { iso: DEFAULT_PHONE_ISO, local: trimmed };
+  }
+  const match = [...PHONE_CODES]
+    .sort((a, b) => b.dialCode.length - a.dialCode.length)
+    .find((entry) => trimmed.startsWith(entry.dialCode));
+  if (!match) {
+    return { iso: DEFAULT_PHONE_ISO, local: trimmed };
+  }
+  return { iso: match.iso, local: trimmed.slice(match.dialCode.length).trim() };
+}

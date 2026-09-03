@@ -26,6 +26,11 @@ export interface AdminStats {
   pendingSubmissions?: number;
   /** Partnership inquiries still at status NEW. Optional for the same reason. */
   newInquiries?: number;
+  /**
+   * Brand invites that are PENDING and not yet expired. Optional for the same
+   * reason — an older API must not render a misleading zero.
+   */
+  pendingBrandInvites?: number;
 }
 
 /** The creator behind a registration, with the contact + payout details admins need. */

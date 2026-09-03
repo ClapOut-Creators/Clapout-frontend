@@ -1,4 +1,5 @@
 import { InquiryStatus } from '../models/admin';
+import { BrandInviteStatus } from '../models/brand-invite';
 import { CampaignPlatform, CampaignStatus } from '../models/campaign';
 import { RegistrationStatus } from '../models/registration';
 import { CurrencyTotal, SubmissionStatus } from '../models/submission';
@@ -268,6 +269,33 @@ export function inquiryStatusLabel(status: InquiryStatus): string {
 
 export function inquiryStatusTone(status: InquiryStatus): TagTone {
   return INQUIRY_STATUS_TONES[status] ?? 'secondary';
+}
+
+const BRAND_INVITE_STATUS_LABELS: Record<BrandInviteStatus, string> = {
+  PENDING: 'Pending',
+  COMPLETED: 'Completed',
+  REVOKED: 'Revoked',
+  EXPIRED: 'Expired',
+};
+
+/**
+ * PENDING is the live link and takes the informational blue; COMPLETED is the
+ * happy ending. REVOKED and EXPIRED are both dead links, but only one of them
+ * was a deliberate act, so the cancelled one keeps the danger red.
+ */
+const BRAND_INVITE_STATUS_TONES: Record<BrandInviteStatus, TagTone> = {
+  PENDING: 'info',
+  COMPLETED: 'success',
+  REVOKED: 'danger',
+  EXPIRED: 'secondary',
+};
+
+export function brandInviteStatusLabel(status: BrandInviteStatus): string {
+  return BRAND_INVITE_STATUS_LABELS[status] ?? status;
+}
+
+export function brandInviteStatusTone(status: BrandInviteStatus): TagTone {
+  return BRAND_INVITE_STATUS_TONES[status] ?? 'secondary';
 }
 
 /** '12,400' — view counts are always whole numbers, or the em dash when unknown. */

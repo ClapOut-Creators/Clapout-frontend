@@ -411,6 +411,111 @@ brand from inquiry" action → `/admin/brands/new?inquiryId=` prefilled with
 company → name, link → website, name/email/phone → primary contact; saving that brand
 patches the inquiry to CONVERTED with the new `brandId`).
 
+### Brand invites (added 2026-09-02 — self-serve brand onboarding link)
+
+Until brands have their own portal, an admin generates a single-use link and sends it to
+the brand's representative (WhatsApp/email — the admin sends it, the API sends nothing).
+The link opens a public, chromeless page on the platform where the rep completes the
+same three-step brand wizard admins use (Brand Details → Brand Location → Primary
+Contact), prefilled with whatever the admin already knew. Completing it creates the
+Brand (ACTIVE, exactly as `POST /admin/brands` would) and marks the invite used.
+
+The link is `${platform origin}/brand/onboard/${token}`; the platform composes it from
+its own origin (`window.location.origin`), so no URL base env is needed on the API.
+
+```ts
+// EXPIRED is computed: a PENDING invite whose expiresAt is in the past. Never stored.
+type BrandInviteStatus = 'PENDING' | 'COMPLETED' | 'REVOKED' | 'EXPIRED';
+
+interface BrandInvite {                 // admin view
+  id: string;
+  token: string;                        // 32 random bytes, base64url — the secret in the link
+  status: BrandInviteStatus;
+  brandName: string | null;             // prefill hints shown to the rep
+  contactName: string | null;
+  contactEmail: string | null;
+  contactPhone: string | null;          // international, e.g. '+233…'
+  website: string | null;
+  note: string | null;                  // internal, never shown to the rep
+  inquiryId: string | null;             // partnership inquiry this invite was sent for
+  brandId: string | null;               // brand created through this invite
+  brand: { id: string; name: string; slug: string } | null;
+  createdBy: { id: string; fullName: string };
+  expiresAt: string;
+  completedAt: string | null;
+  revokedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface PublicBrandInvite {           // what the rep's page sees — no token echo, no internals
+  status: BrandInviteStatus;
+  brandName: string | null;
+  contactName: string | null;
+  contactEmail: string | null;
+  contactPhone: string | null;
+  website: string | null;
+  expiresAt: string;
+  completedBrandName: string | null;    // set once COMPLETED
+}
+```
+
+Admin endpoints (Bearer + role ADMIN):
+
+- `POST /admin/brand-invites`
+  `{ brandName?, contactName?, contactEmail?, contactPhone?, website?, note?, expiresInDays?, inquiryId? }`
+  → `201 { data: BrandInvite }`. `expiresInDays` 1–90, default 14. Limits: brandName/
+  contactName ≤ 120, contactEmail ≤ 160 (email when present), contactPhone ≤ 40,
+  website ≤ 2000, note ≤ 2000. `422 INQUIRY_NOT_FOUND` for an unknown inquiryId; when
+  the inquiry is NEW it moves to CONTACTED.
+- `GET /admin/brand-invites?status=&search=` → `200 { data: BrandInvite[] }` newest first
+  (`status` accepts the computed EXPIRED too; `search`: brandName / contactName /
+  contactEmail, case-insensitive contains)
+- `GET /admin/brand-invites/:id` → `200 { data }` | `404 INVITE_NOT_FOUND`
+- `POST /admin/brand-invites/:id/revoke` → `200 { data }` (PENDING → REVOKED) |
+  `409 INVITE_NOT_PENDING` for anything else
+- `DELETE /admin/brand-invites/:id` → `204` | `409 INVITE_HAS_BRAND` while `brandId` is set
+  (delete the brand first — `Brand` → invite is `onDelete: SetNull`); lets admins clean up
+  mistaken or test invites
+- `GET /admin/stats` gains `pendingBrandInvites` (PENDING and not expired) — additive
+
+Public endpoints (no auth; the token is the credential; best-effort per-IP limits like
+the inquiry form — 60 reads and 10 completions per 10 minutes → `429 RATE_LIMITED`):
+
+- `GET /public/brand-invites/:token` → `200 { data: PublicBrandInvite }` |
+  `404 INVITE_NOT_FOUND`. A used, revoked or expired invite still answers 200 with that
+  status so the page can explain what happened.
+- `POST /public/brand-invites/:token/complete` — body is `BrandInput` without `status`
+  (`name` required; the same validation as `POST /admin/brands`, logo as https or
+  data:image/ ≤ 700 KB) → `201 { data: { brand: { id, name, slug }, invite: PublicBrandInvite } }`
+  | `404 INVITE_NOT_FOUND` | `410 INVITE_USED` | `410 INVITE_REVOKED` | `410 INVITE_EXPIRED`
+  | `409 BRAND_EXISTS` (name clash, case-insensitive — the page tells the rep to contact
+  ClapOut) | `422 VALIDATION`. The brand is created ACTIVE and the invite is marked
+  COMPLETED (`brandId`, `completedAt`) in ONE transaction whose invite update is
+  conditional on `status = 'PENDING'`, so a double submit can never create two brands.
+  When the invite carries an `inquiryId`, that inquiry becomes CONVERTED with the brandId.
+
+Platform:
+
+- Public route `/brand/onboard/:token`, chromeless like the auth pages (logo, "Set up
+  your brand on ClapOut", no nav/footer/sign-in). States: loading; invalid link;
+  used / revoked / expired (friendly explanation + "Contact ClapOut" mailto
+  clapoutcreators@gmail.com); the wizard prefilled from the invite; success ("Brand saved!
+  The ClapOut team will be in touch to plan your first campaign.") with no admin links.
+  `BRAND_EXISTS` renders inline on the details step.
+- The brand wizard's three steps become a shared form component used by BOTH the admin
+  wizard (`/admin/brands/new`, `/:id/edit` — must stay 1:1 with Figma) and the public
+  page; only the shell, the submit target and the success screen differ.
+- `/admin/brands`: an "Invite a brand" button beside "Create brand" opens a dialog (brand
+  name, contact name / email / phone, website, expiry 7 / 14 / 30 days, internal note);
+  on success the dialog shows the link with Copy and, when a phone is present, "Send on
+  WhatsApp" (`https://wa.me/<digits>?text=<prefilled message with the link>`). A "Brand
+  invites" section on the same page lists invites (brand, contact, status tag, sent,
+  expires, created-brand link, Copy link, Revoke with confirm), filterable by status.
+- The inquiry drawer (`/admin/inquiries`) gets "Send brand invite", which opens that same
+  dialog prefilled from the inquiry (company → brand name, contact, phone, email, link →
+  website, `inquiryId`), so the admin never retypes what the brand already sent.
+
 ### Misc
 
 - `GET /health` → `200 { ok: true }`

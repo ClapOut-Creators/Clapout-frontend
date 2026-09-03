@@ -16,6 +16,7 @@ import {
   PartnershipInquiry,
 } from '../models/admin';
 import { Brand, BrandDetail, BrandInput } from '../models/brand';
+import { BrandInvite, BrandInviteQuery, CreateBrandInviteInput } from '../models/brand-invite';
 import { PublicCampaign } from '../models/campaign';
 import { RegistrationStatus } from '../models/registration';
 
@@ -239,6 +240,92 @@ export class AdminRepository {
     try {
       await firstValueFrom(
         this.http.delete<void>(`${this.baseUrl}/brands/${encodeURIComponent(id)}`),
+      );
+    } catch (error) {
+      throw toApiError(error);
+    }
+  }
+
+  // --------------------------------------------------------- brand invites
+
+  /**
+   * `GET /admin/brand-invites?status=&search=` — newest first. `status`
+   * accepts the computed EXPIRED as well as the three stored ones.
+   */
+  async brandInvites(query: BrandInviteQuery = {}): Promise<BrandInvite[]> {
+    let params = new HttpParams();
+    if (query.status) {
+      params = params.set('status', query.status);
+    }
+    if (query.search?.trim()) {
+      params = params.set('search', query.search.trim());
+    }
+    try {
+      const response = await firstValueFrom(
+        this.http.get<{ data: BrandInvite[] }>(`${this.baseUrl}/brand-invites`, { params }),
+      );
+      return response.data ?? [];
+    } catch (error) {
+      throw toApiError(error);
+    }
+  }
+
+  /** `GET /admin/brand-invites/:id` — `404 INVITE_NOT_FOUND`. */
+  async brandInvite(id: string): Promise<BrandInvite> {
+    try {
+      const response = await firstValueFrom(
+        this.http.get<{ data: BrandInvite }>(
+          `${this.baseUrl}/brand-invites/${encodeURIComponent(id)}`,
+        ),
+      );
+      return response.data;
+    } catch (error) {
+      throw toApiError(error);
+    }
+  }
+
+  /**
+   * `POST /admin/brand-invites` — returns the token the platform composes the
+   * link from. An `inquiryId` also moves a NEW inquiry to CONTACTED
+   * (`422 INQUIRY_NOT_FOUND` when the inquiry is unknown).
+   */
+  async createBrandInvite(input: CreateBrandInviteInput): Promise<BrandInvite> {
+    try {
+      const response = await firstValueFrom(
+        this.http.post<{ data: BrandInvite }>(`${this.baseUrl}/brand-invites`, input),
+      );
+      return response.data;
+    } catch (error) {
+      throw toApiError(error);
+    }
+  }
+
+  /**
+   * `POST /admin/brand-invites/:id/revoke` — PENDING becomes REVOKED;
+   * `409 INVITE_NOT_PENDING` for anything else.
+   */
+  async revokeBrandInvite(id: string): Promise<BrandInvite> {
+    try {
+      const response = await firstValueFrom(
+        this.http.post<{ data: BrandInvite }>(
+          `${this.baseUrl}/brand-invites/${encodeURIComponent(id)}/revoke`,
+          {},
+        ),
+      );
+      return response.data;
+    } catch (error) {
+      throw toApiError(error);
+    }
+  }
+
+  /**
+   * `DELETE /admin/brand-invites/:id` — `409 INVITE_HAS_BRAND` while the
+   * invite still points at a brand, so the brand has to go first.
+   */
+  async deleteBrandInvite(id: string): Promise<void> {
+    try {
+      await firstValueFrom(
+        this.http.delete<void>(`${this.baseUrl}/brand-invites/${encodeURIComponent(id)}`),
       );
     } catch (error) {
       throw toApiError(error);
