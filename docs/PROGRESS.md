@@ -356,6 +356,68 @@ pairs in `core/util/campaign-format.ts`.
   the public success screen, so the screenshot set cost the database exactly one
   invite and one brand, both since removed.
 
+### Emailing the brand invite (2026-09-03)
+
+The link used to leave the platform only by hand — copied into WhatsApp or an
+email the admin wrote themselves. It can now go out from
+`hello@mail.clapoutcreators.com` on the company's verified domain, and the
+platform records where it landed.
+
+`BrandInvite` gains `emailSentTo` / `emailSentAt` / `emailSendCount`,
+`CreateBrandInviteInput` gains `sendEmail`, and `POST /admin/brand-invites`
+answers `{ data, warning? }` — a refused auto-send never fails the create, so
+`AdminRepository.createBrandInvite` returns `{ invite, warning? }` rather than
+throwing away the link the admin came for. `sendBrandInviteEmail(id, to?)`
+covers the resend.
+
+In the invite dialog a checkbox appears under the Email field as soon as that
+field holds a valid address, naming it — "Email the link to name@brand.com right
+away", ticked by default. The link state keeps Copy and WhatsApp and adds an
+"Email the link" block: the address, editable and prefilled with wherever the
+invite last went, `Send email` / `Send again`, and a delivery line reading
+`Sent to name@brand.com · just now` (`core/util/campaign-format.ts` gained
+`relativeTime`, which hands over to the plain date after a week). When the
+automatic send failed, the create's `warning` sits there as a warn message with
+the retry directly above it. `brandInviteEmailError` maps the failures:
+`EMAIL_FAILED` passes Resend's own reason straight through, since "domain not
+verified" is the whole answer, and `INVITE_EMAIL_MISSING` points at the field.
+
+The invites table gets an `Email` action on pending rows — a confirm when the
+row has an address, a small dialog asking for one when it does not — and
+`Emailed <date> (×N)` under the contact, the count only once there has been a
+resend. The row updates in place from the response.
+
+The dialog now has two outputs. `created` carries the final invite, email fields
+included, so a host that refreshes sees the send that already happened; `emailed`
+is separate because the inquiry drawer hangs a re-read of its inquiry off
+`created` (issuing an invite moves a NEW inquiry to CONTACTED) and a resend has
+nothing to tell it. `/admin/brands` listens to both and reloads the table.
+
+### Live verification of invite emails (2026-09-03)
+
+Three emails, all to `oforistep1@gmail.com`, against the live API and the real
+Resend account. Invite one ("TEST email invite — delete me") was created from
+`/admin/brands` with the checkbox ticked and came back already sent — the link
+state read `Sent to oforistep1@gmail.com · just now` with no warning, and the
+create toast named the address. "Send again" from that same state sent the
+second and took `emailSendCount` to 2. Invite two was created with the checkbox
+cleared, arrived with no delivery line and a `Send email` button, and was then
+emailed from the table's `Email` action: the confirm asked "Email the link to
+oforistep1@gmail.com?" and the row updated in place. The table showed
+`Emailed 3 September 2026` on the once-sent row and `(×2)` on the resent one.
+
+A third invite was created with no contact email to check that path: its `Email`
+action opens the small "Where should the link go?" dialog rather than bouncing
+off `422 INVITE_EMAIL_MISSING`. It was cancelled, so it cost no email. All three
+invites were then deleted through the table's Delete action —
+`GET /admin/brand-invites` is empty and the brand list still holds only the two
+real brands. The console was clean throughout.
+
+Screenshots at 1728×1048 and iPhone 13 (390px) cover the form state with the
+checkbox, the link-ready state with the delivery line, and the table with the
+"Emailed" indicator; the 390px set is Playwright-stubbed, so the whole
+verification cost exactly the three emails above.
+
 ## In progress
 
 - Nothing mid-flight. The admin section passed its full live pass on
