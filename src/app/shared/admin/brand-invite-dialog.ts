@@ -1,4 +1,14 @@
-import { Component, computed, effect, inject, input, model, output, signal } from '@angular/core';
+import {
+  Component,
+  computed,
+  effect,
+  inject,
+  input,
+  model,
+  output,
+  signal,
+  untracked,
+} from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Check } from '@primeicons/angular/check';
 import { Copy } from '@primeicons/angular/copy';
@@ -375,11 +385,18 @@ export class BrandInviteDialog {
 
   constructor() {
     // Opening is always a fresh start: a stale link from the previous invite
-    // must never be the thing the admin copies.
+    // must never be the thing the admin copies. Only the open/close transition
+    // may trigger it: `reset()` reads `prefill`, and hosts refresh their prefill
+    // right after `created` fires (the inquiry drawer re-reads the row to show
+    // CONTACTED). Tracking that read would wipe the link state the moment it
+    // appeared.
     effect(() => {
-      if (this.visible()) {
-        this.reset();
-      }
+      const visible = this.visible();
+      untracked(() => {
+        if (visible) {
+          this.reset();
+        }
+      });
     });
   }
 
