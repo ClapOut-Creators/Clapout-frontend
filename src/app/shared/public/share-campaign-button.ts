@@ -4,15 +4,17 @@ import { MessageService } from 'primeng/api';
 import { DialogModule } from 'primeng/dialog';
 
 /**
- * `pill` is the light bordered button on the public campaign page, `text` the
- * compact control on an admin card, `icon` drops the label, `secondary` matches
- * the grey admin header actions, and `block` is a full-width row for the
- * wizard's success screen.
+ * `pill` is the light bordered button on the public campaign page, `dark` its
+ * black counterpart on the signed-in studio card (Figma 397:3135 "Frame 6"),
+ * `text` the compact control on an admin card, `icon` drops the label,
+ * `secondary` matches the grey admin header actions, and `block` is a
+ * full-width row for the wizard's success screen.
  */
-export type ShareVariant = 'pill' | 'text' | 'icon' | 'secondary' | 'block';
+export type ShareVariant = 'pill' | 'dark' | 'text' | 'icon' | 'secondary' | 'block';
 
 const VARIANT_CLASSES: Record<ShareVariant, string> = {
   pill: 'gap-2.5 rounded-full border border-[#D7D7D7] bg-white px-3 py-1 text-[16px] leading-6 text-[#212121] hover:bg-[#F6F6F6]',
+  dark: 'gap-2.5 rounded-full bg-black px-2 py-0.5 text-[16px] leading-[23.8px] text-white [font-family:var(--clapout-font-heading)] hover:bg-[#242424] lg:px-3.5 lg:py-1',
   text: 'gap-1.5 rounded-full border border-[#DDDDDD] bg-white px-2.5 py-1 text-[13.13px] leading-[17.07px] font-medium text-[#525252] hover:bg-[#F1F1F1]',
   icon: 'h-9 w-9 justify-center rounded-full border border-[#D7D7D7] bg-white text-[#212121] hover:bg-[#F6F6F6]',
   secondary:
@@ -55,7 +57,8 @@ export function campaignShareUrl(origin: string, slug: string): string {
         stroke-width="2"
         stroke-linecap="round"
         stroke-linejoin="round"
-        class="h-4 w-4 shrink-0"
+        class="shrink-0"
+        [class]="iconClass()"
         aria-hidden="true"
       >
         <path d="M14 5l7 7-7 7M21 12H9a6 6 0 0 0-6 6v1" />
@@ -97,6 +100,10 @@ export class ShareCampaignButton {
 
   protected readonly fallbackOpen = signal(false);
   protected readonly buttonClass = computed(() => VARIANT_CLASSES[this.variant()]);
+  /** The studio pill draws an 18px arrow; every other placement keeps 16px. */
+  protected readonly iconClass = computed(() =>
+    this.variant() === 'dark' ? 'h-[18px] w-[18px]' : 'h-4 w-4',
+  );
 
   protected readonly shareUrl = computed(() =>
     campaignShareUrl(this.document.defaultView?.location.origin ?? '', this.slug()),
