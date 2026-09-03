@@ -1,17 +1,23 @@
-<main class="flex min-h-svh flex-col items-center justify-center bg-white px-4 py-10">
-  <div class="flex h-[66px] w-[66px] items-center justify-center rounded-[20px] bg-primary p-2">
+<main class="flex min-h-svh flex-col items-center justify-center bg-white px-[26px] py-10 sm:px-4">
+  <div
+    class="flex h-[42px] w-[42px] items-center justify-center rounded-[12.7px] bg-primary p-[5px] sm:h-[66px] sm:w-[66px] sm:rounded-[20px] sm:p-2"
+  >
     <img
       src="/logo/clapout-logo.png"
       alt=""
-      class="h-[50px] w-[50px] object-contain select-none"
+      class="h-8 w-8 object-contain select-none sm:h-[50px] sm:w-[50px]"
       draggable="false"
     />
   </div>
 
-  <h1 class="mt-[5px] text-center text-[32px] leading-[34px] font-semibold text-black/80">
+  <h1
+    class="mt-[10px] text-center text-[24px] leading-[36px] font-semibold text-black/80 sm:mt-[5px] sm:text-[32px] sm:leading-[34px]"
+  >
     Create Account
   </h1>
-  <p class="mt-3 max-w-[456px] text-center text-[18px] leading-[21px] text-[#464646]">
+  <p
+    class="mt-1.5 max-w-[456px] text-center text-[16px] leading-[19px] text-[#464646] sm:mt-3 sm:text-[18px] sm:leading-[21px]"
+  >
     One account lets you apply to every ClapOut campaign and track your payouts.
   </p>
 
@@ -22,13 +28,15 @@
   }
 
   <form
-    class="mt-4 flex w-full max-w-[456px] flex-col gap-3"
+    class="mt-[31px] flex w-full max-w-[456px] flex-col gap-3 sm:mt-4"
     [formGroup]="form"
     (ngSubmit)="submit()"
     novalidate
   >
     <div class="flex flex-col gap-2">
-      <label class="text-[18px] leading-[21px] font-medium text-[#0C0C0C]" for="signup-name"
+      <label
+        class="text-[16px] leading-[19px] font-medium text-[#0C0C0C] sm:text-[18px] sm:leading-[21px]"
+        for="signup-name"
         >Full name</label
       >
       <input
@@ -38,7 +46,7 @@
         placeholder="Your name"
         autocomplete="name"
         formControlName="fullName"
-        class="h-[50px] w-full rounded-xl border border-[#D7D7D7] bg-white px-[18px] text-[18px] placeholder:text-[#DFDFDF]"
+        class="h-12 w-full rounded-lg border border-[#D7D7D7] bg-white px-[17px] text-[16px] placeholder:text-[#DFDFDF] sm:h-[50px] sm:rounded-xl sm:px-[18px] sm:text-[18px]"
         [attr.aria-invalid]="fieldError('fullName') ? 'true' : null"
         [attr.aria-describedby]="fieldError('fullName') ? 'signup-name-error' : null"
       />
@@ -48,7 +56,9 @@
     </div>
 
     <div class="flex flex-col gap-2">
-      <label class="text-[18px] leading-[21px] font-medium text-[#0C0C0C]" for="signup-email"
+      <label
+        class="text-[16px] leading-[19px] font-medium text-[#0C0C0C] sm:text-[18px] sm:leading-[21px]"
+        for="signup-email"
         >Email</label
       >
       <input
@@ -58,7 +68,7 @@
         placeholder="Your email"
         autocomplete="email"
         formControlName="email"
-        class="h-[50px] w-full rounded-xl border border-[#D7D7D7] bg-white px-[18px] text-[18px] placeholder:text-[#DFDFDF]"
+        class="h-12 w-full rounded-lg border border-[#D7D7D7] bg-white px-[17px] text-[16px] placeholder:text-[#DFDFDF] sm:h-[50px] sm:rounded-xl sm:px-[18px] sm:text-[18px]"
         [attr.aria-invalid]="fieldError('email') ? 'true' : null"
         [attr.aria-describedby]="fieldError('email') ? 'signup-email-error' : null"
       />
@@ -68,14 +78,16 @@
     </div>
 
     <div class="flex flex-col gap-2">
-      <label class="text-[18px] leading-[21px] font-medium text-[#0C0C0C]" for="signup-password"
+      <label
+        class="text-[16px] leading-[19px] font-medium text-[#0C0C0C] sm:text-[18px] sm:leading-[21px]"
+        for="signup-password"
         >Password</label
       >
       <p-password
         inputId="signup-password"
         formControlName="password"
         class="block w-full"
-        inputStyleClass="h-[50px] w-full rounded-xl border border-[#D7D7D7] bg-white pl-[18px] pr-[52px] text-[18px] placeholder:text-[#DFDFDF]"
+        inputStyleClass="h-12 w-full rounded-lg border border-[#D7D7D7] bg-white pl-[17px] pr-[52px] text-[16px] placeholder:text-[#DFDFDF] sm:h-[50px] sm:rounded-xl sm:pl-[18px] sm:pr-[52px] sm:text-[18px]"
         placeholder="Your password"
         autocomplete="new-password"
         [feedback]="false"
@@ -96,7 +108,9 @@
     </div>
 
     <div class="flex flex-col gap-2">
-      <label class="text-[18px] leading-[21px] font-medium text-[#0C0C0C]" for="signup-whatsapp"
+      <label
+        class="text-[16px] leading-[19px] font-medium text-[#0C0C0C] sm:text-[18px] sm:leading-[21px]"
+        for="signup-whatsapp"
         >Whatsapp username</label
       >
       <input
@@ -105,7 +119,7 @@
         type="text"
         placeholder="@"
         formControlName="whatsapp"
-        class="h-[50px] w-full rounded-xl border border-[#D7D7D7] bg-white px-[18px] text-[18px] placeholder:text-[#DFDFDF]"
+        class="h-12 w-full rounded-lg border border-[#D7D7D7] bg-white px-[17px] text-[16px] placeholder:text-[#DFDFDF] sm:h-[50px] sm:rounded-xl sm:px-[18px] sm:text-[18px]"
         [attr.aria-invalid]="fieldError('whatsapp') ? 'true' : null"
         [attr.aria-describedby]="fieldError('whatsapp') ? 'signup-whatsapp-error' : null"
       />
@@ -115,18 +129,20 @@
     </div>
 
     <div class="flex flex-col gap-2">
-      <label class="text-[18px] leading-[21px] font-medium text-[#0C0C0C]" for="signup-phone"
+      <label
+        class="text-[16px] leading-[19px] font-medium text-[#0C0C0C] sm:text-[18px] sm:leading-[21px]"
+        for="signup-phone"
         >Phone number</label
       >
       <div
-        class="flex h-[50px] w-full items-center gap-[6px] rounded-xl border border-[#D7D7D7] bg-white px-[18px]"
+        class="flex h-12 w-full items-center gap-[6px] rounded-lg border border-[#D7D7D7] bg-white px-[17px] sm:h-[50px] sm:rounded-xl sm:px-[18px]"
       >
         <p-select
           ariaLabel="Country dialling code"
           formControlName="phoneCountry"
           optionLabel="label"
           optionValue="iso"
-          class="shrink-0 !border-0 !bg-transparent !shadow-none [&_.p-select-dropdown]:!w-6 [&_.p-select-label]:!px-0 [&_.p-select-label]:!py-0 [&_.p-select-label]:!text-[18px] [&_.p-select-label]:!text-[#5A5A5A]"
+          class="shrink-0 !border-0 !bg-transparent !shadow-none [&_.p-select-dropdown]:!w-6 [&_.p-select-label]:!px-0 [&_.p-select-label]:!py-0 [&_.p-select-label]:!text-[16px] [&_.p-select-label]:!text-[#5A5A5A] sm:[&_.p-select-label]:!text-[18px]"
           [options]="phoneCodes"
         >
           <ng-template #selectedItem let-option>{{ option?.dialCode }}</ng-template>
@@ -139,7 +155,7 @@
           placeholder="020 123 4567"
           autocomplete="tel-national"
           formControlName="phone"
-          class="h-full min-w-0 flex-1 !rounded-none !border-0 !bg-transparent !px-0 !shadow-none text-[18px] placeholder:text-[#DFDFDF]"
+          class="h-full min-w-0 flex-1 !rounded-none !border-0 !bg-transparent !px-0 !shadow-none text-[16px] placeholder:text-[#DFDFDF] sm:text-[18px]"
           [attr.aria-invalid]="fieldError('phone') ? 'true' : null"
           [attr.aria-describedby]="fieldError('phone') ? 'signup-phone-error' : null"
         />
@@ -157,7 +173,7 @@
           class="mt-[2px] [&_.p-checkbox-box]:!h-4 [&_.p-checkbox-box]:!w-4 [&_.p-checkbox-box]:!rounded-[4px] [&_.p-checkbox-box]:!border-[#D7D7D7]"
           [binary]="true"
         />
-        <span class="text-[18px] leading-[21px] text-[#464646]">
+        <span class="text-[16px] leading-[19px] text-[#464646] sm:text-[18px] sm:leading-[21px]">
           <label class="cursor-pointer" for="signup-terms">I agree to Clapout&nbsp;</label>
           <a
             routerLink="/terms"
@@ -174,14 +190,16 @@
     <p-button
       type="submit"
       label="Create account"
-      styleClass="!h-[50px] !w-full !justify-center !rounded-xl !bg-primary !border-primary !text-[18px] !shadow-none"
+      styleClass="!h-12 !w-full !justify-center !rounded-lg !bg-primary !border-primary !text-[16px] !shadow-none sm:!h-[50px] sm:!rounded-xl sm:!text-[18px]"
       [fluid]="true"
       [loading]="submitting()"
       [disabled]="submitting()"
     />
   </form>
 
-  <p class="mt-4 text-center text-[18px] leading-[21px] text-[#464646]">
+  <p
+    class="mt-[31px] text-center text-[16px] leading-[19px] text-[#464646] sm:mt-4 sm:text-[18px] sm:leading-[21px]"
+  >
     I already have an account?
     <a
       [routerLink]="signInLink()"

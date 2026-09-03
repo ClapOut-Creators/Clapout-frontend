@@ -7,7 +7,12 @@
     tooltipPosition="right"
     aria-label="ClapOut home"
   >
-    <img src="/logo/clapout-logo.png" alt="" class="size-13 max-w-none shrink-0 select-none" draggable="false" />
+    <img
+      src="/logo/clapout-logo.png"
+      alt=""
+      class="size-13 max-w-none shrink-0 select-none"
+      draggable="false"
+    />
   </a>
 
   <nav aria-label="Primary" class="mt-8 flex flex-1 flex-col items-center gap-4">
@@ -191,3 +196,128 @@
     }
   </nav>
 </p-drawer>
+
+<!--
+  Phone tab bar (Figma 366:376 / 397:2720 / 398:4552 "Frame 274"): a 402x86
+  white bar with five 40px slots and the 62px action circle overhanging its top
+  edge. Positions are the board's x offsets as percentages of its 402px width.
+  The glyphs are Solar "Bold" icons redrawn inline — the cut-outs are painted in
+  the bar's own white rather than punched out, which is why this only ever sits
+  on the white bar (the circle's glyph uses a real hole instead).
+-->
+@if (showMobileTabBar()) {
+  <nav class="co-mobile-tabbar lg:hidden" aria-label="Quick navigation">
+    @for (tab of mobileTabs; track tab.icon) {
+      @if (tab.path; as path) {
+        <a
+          [routerLink]="path"
+          routerLinkActive="co-tabbar-slot-active"
+          class="co-tabbar-slot {{ tab.left }}"
+          [attr.aria-label]="tab.label"
+        >
+          <ng-container
+            [ngTemplateOutlet]="tabGlyph"
+            [ngTemplateOutletContext]="{ $implicit: tab.icon }"
+          />
+        </a>
+      } @else {
+        <button
+          type="button"
+          class="co-tabbar-slot co-tabbar-slot-disabled {{ tab.left }}"
+          aria-disabled="true"
+          [attr.aria-label]="tab.label + ' — coming soon'"
+        >
+          <ng-container
+            [ngTemplateOutlet]="tabGlyph"
+            [ngTemplateOutletContext]="{ $implicit: tab.icon }"
+          />
+        </button>
+      }
+    }
+
+    <a
+      routerLink="/creator/submissions"
+      class="co-tabbar-action left-[43.781%]"
+      aria-label="Library"
+    >
+      <!-- Solar "Library" bold: the lidded box, with the label slot punched out. -->
+      <svg viewBox="0 0 24 24" class="size-[30px]" fill="currentColor" aria-hidden="true">
+        <path d="M8.8 3.1h6.4a.95.95 0 0 1 0 1.9H8.8a.95.95 0 0 1 0-1.9Z" />
+        <path d="M7.2 5.6h9.6a1.05 1.05 0 0 1 0 2.1H7.2a1.05 1.05 0 0 1 0-2.1Z" />
+        <path
+          fill-rule="evenodd"
+          d="M6 11a2.7 2.7 0 0 1 2.7-2.7h6.6A2.7 2.7 0 0 1 18 11v5.6a2.7 2.7 0 0 1-2.7 2.7H8.7A2.7 2.7 0 0 1 6 16.6V11Zm4.1 3.7a.8.8 0 0 0 0 1.6h3.8a.8.8 0 0 0 0-1.6h-3.8Z"
+        />
+      </svg>
+    </a>
+  </nav>
+}
+
+<ng-template #tabGlyph let-icon>
+  @switch (icon) {
+    @case ('planet') {
+      <!-- Solar "Planet" bold. -->
+      <svg viewBox="0 0 24 24" class="size-[30px]" fill="currentColor" aria-hidden="true">
+        <circle cx="12.4" cy="11.3" r="6.4" />
+        <ellipse
+          cx="12"
+          cy="13"
+          rx="10.6"
+          ry="3.2"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          transform="rotate(-24 12 13)"
+        />
+      </svg>
+    }
+
+    @case ('video-frame') {
+      <!-- Solar "Video Frame" bold: the sprocketed filmstrip. -->
+      <svg viewBox="0 0 24 24" class="size-[30px]" aria-hidden="true">
+        <rect x="2.5" y="3.5" width="19" height="17" rx="3.6" fill="currentColor" />
+        <g fill="#FFFFFF">
+          <rect x="2.5" y="7.6" width="19" height="1.5" />
+          <rect x="2.5" y="14.9" width="19" height="1.5" />
+          <rect x="6.7" y="3.5" width="1.5" height="4.1" />
+          <rect x="10.2" y="3.5" width="1.5" height="4.1" />
+          <rect x="13.7" y="3.5" width="1.5" height="4.1" />
+          <rect x="17.2" y="3.5" width="1.5" height="4.1" />
+          <rect x="6.7" y="16.4" width="1.5" height="4.1" />
+          <rect x="10.2" y="16.4" width="1.5" height="4.1" />
+          <rect x="13.7" y="16.4" width="1.5" height="4.1" />
+          <rect x="17.2" y="16.4" width="1.5" height="4.1" />
+          <rect x="6.7" y="9.1" width="1.5" height="5.8" />
+          <rect x="15.8" y="9.1" width="1.5" height="5.8" />
+          <path d="M10.7 10.1 15 12l-4.3 1.9z" />
+        </g>
+      </svg>
+    }
+
+    @case ('wallet') {
+      <!-- Solar "Wallet" bold. -->
+      <svg viewBox="0 0 24 24" fill="currentColor" class="size-[30px]" aria-hidden="true">
+        <path d="M5.2 3.4h6.9a1.9 1.9 0 0 1 1.9 1.9v1.2H5.2V3.4Z" />
+        <path
+          d="M2.5 10A3.5 3.5 0 0 1 6 6.5h12A3.5 3.5 0 0 1 21.5 10v7a3.5 3.5 0 0 1-3.5 3.5H6A3.5 3.5 0 0 1 2.5 17v-7Z"
+        />
+        <path d="M21.5 11.2v4.6h-3.1a2.3 2.3 0 1 1 0-4.6h3.1Z" fill="#FFFFFF" />
+        <circle cx="18.6" cy="13.5" r="1.1" />
+      </svg>
+    }
+
+    @default {
+      <!-- Solar "Home Angle" bold. -->
+      <svg viewBox="0 0 24 24" class="size-[30px]" aria-hidden="true">
+        <polygon
+          points="12,3.9 20.6,10.2 17.3,20.3 6.7,20.3 3.4,10.2"
+          fill="currentColor"
+          stroke="currentColor"
+          stroke-width="3"
+          stroke-linejoin="round"
+        />
+        <rect x="9.6" y="16.4" width="4.8" height="1.7" rx="0.85" fill="#FFFFFF" />
+      </svg>
+    }
+  }
+</ng-template>

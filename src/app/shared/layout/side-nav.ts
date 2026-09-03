@@ -1,3 +1,4 @@
+import { NgTemplateOutlet } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { Clipboard } from '@primeicons/angular/clipboard';
@@ -29,6 +30,29 @@ const CREATOR_LINKS: NavLink[] = [
   { label: 'Submissions', path: '/creator/submissions', exact: false, icon: 'video' },
 ];
 
+/**
+ * One slot of the phone tab bar (Figma 366:376 "Frame 274"). `path: null`
+ * marks a surface the platform has not built yet — the board still draws it,
+ * so the slot is rendered and announced as unavailable rather than dropped.
+ */
+interface MobileTab {
+  label: string;
+  path: string | null;
+  icon: 'home' | 'planet' | 'video-frame' | 'wallet';
+  /**
+   * Left offset as a percentage of the board's 402px width (x = 29 / 115 /
+   * 263 / 349), so the bar keeps the design's rhythm on any phone.
+   */
+  left: string;
+}
+
+const CREATOR_MOBILE_TABS: MobileTab[] = [
+  { label: 'Dashboard', path: '/creator/dashboard', icon: 'home', left: 'left-[7.214%]' },
+  { label: 'Campaigns', path: '/campaigns', icon: 'planet', left: 'left-[28.607%]' },
+  { label: 'Videos', path: null, icon: 'video-frame', left: 'left-[65.423%]' },
+  { label: 'Wallet', path: null, icon: 'wallet', left: 'left-[86.816%]' },
+];
+
 // Order and glyphs follow the Figma rail: home → brands (shop) → campaigns
 // (clipboard); registrations is our addition and keeps the compass glyph.
 const ADMIN_LINKS: NavLink[] = [
@@ -54,6 +78,7 @@ const ADMIN_LINKS: NavLink[] = [
     DrawerModule,
     Home,
     Inbox,
+    NgTemplateOutlet,
     RouterLink,
     RouterLinkActive,
     Shop,
@@ -77,6 +102,9 @@ export class SideNav {
   protected readonly userMenuOpen = signal(false);
 
   protected readonly links = computed(() => (this.isAdmin() ? ADMIN_LINKS : CREATOR_LINKS));
+  /** The phone tab bar is a clipper affordance; admins keep the drawer only. */
+  protected readonly showMobileTabBar = computed(() => this.isSignedIn() && !this.isAdmin());
+  protected readonly mobileTabs = CREATOR_MOBILE_TABS;
   /** Admins land in their own section rather than public discovery. */
   protected readonly homeLink = computed(() =>
     this.isAdmin() ? '/admin/dashboard' : '/campaigns',

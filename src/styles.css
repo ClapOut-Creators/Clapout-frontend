@@ -212,3 +212,20 @@ body {
     inset-inline-start: 0 !important;
   }
 }
+
+
+/* --------------------------------------------------------------------------
+   Phone tab bar clearance (Figma 366:376 "Frame 274")
+   --------------------------------------------------------------------------
+   The clipper tab bar (`.co-mobile-tabbar`, drawn by the side nav below 1024px)
+   is `position: fixed`, so it sits over the end of the content column. Give the
+   column enough bottom padding that the bar never covers the last row. Keyed off
+   the bar's own presence, so admins — who get the drawer and no bar — keep the
+   layout they have. Same `.px-\[34px\]` hook as the gutter rule above: that
+   element is `src/app/app.html`'s content column and has no other handle.
+   -------------------------------------------------------------------------- */
+@media (max-width: 1023px) {
+  body:has(.co-mobile-tabbar) .px-\[34px\] {
+    padding-bottom: 7rem;
+  }
+}

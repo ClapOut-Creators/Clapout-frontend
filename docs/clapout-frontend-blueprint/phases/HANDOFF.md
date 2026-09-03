@@ -537,3 +537,27 @@ submit button reads "Create account" rather than the design's "Sign in".
   `registrationCampaign()`, which fills the gaps with the card's
   "not announced" states rather than zeros.
 - The public navbar collapses at `md`, not `lg`, matching the landing site.
+- **`/campaigns/:slug` has two variants over one content body.** Anonymous
+  visitors and admins keep the public page (Figma 344:2763 / 344:2929); a
+  signed-in clipper gets the studio card (397:3135 / 398:4552, leaderboard
+  398:6785 / 398:6940). The body lives in one `<ng-template #contentBody>` and
+  the two variants only differ in the column gaps, which come from
+  `heroGapClass()` / `lowerColumnsClass()` / `bodyTopClass()` — put new geometry
+  there rather than forking the markup. Both tabs and the submit overlay are URL
+  state (`?tab=leaderboard`, `?submit=1`); tab switches use `replaceUrl` so the
+  "‹ Back" pill still means "the page before this campaign".
+- **`shared/creator/creator-page-header`** is the header row every signed-in
+  creator screen starts with: the breadcrumb pill (every crumb but the last is
+  muted) and the account chip. `creator-dashboard.html` still draws its own copy
+  of the same markup; fold it into this component when that file is next touched.
+- **`shared/creator/leaderboard-list`** owns "Top earners" — rank pill, the
+  deterministic `avatarGradient(creatorId)` (clippers have no photo), the name
+  and the verified-view count — plus the empty copy. Loading and error belong to
+  the host, which is why the campaign page repeats the heading in those two
+  states. `GET /public/campaigns/:slug/leaderboard` is public; the session token
+  the interceptor attaches is only what fills `isMe` / `me`.
+- **The phone tab bar lives in the side nav** (`.co-mobile-tabbar`, additive at
+  the end of `side-nav.html`), shown only to signed-in creators. Its slots are
+  positioned by percentage of the board's 402px width, and `src/styles.css` ends
+  with the matching `body:has(.co-mobile-tabbar)` clearance rule for the content
+  column — the bar is `position: fixed`, so the two must move together.

@@ -54,3 +54,66 @@
   background: var(--p-surface-300);
   color: var(--clapout-text-strong);
 }
+
+/* --------------------------------------------------------------------------
+   Phone tab bar (Figma 366:376 "Frame 274")
+   --------------------------------------------------------------------------
+   402x86 white bar pinned to the bottom of the viewport, five 40px slots and a
+   62px action circle that overhangs the bar's top edge by 12px. Slots are
+   positioned absolutely (their `left` comes from the link table as a
+   percentage of the board's 402px width) so the design's rhythm survives every
+   phone width. `src/styles.css` keeps the content column clear of the bar.
+   -------------------------------------------------------------------------- */
+.co-mobile-tabbar {
+  background: #ffffff;
+  border-top: 1px solid #f0f0f0;
+  bottom: 0;
+  height: 86px;
+  left: 0;
+  padding-bottom: env(safe-area-inset-bottom);
+  position: fixed;
+  right: 0;
+  z-index: 20;
+}
+
+.co-tabbar-slot {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 10px;
+  color: #bababa;
+  cursor: pointer;
+  display: inline-flex;
+  height: 40px;
+  justify-content: center;
+  padding: 0;
+  position: absolute;
+  text-decoration: none;
+  top: 23px;
+  transition: color 150ms ease;
+  width: 40px;
+}
+
+.co-tabbar-slot-active {
+  color: #242424;
+}
+
+.co-tabbar-slot-disabled,
+.co-tabbar-slot-disabled:hover {
+  color: #bababa;
+  cursor: not-allowed;
+}
+
+.co-tabbar-action {
+  align-items: center;
+  background-image: linear-gradient(180deg, #ec612c 0%, #ffc93c 100%);
+  border-radius: 999px;
+  color: #ffffff;
+  display: inline-flex;
+  height: 62px;
+  justify-content: center;
+  position: absolute;
+  text-decoration: none;
+  top: -12px;
+  width: 62px;
+}
