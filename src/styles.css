@@ -401,3 +401,8 @@ label:has(+ textarea[pTextarea]) {
     padding-bottom: 7rem;
   }
 }
+
+p-select .p-select-label {
+  display: flex;
+  align-items: center;
+}

@@ -28,6 +28,10 @@ export function campaignShareUrl(origin: string, slug: string): string {
   return `${origin.replace(/\/+$/, '')}/campaigns/${slug}`;
 }
 
+export function campaignShareUrlWithSuffix(origin: string, slug: string, suffix = ''): string {
+  return `${campaignShareUrl(origin, slug)}${suffix}`;
+}
+
 /**
  * Shares a campaign's public page.
  *
@@ -46,7 +50,7 @@ export function campaignShareUrl(origin: string, slug: string): string {
       type="button"
       class="inline-flex cursor-pointer items-center whitespace-nowrap transition-colors max-sm:min-h-10"
       [class]="buttonClass()"
-      aria-label="Share campaign"
+      [attr.aria-label]="ariaLabel()"
       (click)="share($event)"
     >
       <!-- The classic curly share arrow: a forward chevron looping back under itself. -->
@@ -69,14 +73,14 @@ export function campaignShareUrl(origin: string, slug: string): string {
     </button>
 
     <p-dialog
-      header="Share campaign"
+      [header]="dialogTitle()"
       styleClass="!w-[min(92vw,28rem)]"
       [modal]="true"
       [draggable]="false"
       [visible]="fallbackOpen()"
       (visibleChange)="fallbackOpen.set($event)"
     >
-      <p class="m-0 text-sm text-surface-600">Copy this link to share the campaign.</p>
+      <p class="m-0 text-sm text-surface-600">{{ dialogDescription() }}</p>
       <input
         class="co-user-text mt-3 w-full rounded-lg border border-surface-300 bg-surface-50 px-3 py-2 text-sm text-surface-800"
         readonly
@@ -94,6 +98,10 @@ export class ShareCampaignButton {
   readonly variant = input<ShareVariant>('pill');
   /** `block` reads better as a sentence than a bare "Share". */
   readonly label = input<string>('Share');
+  readonly ariaLabel = input<string>('Share campaign');
+  readonly dialogTitle = input<string>('Share campaign');
+  readonly dialogDescription = input<string>('Copy this link to share the campaign.');
+  readonly urlSuffix = input<string>('');
 
   private readonly document = inject(DOCUMENT);
   private readonly messages = inject(MessageService);
@@ -106,7 +114,11 @@ export class ShareCampaignButton {
   );
 
   protected readonly shareUrl = computed(() =>
-    campaignShareUrl(this.document.defaultView?.location.origin ?? '', this.slug()),
+    campaignShareUrlWithSuffix(
+      this.document.defaultView?.location.origin ?? '',
+      this.slug(),
+      this.urlSuffix(),
+    ),
   );
 
   /** The card placements sit inside a link, so the click must not navigate. */

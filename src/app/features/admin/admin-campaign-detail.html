@@ -345,6 +345,77 @@
             </div>
           </section>
 
+          <!-- Public-safe leaderboard for this campaign -->
+          <section
+            class="mt-4 rounded-[18.83px] border border-[#ECECEC] bg-[#FFFFFF] p-5 sm:p-8"
+            aria-labelledby="admin-campaign-leaderboard-heading"
+          >
+            <div class="mb-5 flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h2
+                  id="admin-campaign-leaderboard-heading"
+                  class="text-[22px] font-bold text-[#171A1C]"
+                >
+                  Leaderboard
+                </h2>
+                <p class="mt-1 text-[16px] text-[#666666]">
+                  Public-safe top earners ranked from verified campaign activity.
+                </p>
+              </div>
+
+              @if (campaign.status !== 'DRAFT') {
+                <app-share-campaign-button
+                  variant="secondary"
+                  label="Share leaderboard"
+                  ariaLabel="Share leaderboard"
+                  dialogTitle="Share leaderboard"
+                  dialogDescription="Copy this link to share the campaign leaderboard."
+                  urlSuffix="?tab=leaderboard"
+                  [slug]="campaign.slug"
+                  [title]="campaign.title"
+                  [brandName]="campaign.brand.name"
+                />
+              }
+            </div>
+
+            @switch (leaderboardState()) {
+              @case ('ready') {
+                @if (leaderboard(); as board) {
+                  <app-leaderboard-list
+                    [leaderboard]="board"
+                    [currency]="campaign.currency"
+                    [cpm]="campaign.cpm"
+                  />
+                }
+              }
+
+              @case ('error') {
+                <div aria-live="polite">
+                  <p-message severity="error" [closable]="false">{{ leaderboardError() }}</p-message>
+                  <p-button
+                    label="Try again"
+                    size="small"
+                    styleClass="mt-4"
+                    (onClick)="retryLeaderboard()"
+                  />
+                </div>
+              }
+
+              @default {
+                <div
+                  class="flex flex-col gap-3"
+                  aria-busy="true"
+                  aria-live="polite"
+                  aria-label="Loading leaderboard"
+                >
+                  @for (row of skeletonRows; track row) {
+                    <p-skeleton width="100%" height="76px" borderRadius="18px" />
+                  }
+                </div>
+              }
+            }
+          </section>
+
           <!-- Registered clippers for this campaign -->
           <section
             class="mt-4 rounded-[18.83px] border border-[#ECECEC] bg-[#FFFFFF] p-5 sm:p-8"

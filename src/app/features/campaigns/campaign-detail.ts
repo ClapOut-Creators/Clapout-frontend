@@ -133,6 +133,15 @@ export class CampaignDetail {
   protected readonly tab = computed<DetailTab>(() =>
     this.queryParams().get('tab') === 'leaderboard' ? 'leaderboard' : 'detail',
   );
+  protected readonly shareUrlSuffix = computed(() =>
+    this.tab() === 'leaderboard' ? '?tab=leaderboard' : '',
+  );
+  protected readonly shareLabel = computed(() =>
+    this.tab() === 'leaderboard' ? 'Share leaderboard' : 'Share',
+  );
+  protected readonly shareAriaLabel = computed(() =>
+    this.tab() === 'leaderboard' ? 'Share leaderboard' : 'Share campaign',
+  );
 
   /**
    * `?submit=1` opens the submit-post overlay. The dialog itself is mounted
