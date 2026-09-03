@@ -561,3 +561,56 @@ submit button reads "Create account" rather than the design's "Sign in".
   positioned by percentage of the board's 402px width, and `src/styles.css` ends
   with the matching `body:has(.co-mobile-tabbar)` clearance rule for the content
   column — the bar is `position: fixed`, so the two must move together.
+
+## The clipper overlay sheet: submit post link and add social (2026-09-03)
+
+- **`shared/creator/overlay-sheet`** is the full-screen sheet both clipper
+  overlays are built on (Figma 398:5569 → 398:6048 and 397:1535 / 378:640): the
+  page behind under `backdrop-filter: blur(40px)` plus a white wash, a 506px
+  centred column (`max-w-[506px]` inside 20px gutters), and a grey circular ×
+  fixed to the viewport's top-right corner. Inputs: `visible` (model), `title`,
+  `subtitle`, `platforms`, `closeGuard`. Content is projected; a board whose
+  subtitle carries a bold word projects its own `<p [sheetSubtitle]>` styled
+  with `SHEET_SUBTITLE_CLASS`, and the success badge goes in `[sheetBadge]`.
+  Use `ngProjectAs` on an `<ng-container>` for those slots — a wrapper element
+  would still take the header's flex gap on the steps that project nothing.
+- **It is a `p-dialog` on purpose.** The focus trap, `aria-modal`, the scroll
+  block and the shared z-index stack are all things a hand-rolled fixed div
+  would have to re-earn; only the chrome is replaced, through
+  `styleClass` / `maskStyleClass` / `contentStyleClass` and the append-only
+  "Clipper overlay sheet" block at the end of `src/styles.css`.
+- **Escape and the backdrop are handled on the document, not in the template.**
+  `closeOnEscape` / `dismissableMask` would close the dialog from inside PrimeNG
+  before `closeGuard` could ask "Discard this submission?", and after the
+  confirm closes focus can land on `<body>`, where a listener bound inside the
+  sheet never sees the next key. The close button is deliberately first in the
+  DOM so `p-dialog`'s "focus the first focusable" lands there rather than in a
+  required field.
+- **`SHEET_*_CLASS` constants in `overlay-sheet.ts` are the sheet's vocabulary**
+  (title, subtitle, label, 50px field, primary/secondary/chip buttons, hairline,
+  terms line, inline error). Both dialogs pull from them; change a board value
+  once, there.
+- **`shared/creator/submit-post-dialog`** is the four-step flow —
+  `link → screenshot → payout → success`. Boards 3 and 4 are one step in two
+  states (the dashed "+ Add payment method" expands in place). API failures land
+  on the step that caused them: a payout `PATCH /me` failure stays on the payout
+  step, and only `POST_URL_PLATFORM_MISMATCH` / `DUPLICATE_SUBMISSION` walk back
+  to step 1 (`isPostUrlSubmissionError`). `payoutPatch()` returns null when the
+  saved details already say the same thing, so a second clip in one session is
+  one round trip. The account-name field is one more than the board draws — the
+  contract requires it — and is prefilled from the session.
+- **`submissionErrorMessage` and `toIsoDate` moved to `core/util/submission-errors`**
+  when the standalone `/creator/campaigns/:slug/submit` page was deleted. That
+  URL now redirects to `/campaigns/:slug?submit=1` through a `CanActivateFn`
+  that returns a `UrlTree`: Angular refuses `redirectTo` on a route that also
+  has `canActivate` (`NG04014`), and the guard has to stay so an anonymous
+  visitor still signs in with the old URL as their returnUrl.
+- **`platformFromUrl()` (in `core/util/platform-url`)** picks the brand glyph a
+  link field draws from what the clipper has typed; it must never throw, because
+  it runs on every keystroke.
+- **Where the boards disagree with each other, one value won.** The column is
+  506px on every step (the frames range 483–546); the mobile column starts at
+  140px on every step (the frames say 140 on steps 1–2 and add-social, 120 on
+  steps 3–4); the success panel keeps the same top offset as the rest rather
+  than dropping 59px (desktop) / 140px (mobile) as its frame does — a modal that
+  jumps on its last step reads as a bug.

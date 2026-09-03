@@ -7,17 +7,27 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { Plus } from '@primeicons/angular/plus';
-import { Trash } from '@primeicons/angular/trash';
+import { RouterLink } from '@angular/router';
 import { MessageService } from 'primeng/api';
-import { ButtonModule } from 'primeng/button';
-import { DialogModule } from 'primeng/dialog';
-import { InputTextModule } from 'primeng/inputtext';
-import { MessageModule } from 'primeng/message';
 import { firstValueFrom } from 'rxjs';
 import { toApiError } from '../../core/api/api-error';
 import { APP_ENVIRONMENT } from '../../core/config/app-environment';
+import { CampaignPlatform } from '../../core/models/campaign';
 import { Me, SocialAccount } from '../../core/models/user';
+import { platformFromUrl } from '../../core/util/platform-url';
+import {
+  OverlaySheet,
+  PlatformGlyph,
+  SHEET_CHIP_BUTTON_CLASS,
+  SHEET_ERROR_CLASS,
+  SHEET_FIELD_CLASS,
+  SHEET_FIELD_WITH_GLYPH_CLASS,
+  SHEET_LABEL_CLASS,
+  SHEET_PRIMARY_BUTTON_CLASS,
+  SHEET_RULE_CLASS,
+  SHEET_TERMS_CLASS,
+  SHEET_TERMS_LINK_CLASS,
+} from '../../shared/creator/overlay-sheet';
 import { firstErrorMessage, httpUrlValidator } from '../../shared/forms/form-errors';
 
 const LINK_MESSAGES: Record<string, string> = {
@@ -26,116 +36,141 @@ const LINK_MESSAGES: Record<string, string> = {
 };
 
 /**
- * "Add your social accounts" from the creator dashboard checklist.
+ * The `socials` body for `PATCH /me`: trimmed, blanks dropped, and de-duplicated
+ * so two rows pointing at the same profile are stored once. Exported because
+ * this is the only part of the save the API cannot correct for us.
+ */
+export function dedupeSocialUrls(values: readonly string[]): SocialAccount[] {
+  const urls = [...new Set(values.map((value) => value.trim()).filter(Boolean))];
+  return urls.map((url) => ({ url }));
+}
+
+/** The tiles the board draws under the subtitle. */
+const SHEET_PLATFORMS: readonly CampaignPlatform[] = ['tiktok', 'instagram', 'youtube'];
+
+/**
+ * "Add your social account" — Figma 397:1535 (desktop) / 378:640 (mobile).
+ *
+ * Built on {@link OverlaySheet}: the full-screen blurred sheet replaced the
+ * small `p-dialog` this used to be, but the component's API did not change —
+ * the creator dashboard still binds `visible`, `socials` and `saved`.
  *
  * Saves through `PATCH /me` directly rather than `AuthService`, which exposes no
- * profile mutation yet and holds `user` as a read-only signal. The saved list is
+ * profile mutation and holds `user` as a read-only signal. The saved list is
  * emitted back to the parent so the checklist can flip to done without waiting
  * for the next `GET /me`.
  *
- * The template is inline because this component ships as a single file, matching
- * every other one-file component under `shared/`.
+ * Escape, the × and a backdrop click close it without a confirmation: nothing
+ * here is lost that is not one paste away, and the sheet reseeds from the saved
+ * list every time it opens.
  */
 @Component({
-  imports: [
-    ButtonModule,
-    DialogModule,
-    InputTextModule,
-    MessageModule,
-    Plus,
-    ReactiveFormsModule,
-    Trash,
-  ],
+  imports: [OverlaySheet, PlatformGlyph, ReactiveFormsModule, RouterLink],
   selector: 'app-socials-dialog',
   template: `
-    <p-dialog
-      header="Add your social accounts"
+    <app-overlay-sheet
       [(visible)]="visible"
-      [modal]="true"
-      [draggable]="false"
-      [dismissableMask]="true"
-      [style]="{ width: '34rem' }"
-      [breakpoints]="{ '640px': '92vw' }"
+      title="Add your social account"
+      subtitle="Share your social media profile to start tracking your content and earning"
+      [platforms]="platforms"
     >
-      <p class="mt-0 mb-5 text-sm text-surface-600">
-        Paste the public profile link for every account you clip from - TikTok, YouTube or
-        Instagram. Brands check these before they accept an application.
-      </p>
+      <!-- The 9px lid is on the 1728 board only; the 402 one starts flush. -->
+      <div class="lg:pt-[9px]">
+        @if (errorMessage(); as message) {
+          <p [class]="errorClass" class="mb-[12px]" role="alert">{{ message }}</p>
+        }
 
-      @if (errorMessage(); as message) {
-        <div class="mb-4">
-          <p-message severity="error" [closable]="false">{{ message }}</p-message>
-        </div>
-      }
+        <div class="mb-[12px] flex flex-col gap-[8px] pb-[30px] lg:mb-0 lg:pb-[35px]">
+          <span [class]="labelClass" id="socials-links-label">Social Link</span>
 
-      <div class="flex flex-col gap-4">
-        @for (control of links.controls; track $index) {
-          <div class="flex flex-col gap-2">
-            <label class="text-sm font-medium text-surface-800" [for]="'social-url-' + $index"
-              >Profile link {{ $index + 1 }}</label
-            >
-            <div class="flex items-start gap-2">
-              <input
-                pInputText
-                type="url"
-                inputmode="url"
-                class="w-full"
-                placeholder="https://www.tiktok.com/@yourname"
-                [id]="'social-url-' + $index"
-                [formControl]="control"
-                [attr.aria-invalid]="linkError($index) ? 'true' : null"
-              />
+          @for (control of links.controls; track $index) {
+            <div class="flex items-start gap-[10px]">
+              <div class="relative min-w-0 flex-1">
+                <app-platform-glyph
+                  class="pointer-events-none absolute top-1/2 left-[12px] size-[20px] -translate-y-1/2 text-[#262626]/[0.36] lg:left-[15px]"
+                  variant="mark"
+                  [platform]="platformOf(control.value)"
+                />
+                <input
+                  type="url"
+                  inputmode="url"
+                  placeholder="https://www.tiktok.com/@yourname"
+                  [class]="fieldClass + ' ' + fieldWithGlyphClass"
+                  [id]="'social-url-' + $index"
+                  [attr.aria-label]="'Social link ' + ($index + 1)"
+                  [attr.aria-invalid]="linkError($index) ? 'true' : null"
+                  [formControl]="control"
+                />
+              </div>
               <button
                 type="button"
-                class="mt-0.5 inline-flex size-9 shrink-0 items-center justify-center rounded-lg border border-surface-200 bg-surface-0 text-surface-600 hover:bg-surface-100"
-                [attr.aria-label]="'Remove profile link ' + ($index + 1)"
+                class="flex size-[50px] shrink-0 cursor-pointer items-center justify-center rounded-[12px] border border-[#FDC5C5] bg-[#FFF3F3] text-[#DF5454] hover:bg-[#FFE8E8]"
+                [attr.aria-label]="'Remove social link ' + ($index + 1)"
                 (click)="removeLink($index)"
               >
-                <svg data-p-icon="trash" [size]="14" aria-hidden="true"></svg>
+                <svg
+                  viewBox="0 0 24 24"
+                  class="block size-[24px]"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  aria-hidden="true"
+                >
+                  <path d="M3.5 6h17" />
+                  <path
+                    d="M18.8 8.5 18.2 18a2.6 2.6 0 0 1-2.6 2.4H8.4A2.6 2.6 0 0 1 5.8 18l-.6-9.5"
+                  />
+                  <path d="M9.6 11v5M14.4 11v5" />
+                  <path d="M8.9 6V4.9c0-.8.6-1.4 1.4-1.4h3.4c.8 0 1.4.6 1.4 1.4V6" />
+                </svg>
               </button>
             </div>
             @if (linkError($index); as fieldMessage) {
-              <p class="m-0 text-sm text-red-700">{{ fieldMessage }}</p>
+              <p [class]="errorClass">{{ fieldMessage }}</p>
             }
+          } @empty {
+            <p class="m-0 text-[14px] leading-[19px] text-[#808080] lg:text-[16px]">
+              You have no links left. Add one, or save to clear your social accounts.
+            </p>
+          }
+
+          <div class="mt-[2px] flex">
+            <button type="button" [class]="chipClass" (click)="addLink()">Add link</button>
           </div>
-        } @empty {
-          <p class="m-0 text-sm text-surface-600">
-            You have no links left. Add one, or save to clear your social accounts.
-          </p>
-        }
-      </div>
+        </div>
 
-      <button
-        type="button"
-        class="mt-4 inline-flex items-center gap-2 rounded-lg border border-dashed border-surface-300 px-3 py-2 text-sm font-medium text-surface-700 hover:bg-surface-100"
-        (click)="addLink()"
-      >
-        <svg data-p-icon="plus" [size]="12" aria-hidden="true"></svg>
-        <span>Add another link</span>
-      </button>
+        <div [class]="ruleClass"></div>
 
-      <div class="mt-6 flex justify-end gap-3 border-t border-surface-200 pt-4">
-        <p-button
-          label="Cancel"
-          severity="secondary"
-          [text]="true"
-          [disabled]="saving()"
-          (onClick)="cancel()"
-        />
-        <p-button
-          label="Save socials"
-          [loading]="saving()"
-          [disabled]="saving()"
-          (onClick)="save()"
-        />
+        <p [class]="termsClass" class="pt-[18px] lg:pt-[10px]">
+          By adding, you agree to our
+          <a routerLink="/terms" target="_blank" rel="noopener" [class]="termsLinkClass"
+            >Clapout Terms &amp; Conditions, terms of Service</a
+          >, and
+          <a routerLink="/privacy" target="_blank" rel="noopener" [class]="termsLinkClass"
+            >Privacy Policy</a
+          >.
+        </p>
+
+        <div class="flex pt-[26px] pb-[8px] lg:pt-[40px] lg:pb-[14px]">
+          <button
+            type="button"
+            [class]="primaryClass"
+            class="w-full"
+            [disabled]="saving()"
+            (click)="save()"
+          >
+            {{ saving() ? 'Saving…' : 'Save social' }}
+          </button>
+        </div>
       </div>
-    </p-dialog>
+    </app-overlay-sheet>
   `,
 })
 export class SocialsDialog {
-  /** Two-way: the dashboard opens it, the dialog closes itself. */
+  /** Two-way: the dashboard opens it, the sheet closes itself. */
   readonly visible = model(false);
-  /** Seeds the rows every time the dialog opens. */
+  /** Seeds the rows every time the sheet opens. */
   readonly socials = input<SocialAccount[]>([]);
   /** The list `PATCH /me` echoed back, so the caller can drop its stale copy. */
   readonly saved = output<SocialAccount[]>();
@@ -150,6 +185,17 @@ export class SocialsDialog {
   protected readonly submitted = signal(false);
   protected readonly errorMessage = signal('');
 
+  protected readonly platforms = SHEET_PLATFORMS;
+  protected readonly labelClass = SHEET_LABEL_CLASS;
+  protected readonly fieldClass = SHEET_FIELD_CLASS;
+  protected readonly fieldWithGlyphClass = SHEET_FIELD_WITH_GLYPH_CLASS;
+  protected readonly chipClass = SHEET_CHIP_BUTTON_CLASS;
+  protected readonly primaryClass = SHEET_PRIMARY_BUTTON_CLASS;
+  protected readonly ruleClass = SHEET_RULE_CLASS;
+  protected readonly termsClass = SHEET_TERMS_CLASS;
+  protected readonly termsLinkClass = SHEET_TERMS_LINK_CLASS;
+  protected readonly errorClass = SHEET_ERROR_CLASS;
+
   constructor() {
     // Reopening always starts from the saved list, so an abandoned edit never
     // leaks into the next visit.
@@ -158,6 +204,11 @@ export class SocialsDialog {
         untracked(() => this.reset());
       }
     });
+  }
+
+  /** The glyph drawn inside a row, derived from what the clipper has typed. */
+  protected platformOf(url: string): CampaignPlatform | null {
+    return platformFromUrl(url);
   }
 
   protected linkError(index: number): string | null {
@@ -172,10 +223,6 @@ export class SocialsDialog {
     this.links.removeAt(index);
   }
 
-  protected cancel(): void {
-    this.visible.set(false);
-  }
-
   protected async save(): Promise<void> {
     this.submitted.set(true);
     this.errorMessage.set('');
@@ -188,24 +235,18 @@ export class SocialsDialog {
       return;
     }
 
-    // Two rows pointing at the same profile would be stored twice, so the list
-    // is de-duplicated before it leaves the browser.
-    const urls = [
-      ...new Set(this.links.controls.map((control) => control.value.trim()).filter(Boolean)),
-    ];
+    const socials = dedupeSocialUrls(this.links.controls.map((control) => control.value));
 
     this.saving.set(true);
     try {
       const response = await firstValueFrom(
-        this.http.patch<{ user: Me }>(`${this.baseUrl}/me`, {
-          socials: urls.map((url) => ({ url })),
-        }),
+        this.http.patch<{ user: Me }>(`${this.baseUrl}/me`, { socials }),
       );
-      this.saved.emit(response.user?.socials ?? urls.map((url) => ({ url })));
+      this.saved.emit(response.user?.socials ?? socials);
       this.messages.add({
         severity: 'success',
         summary: 'Social accounts saved',
-        detail: urls.length === 1 ? '1 link saved.' : `${urls.length} links saved.`,
+        detail: socials.length === 1 ? '1 link saved.' : `${socials.length} links saved.`,
       });
       this.visible.set(false);
     } catch (error) {

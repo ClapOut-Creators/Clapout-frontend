@@ -1,5 +1,5 @@
-import { ApiError } from '../../core/api/api-error';
-import { submissionErrorMessage, toIsoDate } from './submit-clip';
+import { ApiError } from '../api/api-error';
+import { isPostUrlSubmissionError, submissionErrorMessage, toIsoDate } from './submission-errors';
 
 function apiError(code: string, message = 'Server said so.'): ApiError {
   return new ApiError(422, code, message);
@@ -50,6 +50,23 @@ describe('submissionErrorMessage', () => {
     expect(submissionErrorMessage(new Error('boom'), 'tiktok')).toBe(
       'We could not submit your clip. Please try again.',
     );
+  });
+});
+
+/**
+ * The overlay walks the clipper back to the step that owns the field the API
+ * objected to, so the two link failures have to be told apart from the rest.
+ */
+describe('isPostUrlSubmissionError', () => {
+  it('claims the two failures the post link causes', () => {
+    expect(isPostUrlSubmissionError(apiError('POST_URL_PLATFORM_MISMATCH'))).toBe(true);
+    expect(isPostUrlSubmissionError(apiError('DUPLICATE_SUBMISSION'))).toBe(true);
+  });
+
+  it('leaves every other failure on the step it happened on', () => {
+    expect(isPostUrlSubmissionError(apiError('SUBMISSIONS_CLOSED'))).toBe(false);
+    expect(isPostUrlSubmissionError(apiError('VALIDATION'))).toBe(false);
+    expect(isPostUrlSubmissionError(new Error('boom'))).toBe(false);
   });
 });
 

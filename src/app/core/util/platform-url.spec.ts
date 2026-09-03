@@ -1,5 +1,6 @@
 import {
   isPlatformPostUrl,
+  platformFromUrl,
   platformHostHint,
   platformMismatchMessage,
   postUrlLabel,
@@ -83,5 +84,39 @@ describe('submissionsOpen', () => {
     expect(submissionsOpen('CLOSED')).toBe(false);
     expect(submissionsOpen('DRAFT')).toBe(false);
     expect(submissionsOpen(undefined)).toBe(false);
+  });
+});
+
+/**
+ * Drives the brand glyph the overlays draw inside a link field. It runs while
+ * the clipper is still typing, so half-written text has to come back as "no
+ * platform yet" rather than as an exception.
+ */
+describe('platformFromUrl', () => {
+  it('names the platform a profile or post link is on', () => {
+    expect(platformFromUrl('https://www.tiktok.com/@ama')).toBe('tiktok');
+    expect(platformFromUrl('https://instagram.com/tekmecreatives/')).toBe('instagram');
+    expect(platformFromUrl('https://www.youtube.com/@ama')).toBe('youtube');
+    expect(platformFromUrl('https://youtu.be/AbCdEfG')).toBe('youtube');
+    expect(platformFromUrl('https://web.facebook.com/ama')).toBe('facebook');
+    expect(platformFromUrl('https://fb.watch/xyz/')).toBe('facebook');
+    expect(platformFromUrl('https://x.com/ama')).toBe('x');
+    expect(platformFromUrl('https://twitter.com/ama')).toBe('x');
+  });
+
+  it('matches subdomains but not lookalike hosts', () => {
+    expect(platformFromUrl('https://vm.tiktok.com/ZM123/')).toBe('tiktok');
+    expect(platformFromUrl('https://nottiktok.com/@ama')).toBe(null);
+    expect(platformFromUrl('https://tiktok.com.evil.example/@ama')).toBe(null);
+  });
+
+  it('has no platform for anything else, half-typed or empty', () => {
+    expect(platformFromUrl('https://linktr.ee/ama')).toBe(null);
+    expect(platformFromUrl('https://')).toBe(null);
+    expect(platformFromUrl('tiktok.com/@ama')).toBe(null);
+    expect(platformFromUrl('javascript:alert(1)')).toBe(null);
+    expect(platformFromUrl('')).toBe(null);
+    expect(platformFromUrl(null)).toBe(null);
+    expect(platformFromUrl(undefined)).toBe(null);
   });
 });

@@ -105,13 +105,13 @@ export class CreatorSubmissions {
   }
 
   /**
-   * One accepted campaign needs no picker — go straight to its submit page.
-   * Anything else opens the dialog.
+   * One accepted campaign needs no picker — go straight to its campaign page
+   * with the submit overlay open. Anything else opens the dialog.
    */
   protected startSubmission(): void {
     const accepted = this.accepted();
     if (accepted.length === 1) {
-      void this.router.navigate(['/creator/campaigns', accepted[0].slug, 'submit']);
+      this.goToSubmit(accepted[0].slug);
       return;
     }
     this.pickerOpen.set(true);
@@ -119,7 +119,12 @@ export class CreatorSubmissions {
 
   protected chooseCampaign(slug: string): void {
     this.pickerOpen.set(false);
-    void this.router.navigate(['/creator/campaigns', slug, 'submit']);
+    this.goToSubmit(slug);
+  }
+
+  /** `?submit=1` is what opens the submit overlay on the campaign page. */
+  private goToSubmit(slug: string): void {
+    void this.router.navigate(['/campaigns', slug], { queryParams: { submit: '1' } });
   }
 
   protected confirmWithdraw(submission: Submission): void {

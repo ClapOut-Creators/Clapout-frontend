@@ -47,6 +47,41 @@ export function isPlatformPostUrl(platform: CampaignPlatform, url: string): bool
 }
 
 /**
+ * Which platform a pasted profile or post link belongs to, or null when it is
+ * on none of them (a personal site, a Linktree, an unparsable string).
+ *
+ * The overlays draw the matching brand glyph inside the field as the clipper
+ * types, so this runs on every keystroke and must never throw. Subdomains count
+ * the same way {@link isPlatformPostUrl} counts them, and the table is the one
+ * the contract defines — there is no second list to keep in step.
+ */
+export function platformFromUrl(url: string | null | undefined): CampaignPlatform | null {
+  const trimmed = (url ?? '').trim();
+  if (!trimmed) {
+    return null;
+  }
+  let host: string;
+  try {
+    const parsed = new URL(trimmed);
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+      return null;
+    }
+    host = parsed.hostname.toLowerCase();
+  } catch {
+    return null;
+  }
+  for (const [platform, hosts] of Object.entries(PLATFORM_HOSTS) as [
+    CampaignPlatform,
+    readonly string[],
+  ][]) {
+    if (hosts.some((allowed) => host === allowed || host.endsWith(`.${allowed}`))) {
+      return platform;
+    }
+  }
+  return null;
+}
+
+/**
  * "That doesn't look like a TikTok link — paste the link to the clip you posted
  * on TikTok." Written for the clipper, not the contract.
  */

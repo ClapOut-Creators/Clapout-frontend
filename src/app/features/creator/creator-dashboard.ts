@@ -141,15 +141,21 @@ export class CreatorDashboard {
   protected readonly canSubmit = computed(() => this.acceptedApplications().length > 0);
 
   /**
-   * One accepted campaign goes straight to its submit page; several land on the
-   * submissions page, which owns the campaign picker.
+   * One accepted campaign goes straight to its campaign page with the submit
+   * overlay open (`?submit=1`); several land on the submissions page, which
+   * owns the campaign picker.
    */
   protected readonly submitLink = computed(() => {
     const accepted = this.acceptedApplications();
     return accepted.length === 1
-      ? `/creator/campaigns/${registrationCampaign(accepted[0].campaign).slug}/submit`
+      ? `/campaigns/${registrationCampaign(accepted[0].campaign).slug}`
       : '/creator/submissions';
   });
+
+  /** `?submit=1` only when the link actually goes to a campaign page. */
+  protected readonly submitLinkQuery = computed(() =>
+    this.acceptedApplications().length === 1 ? { submit: 1 } : {},
+  );
 
   protected readonly submissionsSubtitle = computed(() => {
     const count = this.stats()?.submissions ?? 0;
@@ -236,9 +242,9 @@ export class CreatorDashboard {
     return registrationCampaign(application.campaign);
   }
 
-  /** The submit page for one accepted campaign card. */
+  /** The campaign page for one accepted card, with the submit overlay open. */
   protected submitLinkFor(application: Registration): string {
-    return `/creator/campaigns/${registrationCampaign(application.campaign).slug}/submit`;
+    return `/campaigns/${registrationCampaign(application.campaign).slug}`;
   }
 
   /**

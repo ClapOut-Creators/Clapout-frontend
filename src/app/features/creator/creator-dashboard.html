@@ -250,6 +250,7 @@
           @if (canSubmit()) {
             <a
               [routerLink]="submitLink()"
+              [queryParams]="submitLinkQuery()"
               class="inline-flex h-[50px] shrink-0 items-center justify-center rounded-[34px] bg-[#EEEEEE] px-[27.74px] text-[18px] leading-[23.8px] font-medium text-[#2B2B2B] no-underline transition-colors hover:bg-[#E4E4E4]"
             >
               {{ submissionsDone() ? 'Submit another clip' : 'Submit content' }}
@@ -379,6 +380,7 @@
                       <span class="mt-[8px] flex">
                         <a
                           [routerLink]="submitLinkFor(application)"
+                          [queryParams]="{ submit: 1 }"
                           class="inline-flex h-[38px] items-center justify-center rounded-[34px] bg-[#EEEEEE] px-[18px] text-[15px] font-medium text-[#2B2B2B] no-underline transition-colors hover:bg-[#E4E4E4]"
                           >Submit clip</a
                         >

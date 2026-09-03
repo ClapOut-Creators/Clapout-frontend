@@ -213,6 +213,109 @@ body {
   }
 }
 
+/* --------------------------------------------------------------------------
+   Clipper overlay sheet — APPEND-ONLY block for `shared/creator/overlay-sheet.ts`
+   --------------------------------------------------------------------------
+   The submit-post and add-social boards (Figma 398:5569 / 397:1535) are not
+   panels floating over a dimmed page: the page itself is the backdrop, blurred
+   hard and washed out with white, with a 506px column and a grey circular ×
+   pinned to the viewport's top-right corner.
+
+   `p-dialog` still does the modal work (focus trap, aria-modal, scroll block,
+   z-index stack); only its chrome is replaced, which is why these selectors
+   pair the PrimeNG class with the sheet's own. They sit outside `@layer` on
+   purpose — unlayered rules beat the layered PrimeNG theme, the same trick the
+   "Desktop scale" block above relies on.
+   -------------------------------------------------------------------------- */
+.p-dialog-mask.co-sheet-mask {
+  padding: 0;
+  background: rgba(255, 255, 255, 0.72);
+  -webkit-backdrop-filter: blur(40px);
+  backdrop-filter: blur(40px);
+}
+
+.p-dialog.co-sheet {
+  width: 100%;
+  max-width: 100%;
+  height: 100%;
+  max-height: 100%;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+/* The scroll container: a tall sheet on a short window scrolls inside the
+   overlay rather than growing the page behind it (which `blockScroll` froze). */
+.p-dialog.co-sheet > .p-dialog-content.co-sheet-content {
+  height: 100%;
+  padding: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+}
+
+/* Also the backdrop hit area: a click that lands here, and not on the column,
+   is a click beside the sheet. */
+.co-sheet-root {
+  min-height: 100%;
+  /* 140px is where the 402 boards put the title (a 120px frame with 20px of
+     padding). The 1728 boards put it at 174. */
+  padding: 140px 20px 60px;
+}
+
+/* The × is `fixed`, not `absolute`, so it stays in the viewport corner while a
+   long step scrolls under it. The mask's own `backdrop-filter` makes the mask
+   the containing block, so "fixed" means "the mask", which fills the viewport. */
+.co-sheet-close {
+  position: fixed;
+  top: 57px;
+  right: 31px;
+  display: flex;
+  width: 40px;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.co-sheet-close::before {
+  content: '';
+  position: absolute;
+  width: 33px;
+  height: 33px;
+  border-radius: 50%;
+  /* #CDCDCD at 50%, exactly as the boards draw it over the washed-out page. */
+  background: rgba(205, 205, 205, 0.5);
+}
+
+.co-sheet-close:hover::before {
+  background: rgba(190, 190, 190, 0.62);
+}
+
+@media (min-width: 1024px) {
+  .co-sheet-root {
+    padding: 174px 20px 80px;
+  }
+
+  .co-sheet-close {
+    top: 60px;
+    right: 64px;
+    width: 44px;
+    height: 44px;
+  }
+
+  .co-sheet-close::before {
+    width: 37px;
+    height: 37px;
+  }
+}
 
 /* --------------------------------------------------------------------------
    Phone tab bar clearance (Figma 366:376 "Frame 274")
