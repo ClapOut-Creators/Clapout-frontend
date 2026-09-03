@@ -27,6 +27,7 @@ import { Option } from '../../core/util/admin-options';
 import {
   brandInviteLink,
   brandInviteMessage,
+  normaliseWebsiteHint,
   whatsappShareUrl,
 } from '../../core/util/brand-invite-link';
 import {
@@ -36,7 +37,7 @@ import {
   splitInternationalPhone,
   toInternationalPhone,
 } from '../../core/util/phone-codes';
-import { firstErrorMessage, httpUrlValidator } from '../forms/form-errors';
+import { firstErrorMessage } from '../forms/form-errors';
 
 /** What the host already knows about the brand, e.g. from a partnership inquiry. */
 export interface BrandInvitePrefill {
@@ -61,7 +62,6 @@ const COPIED_FEEDBACK_MS = 2000;
 
 const MESSAGES: Record<string, Record<string, string>> = {
   contactEmail: { email: 'Enter a valid email address, for example name@brand.com' },
-  website: { url: 'Enter a full URL, for example https://brand.com' },
 };
 
 /**
@@ -344,7 +344,9 @@ export class BrandInviteDialog {
     contactEmail: ['', [Validators.email]],
     phoneCountry: [DEFAULT_PHONE_ISO],
     phone: [''],
-    website: ['', [httpUrlValidator]],
+    // A hint, not a URL field: inquiries arrive as "brand.com" or "@handle",
+    // and the brand corrects it on their own form. Bare domains are normalised.
+    website: [''],
     expiresInDays: [14],
     note: [''],
   });
@@ -480,7 +482,7 @@ export class BrandInviteDialog {
       contactName: value.contactName.trim() || null,
       contactEmail: value.contactEmail.trim() || null,
       contactPhone: phone || null,
-      website: value.website.trim() || null,
+      website: normaliseWebsiteHint(value.website) || null,
       note: value.note.trim() || null,
       expiresInDays: value.expiresInDays,
       ...(prefill?.inquiryId ? { inquiryId: prefill.inquiryId } : {}),
@@ -496,7 +498,7 @@ export class BrandInviteDialog {
       contactEmail: prefill?.contactEmail?.trim() ?? '',
       phoneCountry: phone.iso,
       phone: phone.local,
-      website: prefill?.website?.trim() ?? '',
+      website: normaliseWebsiteHint(prefill?.website),
       expiresInDays: 14,
       note: '',
     });

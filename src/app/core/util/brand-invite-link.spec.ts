@@ -2,6 +2,7 @@ import {
   brandInviteLink,
   brandInviteMessage,
   BRAND_ONBOARDING_PATH,
+  normaliseWebsiteHint,
   whatsappShareUrl,
 } from './brand-invite-link';
 
@@ -60,5 +61,28 @@ describe('whatsappShareUrl', () => {
     expect(whatsappShareUrl(null, 'hi')).toBeNull();
     expect(whatsappShareUrl('   ', 'hi')).toBeNull();
     expect(whatsappShareUrl('n/a', 'hi')).toBeNull();
+  });
+});
+
+describe('normaliseWebsiteHint', () => {
+  it('prefixes a bare domain with https', () => {
+    expect(normaliseWebsiteHint('hdg.com')).toBe('https://hdg.com');
+    expect(normaliseWebsiteHint(' www.brand.co.uk/shop ')).toBe('https://www.brand.co.uk/shop');
+  });
+
+  it('leaves a full URL alone', () => {
+    expect(normaliseWebsiteHint('http://brand.com')).toBe('http://brand.com');
+    expect(normaliseWebsiteHint('https://brand.com/x?y=1')).toBe('https://brand.com/x?y=1');
+  });
+
+  it('passes handles and free text through untouched', () => {
+    expect(normaliseWebsiteHint('@tripadverts')).toBe('@tripadverts');
+    expect(normaliseWebsiteHint('TripAdvertsgh')).toBe('TripAdvertsgh');
+    expect(normaliseWebsiteHint('our app on the play store')).toBe('our app on the play store');
+  });
+
+  it('is empty for nothing', () => {
+    expect(normaliseWebsiteHint(null)).toBe('');
+    expect(normaliseWebsiteHint('   ')).toBe('');
   });
 });

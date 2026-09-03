@@ -47,3 +47,25 @@ export function whatsappShareUrl(phone: string | null | undefined, message: stri
   }
   return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
 }
+
+/**
+ * Turns what people actually paste as "their website" into something the
+ * onboarding form can prefill: bare domains gain `https://`, whitespace goes,
+ * and anything that is not a web address (a handle, a note) is passed through
+ * untouched — the invite is a hint, and the brand corrects it on their side.
+ */
+export function normaliseWebsiteHint(value: string | null | undefined): string {
+  const trimmed = (value ?? '').trim();
+  if (!trimmed) {
+    return '';
+  }
+  if (/^https?:\/\//i.test(trimmed)) {
+    return trimmed;
+  }
+  // "brand.com", "www.brand.com/shop", "brand.co.uk" — a hostname with a dot,
+  // no spaces and nothing that would make it a handle or a sentence.
+  if (/^[\w-]+(\.[\w-]+)+(\/\S*)?$/.test(trimmed)) {
+    return `https://${trimmed}`;
+  }
+  return trimmed;
+}
