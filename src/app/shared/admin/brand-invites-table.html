@@ -1,0 +1,201 @@
+<section
+  class="mt-3 rounded-[18.83px] border border-[#ECECEC] bg-[#FFFFFF] p-4"
+  aria-labelledby="admin-brand-invites-heading"
+>
+  <div class="flex flex-wrap items-start justify-between gap-3">
+    <div>
+      <h2 id="admin-brand-invites-heading" class="text-[22px] font-bold text-[#171A1C]">
+        Brand invites
+      </h2>
+      <p class="mt-1 text-sm text-[#7B7B7B]">
+        Single-use links that let a brand set itself up. We never email them — you send the link.
+      </p>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <label for="admin-brand-invite-status" class="text-sm font-medium text-[#333333]">
+        Status
+      </label>
+      <p-select
+        inputId="admin-brand-invite-status"
+        class="w-40"
+        optionLabel="label"
+        optionValue="value"
+        [options]="statusOptions"
+        [ngModel]="statusFilter()"
+        (ngModelChange)="statusFilter.set($event)"
+      />
+    </div>
+  </div>
+
+  @switch (state()) {
+    @case ('loading') {
+      <div class="mt-4 flex flex-col gap-2" aria-busy="true" aria-live="polite">
+        <span class="sr-only">Loading brand invites</span>
+        <p-skeleton width="100%" height="3rem" borderRadius="0.75rem" />
+        @for (row of skeletonRows; track row) {
+          <p-skeleton width="100%" height="3.25rem" />
+        }
+      </div>
+    }
+
+    @case ('error') {
+      <div class="mt-4">
+        <p-message severity="error" [closable]="false">{{ errorMessage() }}</p-message>
+        <p-button label="Try again" size="small" styleClass="mt-4" (onClick)="reload()" />
+      </div>
+    }
+
+    @default {
+      @if (rows().length === 0) {
+        @if (hasFilter()) {
+          <div
+            class="mt-4 rounded-xl border border-dashed border-surface-300 p-10 text-center"
+            aria-live="polite"
+          >
+            <h3 class="text-base font-semibold text-surface-950">No {{ filterLabel() }} invites</h3>
+            <p class="mx-auto mt-2 max-w-md text-surface-600">
+              Nothing here right now. Clear the filter to see every invite.
+            </p>
+            <p-button
+              label="Clear filter"
+              size="small"
+              [outlined]="true"
+              styleClass="mt-5"
+              (onClick)="clearFilter()"
+            />
+          </div>
+        } @else {
+          <div class="mt-4 rounded-xl border border-dashed border-surface-300 p-10 text-center">
+            <h3 class="text-base font-semibold text-surface-950">No brand invites yet</h3>
+            <p class="mx-auto mt-2 max-w-md text-surface-600">
+              Use “Invite a brand” above to create a link a brand can set itself up with.
+            </p>
+          </div>
+        }
+      } @else {
+        <p class="sr-only" aria-live="polite">{{ countLabel() }}</p>
+
+        <div class="mt-4 overflow-x-auto text-sm">
+          <p-table dataKey="id" [value]="rows()" [tableStyle]="{ 'min-width': '64rem' }">
+            <ng-template #header>
+              <tr>
+                <th scope="col" class="!rounded-l-xl !bg-[#F9F9F9] !font-medium !text-[#171A1C]">
+                  Brand
+                </th>
+                <th scope="col" class="!bg-[#F9F9F9] !font-medium !text-[#171A1C]">Contact</th>
+                <th scope="col" class="!bg-[#F9F9F9] !font-medium !text-[#171A1C]">Status</th>
+                <th scope="col" class="!bg-[#F9F9F9] !font-medium !text-[#171A1C]">Sent</th>
+                <th scope="col" class="!bg-[#F9F9F9] !font-medium !text-[#171A1C]">Expires</th>
+                <th scope="col" class="!bg-[#F9F9F9] !font-medium !text-[#171A1C]">
+                  Brand created
+                </th>
+                <th
+                  scope="col"
+                  class="!rounded-r-xl !bg-[#F9F9F9] !text-right !font-semibold !text-[#171A1C]"
+                >
+                  Action
+                </th>
+              </tr>
+            </ng-template>
+
+            <ng-template #body let-row>
+              <tr>
+                <td class="text-[#1A1A1A]">{{ row.brandName || notAnnounced }}</td>
+
+                <td>
+                  @if (row.contactName || row.contactEmail || row.contactPhone) {
+                    <span class="flex flex-col gap-0.5">
+                      @if (row.contactName) {
+                        <span class="text-[#1A1A1A]">{{ row.contactName }}</span>
+                      }
+                      @if (row.contactEmail) {
+                        <a
+                          [href]="'mailto:' + row.contactEmail"
+                          class="text-[#444444] no-underline hover:underline"
+                          >{{ row.contactEmail }}</a
+                        >
+                      }
+                      @if (row.contactPhone) {
+                        <span class="whitespace-nowrap text-[#7B7B7B]">{{ row.contactPhone }}</span>
+                      }
+                    </span>
+                  } @else {
+                    <span class="text-surface-400">{{ notAnnounced }}</span>
+                  }
+                </td>
+
+                <td>
+                  <p-tag
+                    [value]="statusLabel(row.status)"
+                    [severity]="statusTone(row.status)"
+                    [rounded]="true"
+                  />
+                </td>
+
+                <td class="whitespace-nowrap text-[#444444]">{{ formatDate(row.createdAt) }}</td>
+                <td class="whitespace-nowrap text-[#444444]">{{ formatDate(row.expiresAt) }}</td>
+
+                <td>
+                  @if (row.brand) {
+                    <a
+                      [routerLink]="['/admin/brands', row.brand.id]"
+                      class="text-[#EC612C] no-underline hover:underline"
+                      >{{ row.brand.name }}</a
+                    >
+                  } @else if (row.brandId) {
+                    <a
+                      [routerLink]="['/admin/brands', row.brandId]"
+                      class="text-[#EC612C] no-underline hover:underline"
+                      >Open the brand</a
+                    >
+                  } @else {
+                    <span class="text-surface-400">{{ notAnnounced }}</span>
+                  }
+                </td>
+
+                <td>
+                  <span class="flex flex-wrap items-center justify-end gap-2">
+                    <!-- Only a live link is worth copying or revoking. -->
+                    @if (row.status === 'PENDING') {
+                      <button
+                        type="button"
+                        class="inline-flex items-center gap-1.5 rounded-lg bg-[#171A1C] px-3 py-1.5 text-xs font-medium text-white hover:bg-[#383838] max-sm:min-h-10"
+                        (click)="copyLink(row)"
+                      >
+                        <svg data-p-icon="copy" [size]="12" aria-hidden="true"></svg>
+                        {{ copiedId() === row.id ? 'Copied' : 'Copy link' }}
+                      </button>
+                      <button
+                        type="button"
+                        class="inline-flex items-center rounded-lg bg-[#F1F1F1] px-3 py-1.5 text-xs font-medium text-[#525252] hover:bg-[#E2E2E2] disabled:cursor-not-allowed disabled:opacity-60 max-sm:min-h-10"
+                        [disabled]="isBusy(row.id)"
+                        (click)="confirmRevoke(row)"
+                      >
+                        Revoke
+                      </button>
+                    }
+                    <!-- Never offered while the invite still owns a brand: the
+                         API refuses it with 409 INVITE_HAS_BRAND. -->
+                    @if (!row.brandId) {
+                      <button
+                        type="button"
+                        class="inline-flex items-center rounded-lg bg-[#FFE1E1] px-3 py-1.5 text-xs font-medium text-[#E60000] hover:bg-[#FFD0D0] disabled:cursor-not-allowed disabled:opacity-60 max-sm:min-h-10"
+                        [disabled]="isBusy(row.id)"
+                        (click)="confirmDelete(row)"
+                      >
+                        Delete
+                      </button>
+                    }
+                  </span>
+                </td>
+              </tr>
+            </ng-template>
+          </p-table>
+        </div>
+
+        <p class="mt-3 text-sm text-[#7B7B7B]">{{ countLabel() }}</p>
+      }
+    }
+  }
+</section>

@@ -416,7 +416,21 @@
           class="inline-flex items-center gap-2 rounded-[10px] bg-[#ECECEC] px-[15px] py-2 text-[16px] text-[#525252] no-underline hover:bg-[#E2E2E2]"
           >Create brand from inquiry</a
         >
+        <!-- The other hand-off: let the brand fill the wizard in themselves. -->
+        <button
+          type="button"
+          class="inline-flex cursor-pointer items-center gap-2 rounded-[10px] border border-[#D7D7D7] bg-white px-[15px] py-2 text-[16px] text-[#525252] hover:bg-[#F7F7F7]"
+          (click)="sendInvite()"
+        >
+          Send brand invite
+        </button>
       </div>
     </div>
   }
 </p-drawer>
+
+<app-brand-invite-dialog
+  [(visible)]="inviteDialogOpen"
+  [prefill]="invitePrefill()"
+  (created)="onInviteCreated()"
+/>

@@ -22,6 +22,7 @@ import {
   inquiryStatusTone,
   NOT_ANNOUNCED,
 } from '../../core/util/campaign-format';
+import { BrandInviteDialog, BrandInvitePrefill } from '../../shared/admin/brand-invite-dialog';
 import { PageHeader } from '../../shared/admin/page-header';
 import { StatCard } from '../../shared/admin/stat-card';
 
@@ -50,6 +51,7 @@ const STATUS_OPTIONS: SelectOption<InquiryStatus>[] = [
  */
 @Component({
   imports: [
+    BrandInviteDialog,
     ButtonModule,
     Check,
     DrawerModule,
@@ -175,6 +177,60 @@ export class AdminInquiries {
   /** Where "Create brand from inquiry" sends the admin. */
   protected brandWizardParams(row: PartnershipInquiry): Record<string, string> {
     return { inquiryId: row.id };
+  }
+
+  /**
+   * "Send brand invite" opens the shared dialog with everything the brand
+   * already told us, so the admin never retypes it.
+   */
+  protected readonly inviteDialogOpen = signal(false);
+
+  protected readonly invitePrefill = computed<BrandInvitePrefill | null>(() => {
+    const row = this.selected();
+    if (!row) {
+      return null;
+    }
+    return {
+      brandName: row.company?.trim() || row.name,
+      contactName: row.name,
+      contactEmail: row.email,
+      contactPhone: row.phone,
+      website: row.link,
+      inquiryId: row.id,
+    };
+  });
+
+  protected sendInvite(): void {
+    this.inviteDialogOpen.set(true);
+  }
+
+  /**
+   * The API moves a NEW inquiry to CONTACTED as it issues the invite, so the
+   * drawer re-reads the row. A failed re-read still nudges the status locally
+   * rather than showing a state we know is stale.
+   */
+  protected async onInviteCreated(): Promise<void> {
+    const row = this.selected();
+    if (!row) {
+      return;
+    }
+    try {
+      const updated = await this.admin.inquiry(row.id);
+      this.applyInquiry(updated);
+    } catch {
+      if (row.status === 'NEW') {
+        this.applyInquiry({ ...row, status: 'CONTACTED' });
+      }
+    }
+    void this.loadCounts();
+  }
+
+  private applyInquiry(updated: PartnershipInquiry): void {
+    this.rows.update((rows) => rows.map((item) => (item.id === updated.id ? updated : item)));
+    if (this.selected()?.id === updated.id) {
+      this.selected.set(updated);
+      this.draftStatus.set(updated.status);
+    }
   }
 
   protected async save(): Promise<void> {

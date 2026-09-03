@@ -29,6 +29,13 @@
           />
         </div>
         <p-button
+          label="Invite a brand"
+          severity="secondary"
+          [outlined]="true"
+          styleClass="!rounded-lg !px-5 !py-2.5 !text-sm !shadow-none"
+          (onClick)="inviteBrand()"
+        />
+        <p-button
           label="Create Brands"
           styleClass="!rounded-lg !bg-primary !border-primary !px-7 !py-2.5 !text-sm !shadow-none"
           (onClick)="createBrand()"
@@ -340,5 +347,11 @@
         </section>
       }
     }
+
+    <!-- Brand invites live below the list and load themselves, so a failure up
+         there never takes them down with it. -->
+    <app-brand-invites-table />
   </div>
 </main>
+
+<app-brand-invite-dialog [(visible)]="inviteDialogOpen" (created)="onInviteCreated()" />

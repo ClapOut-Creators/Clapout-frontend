@@ -1,4 +1,4 @@
-import { Component, computed, DestroyRef, effect, inject, signal } from '@angular/core';
+import { Component, computed, DestroyRef, effect, inject, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AngleDoubleLeft } from '@primeicons/angular/angle-double-left';
@@ -18,6 +18,8 @@ import { ApiError } from '../../core/api/api-error';
 import { AdminRepository } from '../../core/data/admin-repository';
 import { Brand } from '../../core/models/brand';
 import { NOT_ANNOUNCED } from '../../core/util/campaign-format';
+import { BrandInviteDialog } from '../../shared/admin/brand-invite-dialog';
+import { BrandInvitesTable } from '../../shared/admin/brand-invites-table';
 import { BrandLogoTile } from '../../shared/admin/brand-logo-tile';
 import { PageHeader } from '../../shared/admin/page-header';
 import { StatCard } from '../../shared/admin/stat-card';
@@ -55,6 +57,8 @@ function formatCount(value: number): string {
     AngleDoubleRight,
     AngleLeft,
     AngleRight,
+    BrandInviteDialog,
+    BrandInvitesTable,
     BrandLogoTile,
     ButtonModule,
     ChevronDown,
@@ -77,6 +81,12 @@ export class AdminBrands {
   private readonly router = inject(Router);
   private readonly messages = inject(MessageService);
   private readonly confirmations = inject(ConfirmationService);
+
+  /** Rendered under the brand list; refreshed whenever an invite is created. */
+  private readonly invitesTable = viewChild(BrandInvitesTable);
+
+  /** Drives the "Invite a brand" dialog. */
+  protected readonly inviteDialogOpen = signal(false);
 
   protected readonly state = signal<ListState>('loading');
   protected readonly brands = signal<Brand[]>([]);
@@ -241,6 +251,15 @@ export class AdminBrands {
 
   protected createBrand(): void {
     void this.router.navigate(['/admin/brands/new']);
+  }
+
+  protected inviteBrand(): void {
+    this.inviteDialogOpen.set(true);
+  }
+
+  /** A new invite belongs at the top of the list below, so re-ask the API. */
+  protected onInviteCreated(): void {
+    this.invitesTable()?.reload();
   }
 
   protected statusLabel(brand: Brand): string {
