@@ -10,6 +10,9 @@ import { CampaignPlatform } from '../../core/models/campaign';
  * It is inline SVG rather than `@primeicons/angular` because those glyphs are
  * monochrome and the boards show the real, coloured marks; it is a template
  * (not an `[innerHTML]` string) because Angular's HTML sanitiser strips `<svg>`.
+ * That is also why the Snapchat ghost is repeated here rather than taken from
+ * `app-snapchat-icon`: that component paints one flat `currentColor` at a px
+ * size, and these marks are two-tone and sized by their box.
  *
  * It lives in this file rather than in one of its own so the overlay shell and
  * both dialogs built on it share a single import.
@@ -75,6 +78,26 @@ import { CampaignPlatform } from '../../core/models/campaign';
             />
           </svg>
         }
+        @case ('snapchat') {
+          <svg viewBox="0 0 23 23" class="block size-full" aria-hidden="true">
+            <rect width="23" height="23" rx="6.4" fill="#FFFC00" />
+            <path
+              transform="translate(3.46 3.46) scale(0.67)"
+              d="M3 18.7V12.2a9 9 0 0 1 18 0v6.5q-3 4.2-6 0-3 4.2-6 0-3 4.2-6 0Z"
+              fill="#010101"
+            />
+          </svg>
+        }
+        @case ('whatsapp') {
+          <svg viewBox="0 0 23 23" class="block size-full" aria-hidden="true">
+            <rect width="23" height="23" rx="6.4" fill="#25D366" />
+            <path
+              transform="translate(4.3 4.3) scale(0.72)"
+              d="M15.604 4.325C14.108 2.825 12.115 2 9.99699 2C5.62599 2 2.068 5.557 2.068 9.929C2.068 11.325 2.432 12.69 3.125 13.893L2 18L6.20399 16.896C7.36099 17.528 8.665 17.86 9.993 17.86H9.99699C14.365 17.86 18.001 14.303 18.001 9.931C18 7.814 17.1 5.825 15.604 4.325ZM9.99699 16.525C8.81099 16.525 7.651 16.207 6.64 15.607L6.401 15.464L3.908 16.118L4.572 13.686L4.415 13.436C3.754 12.386 3.408 11.175 3.408 9.929C3.408 6.297 6.365 3.34 10.001 3.34C11.762 3.34 13.415 4.026 14.658 5.272C15.901 6.518 16.665 8.172 16.662 9.933C16.661 13.568 13.629 16.525 9.99699 16.525ZM13.611 11.589C13.415 11.489 12.44 11.01 12.257 10.946C12.075 10.878 11.943 10.846 11.811 11.046C11.679 11.246 11.3 11.689 11.182 11.825C11.068 11.957 10.95 11.975 10.753 11.875C9.589 11.293 8.824 10.836 8.057 9.51801C7.853 9.16801 8.261 9.193 8.639 8.436C8.703 8.304 8.67099 8.19 8.62099 8.09C8.57099 7.99 8.17499 7.015 8.00999 6.619C7.84899 6.233 7.685 6.287 7.564 6.28C7.45 6.273 7.318 6.27299 7.185 6.27299C7.052 6.27299 6.839 6.323 6.656 6.519C6.474 6.719 5.963 7.198 5.963 8.173C5.963 9.148 6.674 10.091 6.77 10.223C6.87 10.355 8.166 12.355 10.156 13.216C11.413 13.759 11.906 13.805 12.535 13.712C12.917 13.655 13.706 13.233 13.871 12.769C14.035 12.305 14.035 11.908 13.985 11.826C13.94 11.735 13.807 11.685 13.611 11.589Z"
+              fill="#FFFFFF"
+            />
+          </svg>
+        }
         @default {
           <svg viewBox="0 0 23 23" class="block size-full" aria-hidden="true">
             <rect width="23" height="23" rx="6.4" fill="#010101" />
@@ -126,6 +149,19 @@ import { CampaignPlatform } from '../../core/models/campaign';
           <svg viewBox="0 0 24 24" class="block size-full" fill="currentColor" aria-hidden="true">
             <path
               d="M13.9 10.6 21 2.5h-1.7l-6.16 7.05L8.22 2.5H2.5l7.44 10.82L2.5 21.5h1.7l6.5-7.45 5.2 7.45h5.72L13.9 10.6Zm-2.3 2.64-.76-1.08L4.8 3.8h2.6l4.83 6.9.75 1.08 6.28 8.98h-2.6l-5.07-7.25Z"
+            />
+          </svg>
+        }
+        @case ('snapchat') {
+          <svg viewBox="0 0 24 24" class="block size-full" fill="currentColor" aria-hidden="true">
+            <path d="M3 18.7V12.2a9 9 0 0 1 18 0v6.5q-3 4.2-6 0-3 4.2-6 0-3 4.2-6 0Z" />
+          </svg>
+        }
+        @case ('whatsapp') {
+          <!-- The PrimeIcons mark, whose own box is 20 rather than 24. -->
+          <svg viewBox="0 0 20 20" class="block size-full" fill="currentColor" aria-hidden="true">
+            <path
+              d="M15.604 4.325C14.108 2.825 12.115 2 9.99699 2C5.62599 2 2.068 5.557 2.068 9.929C2.068 11.325 2.432 12.69 3.125 13.893L2 18L6.20399 16.896C7.36099 17.528 8.665 17.86 9.993 17.86H9.99699C14.365 17.86 18.001 14.303 18.001 9.931C18 7.814 17.1 5.825 15.604 4.325ZM9.99699 16.525C8.81099 16.525 7.651 16.207 6.64 15.607L6.401 15.464L3.908 16.118L4.572 13.686L4.415 13.436C3.754 12.386 3.408 11.175 3.408 9.929C3.408 6.297 6.365 3.34 10.001 3.34C11.762 3.34 13.415 4.026 14.658 5.272C15.901 6.518 16.665 8.172 16.662 9.933C16.661 13.568 13.629 16.525 9.99699 16.525ZM13.611 11.589C13.415 11.489 12.44 11.01 12.257 10.946C12.075 10.878 11.943 10.846 11.811 11.046C11.679 11.246 11.3 11.689 11.182 11.825C11.068 11.957 10.95 11.975 10.753 11.875C9.589 11.293 8.824 10.836 8.057 9.51801C7.853 9.16801 8.261 9.193 8.639 8.436C8.703 8.304 8.67099 8.19 8.62099 8.09C8.57099 7.99 8.17499 7.015 8.00999 6.619C7.84899 6.233 7.685 6.287 7.564 6.28C7.45 6.273 7.318 6.27299 7.185 6.27299C7.052 6.27299 6.839 6.323 6.656 6.519C6.474 6.719 5.963 7.198 5.963 8.173C5.963 9.148 6.674 10.091 6.77 10.223C6.87 10.355 8.166 12.355 10.156 13.216C11.413 13.759 11.906 13.805 12.535 13.712C12.917 13.655 13.706 13.233 13.871 12.769C14.035 12.305 14.035 11.908 13.985 11.826C13.94 11.735 13.807 11.685 13.611 11.589Z"
             />
           </svg>
         }

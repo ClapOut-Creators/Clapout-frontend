@@ -18,6 +18,7 @@ import { Plus } from '@primeicons/angular/plus';
 import { Tiktok } from '@primeicons/angular/tiktok';
 import { Times } from '@primeicons/angular/times';
 import { Twitter } from '@primeicons/angular/twitter';
+import { Whatsapp } from '@primeicons/angular/whatsapp';
 import { Youtube } from '@primeicons/angular/youtube';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { CheckboxModule } from 'primeng/checkbox';
@@ -47,6 +48,7 @@ import { formatDate, formatMoney, platformLabel } from '../../core/util/campaign
 import { BrandLogoTile } from '../../shared/admin/brand-logo-tile';
 import { WizardShell } from '../../shared/admin/wizard-shell';
 import { firstErrorMessage, httpUrlValidator } from '../../shared/forms/form-errors';
+import { SnapchatIcon } from '../../shared/icons/snapchat-icon';
 import { ShareCampaignButton } from '../../shared/public/share-campaign-button';
 
 type WizardState = 'loading' | 'form' | 'published' | 'error';
@@ -57,23 +59,30 @@ const MAX_IMAGE_BYTES = 500 * 1024;
 /** Both long-form fields show a `0/3000` counter in the design (172:1211). */
 const LONG_TEXT_LIMIT = 3000;
 
-interface PlatformChoice {
+export interface PlatformChoice {
   value: CampaignPlatform;
   label: string;
-  /** Brand tile background lifted from 172:3073 (TikTok #010101, FB #1976D2, …). */
+  /**
+   * Brand tile background and mark colour, lifted from 172:3073 (TikTok
+   * #010101, FB #1976D2, …). The mark colour lives here rather than on the tile
+   * element because Snapchat's ghost is black on yellow while every other mark
+   * is white.
+   */
   tileClass: string;
 }
 
-const PLATFORM_CHOICES: PlatformChoice[] = [
-  { value: 'tiktok', label: 'TikTok', tileClass: 'bg-[#010101]' },
+export const PLATFORM_CHOICES: PlatformChoice[] = [
+  { value: 'tiktok', label: 'TikTok', tileClass: 'bg-[#010101] text-white' },
   {
     value: 'instagram',
     label: 'Instagram',
-    tileClass: 'bg-[linear-gradient(45deg,#F9CE34,#EE2A7B,#6228D7)]',
+    tileClass: 'bg-[linear-gradient(45deg,#F9CE34,#EE2A7B,#6228D7)] text-white',
   },
-  { value: 'facebook', label: 'Facebook', tileClass: 'bg-[#1976D2]' },
-  { value: 'youtube', label: 'YouTube Reel', tileClass: 'bg-[#E60000]' },
-  { value: 'x', label: 'X', tileClass: 'bg-[#010101]' },
+  { value: 'facebook', label: 'Facebook', tileClass: 'bg-[#1976D2] text-white' },
+  { value: 'youtube', label: 'YouTube Reel', tileClass: 'bg-[#E60000] text-white' },
+  { value: 'x', label: 'X', tileClass: 'bg-[#010101] text-white' },
+  { value: 'snapchat', label: 'Snapchat', tileClass: 'bg-[#FFFC00] text-[#010101]' },
+  { value: 'whatsapp', label: 'WhatsApp Stories', tileClass: 'bg-[#25D366] text-white' },
 ];
 
 /**
@@ -244,9 +253,11 @@ function dateRangeStartValidator(control: AbstractControl): ValidationErrors | n
     ShareCampaignButton,
     SkeletonModule,
     TextareaModule,
+    SnapchatIcon,
     Tiktok,
     Times,
     Twitter,
+    Whatsapp,
     WizardShell,
     Youtube,
   ],

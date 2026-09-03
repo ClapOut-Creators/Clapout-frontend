@@ -26,6 +26,7 @@ import {
   registrationStatusTone,
 } from '../../core/util/campaign-format';
 import { downloadCsv, toCsv } from '../export/csv';
+import { SnapchatIcon } from '../icons/snapchat-icon';
 
 type TableState = 'loading' | 'ready' | 'error';
 
@@ -66,6 +67,7 @@ const STATUS_OPTIONS: SelectOption<RegistrationStatus>[] = [
     MessageModule,
     SelectModule,
     SkeletonModule,
+    SnapchatIcon,
     TableModule,
     TagModule,
     Tiktok,

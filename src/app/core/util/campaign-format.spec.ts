@@ -1,8 +1,11 @@
 import { BrandInviteStatus } from '../models/brand-invite';
+import { CampaignPlatform } from '../models/campaign';
 import {
   brandInviteStatusLabel,
   brandInviteStatusTone,
   NOT_ANNOUNCED,
+  platformLabel,
+  PLATFORM_LABELS,
   relativeTime,
 } from './campaign-format';
 
@@ -82,5 +85,42 @@ describe('relativeTime', () => {
 
   it('echoes a value it cannot parse rather than printing "Invalid Date"', () => {
     expect(relativeTime('whenever', now)).toBe('whenever');
+  });
+});
+
+/**
+ * Every campaign platform needs a label before it can appear in a filter, a
+ * select or an icon's screen-reader text, so the table is checked whole rather
+ * than one entry at a time.
+ */
+describe('platformLabel', () => {
+  it('gives each platform its brand casing', () => {
+    expect(platformLabel('tiktok')).toBe('TikTok');
+    expect(platformLabel('x')).toBe('X');
+    expect(platformLabel('facebook')).toBe('Facebook');
+    expect(platformLabel('instagram')).toBe('Instagram');
+    expect(platformLabel('youtube')).toBe('YouTube');
+    expect(platformLabel('snapchat')).toBe('Snapchat');
+  });
+
+  it('says "Stories" for WhatsApp, which has no posts to clip', () => {
+    expect(platformLabel('whatsapp')).toBe('WhatsApp Stories');
+  });
+
+  it('leaves no platform unlabelled', () => {
+    const platforms: CampaignPlatform[] = [
+      'tiktok',
+      'x',
+      'facebook',
+      'instagram',
+      'youtube',
+      'snapchat',
+      'whatsapp',
+    ];
+
+    expect(Object.keys(PLATFORM_LABELS).sort()).toEqual([...platforms].sort());
+    for (const platform of platforms) {
+      expect(platformLabel(platform)).toBeTruthy();
+    }
   });
 });

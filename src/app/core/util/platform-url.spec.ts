@@ -3,6 +3,7 @@ import {
   platformFromUrl,
   platformHostHint,
   platformMismatchMessage,
+  platformPostPlaceholder,
   postUrlLabel,
   submissionsOpen,
 } from './platform-url';
@@ -41,12 +42,31 @@ describe('isPlatformPostUrl', () => {
     expect(isPlatformPostUrl('tiktok', '')).toBe(true);
     expect(isPlatformPostUrl('tiktok', '   ')).toBe(true);
   });
+
+  it('holds Snapchat to snapchat.com and its subdomains', () => {
+    expect(isPlatformPostUrl('snapchat', 'https://www.snapchat.com/spotlight/AbCdEfG')).toBe(true);
+    expect(isPlatformPostUrl('snapchat', 'https://snapchat.com/t/AbCdEfG')).toBe(true);
+    expect(isPlatformPostUrl('snapchat', 'https://notsnapchat.com/spotlight/AbC')).toBe(false);
+    expect(isPlatformPostUrl('snapchat', 'https://www.tiktok.com/@ama/video/7411')).toBe(false);
+  });
+
+  it('accepts any link for WhatsApp, whose stories have no public host', () => {
+    expect(isPlatformPostUrl('whatsapp', 'https://drive.google.com/file/d/AbC/view')).toBe(true);
+    expect(isPlatformPostUrl('whatsapp', 'https://www.tiktok.com/@ama/video/7411')).toBe(true);
+    expect(isPlatformPostUrl('whatsapp', 'https://wa.me/233202457890')).toBe(true);
+  });
 });
 
 describe('platformMismatchMessage', () => {
   it('names the platform the clipper registered with', () => {
     expect(platformMismatchMessage('tiktok')).toContain('TikTok link');
     expect(platformMismatchMessage('youtube')).toContain('posted on YouTube');
+    expect(platformMismatchMessage('snapchat')).toContain('Snapchat link');
+  });
+
+  it('never accuses a WhatsApp clipper, since no link can mismatch', () => {
+    expect(platformMismatchMessage('whatsapp')).not.toContain('doesn’t look like');
+    expect(platformMismatchMessage('whatsapp')).toBe(platformHostHint('whatsapp'));
   });
 });
 
@@ -54,6 +74,25 @@ describe('platformHostHint', () => {
   it('lists one host plainly and several with "or"', () => {
     expect(platformHostHint('tiktok')).toBe('tiktok.com');
     expect(platformHostHint('youtube')).toBe('youtube.com or youtu.be');
+    expect(platformHostHint('snapchat')).toBe('snapchat.com');
+  });
+
+  it('tells a WhatsApp clipper what to paste instead of a host', () => {
+    expect(platformHostHint('whatsapp')).toBe(
+      'WhatsApp stories have no public link — paste a link to the story video ' +
+        '(a Drive link is fine) and add the screenshot.',
+    );
+  });
+});
+
+describe('platformPostPlaceholder', () => {
+  it('shows a real example link for every platform', () => {
+    expect(platformPostPlaceholder('snapchat')).toBe(
+      'https://www.snapchat.com/spotlight/AbCdEfGhIjK',
+    );
+    // WhatsApp has no post URL of its own, so the example is where the file lives.
+    expect(platformPostPlaceholder('whatsapp')).toContain('drive.google.com');
+    expect(platformPostPlaceholder('x')).toContain('x.com');
   });
 });
 
@@ -102,6 +141,13 @@ describe('platformFromUrl', () => {
     expect(platformFromUrl('https://fb.watch/xyz/')).toBe('facebook');
     expect(platformFromUrl('https://x.com/ama')).toBe('x');
     expect(platformFromUrl('https://twitter.com/ama')).toBe('x');
+    expect(platformFromUrl('https://www.snapchat.com/add/ama')).toBe('snapchat');
+    expect(platformFromUrl('https://wa.me/233202457890')).toBe('whatsapp');
+  });
+
+  it('never claims WhatsApp for a link that merely has no home', () => {
+    expect(platformFromUrl('https://drive.google.com/file/d/AbC/view')).toBe(null);
+    expect(platformFromUrl('https://example.test/story.mp4')).toBe(null);
   });
 
   it('matches subdomains but not lookalike hosts', () => {

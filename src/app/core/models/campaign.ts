@@ -6,7 +6,8 @@
  * these types without a matching backend change.
  */
 
-export type CampaignPlatform = 'tiktok' | 'x' | 'facebook' | 'instagram' | 'youtube';
+export type CampaignPlatform =
+  'tiktok' | 'x' | 'facebook' | 'instagram' | 'youtube' | 'snapchat' | 'whatsapp';
 
 /**
  * `DRAFT` campaigns exist only in the admin section — the public endpoints never

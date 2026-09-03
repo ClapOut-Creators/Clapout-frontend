@@ -66,7 +66,7 @@ interface PublicCampaign {
   // ACTIVE && startDate <= now && (endDate == null || now < endDate)
   registrationOpen: boolean;
   registrationCount: number;   // creators registered, all statuses (for the card)
-  platforms: ('tiktok' | 'x' | 'facebook' | 'instagram' | 'youtube')[];
+  platforms: ('tiktok' | 'x' | 'facebook' | 'instagram' | 'youtube' | 'snapchat' | 'whatsapp')[];
   currency: string;             // '₵' or '$'
   cpm: number | null;           // 20; null = not announced yet
   budgetSpent: number | null;   // 217.9
@@ -143,7 +143,7 @@ Password: bcrypt, min 8 chars. Email normalized lowercase.
 interface Registration {
   id: string;
   status: 'SUBMITTED' | 'UNDER_REVIEW' | 'ACCEPTED' | 'REJECTED';
-  platform: 'tiktok' | 'x' | 'facebook' | 'instagram' | 'youtube';
+  platform: 'tiktok' | 'x' | 'facebook' | 'instagram' | 'youtube' | 'snapchat' | 'whatsapp';
   accountUrl: string;   // creator's account/profile URL on that platform
   note: string | null;
   createdAt: string;
@@ -318,8 +318,11 @@ Creator endpoints (Bearer):
   | `422 SUBMISSIONS_CLOSED` (campaign's effective status is not ACTIVE)
   | `422 POST_URL_PLATFORM_MISMATCH` (URL host is not the registration's platform:
     tiktok → tiktok.com; youtube → youtube.com | youtu.be; instagram → instagram.com;
-    facebook → facebook.com | fb.watch; x → x.com | twitter.com; any subdomain such as
-    `www.`, `vm.`, `m.` is fine)
+    facebook → facebook.com | fb.watch; x → x.com | twitter.com;
+    snapchat → snapchat.com; any subdomain such as `www.`, `vm.`, `m.` is fine.
+    whatsapp is the exception: a WhatsApp status has no public link, so the host
+    check is skipped and any http(s) URL is accepted — the clipper links the story
+    video wherever it lives and the screenshot carries the proof)
   | `409 DUPLICATE_SUBMISSION` (same postUrl already submitted for this campaign, by anyone;
     compare after trimming, lower-casing the host and dropping the query string/fragment)
   | `422 VALIDATION` (not an http(s) URL, screenshotUrl not `data:image/*` or > 700 000

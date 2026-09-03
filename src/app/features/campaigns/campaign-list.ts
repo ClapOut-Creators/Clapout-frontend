@@ -27,6 +27,8 @@ const PLATFORM_FILTERS: readonly CampaignPlatform[] = [
   'youtube',
   'facebook',
   'x',
+  'snapchat',
+  'whatsapp',
 ];
 
 /**

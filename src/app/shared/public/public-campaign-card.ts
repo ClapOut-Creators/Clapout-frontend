@@ -5,6 +5,7 @@ import { Instagram } from '@primeicons/angular/instagram';
 import { Tiktok } from '@primeicons/angular/tiktok';
 import { Twitter } from '@primeicons/angular/twitter';
 import { User } from '@primeicons/angular/user';
+import { Whatsapp } from '@primeicons/angular/whatsapp';
 import { Youtube } from '@primeicons/angular/youtube';
 import { PublicCampaign } from '../../core/models/campaign';
 import {
@@ -15,6 +16,7 @@ import {
   platformLabel,
 } from '../../core/util/campaign-format';
 import { BrandLogoTile } from '../admin/brand-logo-tile';
+import { SnapchatIcon } from '../icons/snapchat-icon';
 
 /** Largest unit first so the first match wins. */
 const MONEY_UNITS: readonly (readonly [number, string])[] = [
@@ -80,7 +82,18 @@ export function elapsedLabel(iso: string | null | undefined, now: number = Date.
  * real `brand.verified` field once the backend publishes one.
  */
 @Component({
-  imports: [BrandLogoTile, Facebook, Instagram, RouterLink, Tiktok, Twitter, User, Youtube],
+  imports: [
+    BrandLogoTile,
+    Facebook,
+    Instagram,
+    RouterLink,
+    SnapchatIcon,
+    Tiktok,
+    Twitter,
+    User,
+    Whatsapp,
+    Youtube,
+  ],
   selector: 'app-public-campaign-card',
   styles: `
     /* The design sets the money and pill numerals in Poppins, the same face the
@@ -166,6 +179,12 @@ export function elapsedLabel(iso: string | null | undefined, now: number = Date.
                   }
                   @case ('youtube') {
                     <svg data-p-icon="youtube" [size]="11" aria-hidden="true"></svg>
+                  }
+                  @case ('snapchat') {
+                    <app-snapchat-icon [size]="11" />
+                  }
+                  @case ('whatsapp') {
+                    <svg data-p-icon="whatsapp" [size]="11" aria-hidden="true"></svg>
                   }
                   @default {
                     <svg data-p-icon="twitter" [size]="11" aria-hidden="true"></svg>

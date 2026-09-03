@@ -10,6 +10,7 @@ import { Instagram } from '@primeicons/angular/instagram';
 import { Link } from '@primeicons/angular/link';
 import { Tiktok } from '@primeicons/angular/tiktok';
 import { Twitter } from '@primeicons/angular/twitter';
+import { Whatsapp } from '@primeicons/angular/whatsapp';
 import { Youtube } from '@primeicons/angular/youtube';
 import { ButtonModule } from 'primeng/button';
 import { MessageModule } from 'primeng/message';
@@ -39,6 +40,7 @@ import { BrandLogoTile } from '../../shared/admin/brand-logo-tile';
 import { CreatorPageHeader } from '../../shared/creator/creator-page-header';
 import { LeaderboardList } from '../../shared/creator/leaderboard-list';
 import { SubmitPostDialog } from '../../shared/creator/submit-post-dialog';
+import { SnapchatIcon } from '../../shared/icons/snapchat-icon';
 import { ShareCampaignButton } from '../../shared/public/share-campaign-button';
 import { LinkifiedText } from '../../shared/text/linkified-text';
 import { createNowSignal } from '../../shared/time/clock';
@@ -81,10 +83,12 @@ type DetailTab = 'detail' | 'leaderboard';
     RouterLink,
     ShareCampaignButton,
     SkeletonModule,
+    SnapchatIcon,
     SubmitPostDialog,
     TagModule,
     Tiktok,
     Twitter,
+    Whatsapp,
     Youtube,
   ],
   selector: 'app-campaign-detail',

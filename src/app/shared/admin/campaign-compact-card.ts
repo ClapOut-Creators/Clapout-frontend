@@ -6,6 +6,7 @@ import { Instagram } from '@primeicons/angular/instagram';
 import { Tiktok } from '@primeicons/angular/tiktok';
 import { Twitter } from '@primeicons/angular/twitter';
 import { Wallet } from '@primeicons/angular/wallet';
+import { Whatsapp } from '@primeicons/angular/whatsapp';
 import { Youtube } from '@primeicons/angular/youtube';
 import { CampaignStatus, PublicCampaign } from '../../core/models/campaign';
 import {
@@ -18,6 +19,7 @@ import {
   platformLabel,
   TagTone,
 } from '../../core/util/campaign-format';
+import { SnapchatIcon } from '../icons/snapchat-icon';
 import { ShareCampaignButton } from '../public/share-campaign-button';
 import { BrandLogoTile } from './brand-logo-tile';
 
@@ -56,9 +58,11 @@ export function campaignStatusPillClass(status: CampaignStatus): string {
     Instagram,
     RouterLink,
     ShareCampaignButton,
+    SnapchatIcon,
     Tiktok,
     Twitter,
     Wallet,
+    Whatsapp,
     Youtube,
   ],
   selector: 'app-campaign-compact-card',
@@ -130,6 +134,12 @@ export function campaignStatusPillClass(status: CampaignStatus): string {
                 }
                 @case ('youtube') {
                   <svg data-p-icon="youtube" [size]="15" aria-hidden="true"></svg>
+                }
+                @case ('snapchat') {
+                  <app-snapchat-icon [size]="15" />
+                }
+                @case ('whatsapp') {
+                  <svg data-p-icon="whatsapp" [size]="15" aria-hidden="true"></svg>
                 }
                 @default {
                   <svg data-p-icon="twitter" [size]="15" aria-hidden="true"></svg>

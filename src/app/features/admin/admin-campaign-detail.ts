@@ -7,6 +7,7 @@ import { Facebook } from '@primeicons/angular/facebook';
 import { Instagram } from '@primeicons/angular/instagram';
 import { Tiktok } from '@primeicons/angular/tiktok';
 import { Twitter } from '@primeicons/angular/twitter';
+import { Whatsapp } from '@primeicons/angular/whatsapp';
 import { Youtube } from '@primeicons/angular/youtube';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -29,6 +30,7 @@ import { campaignStatusPillClass } from '../../shared/admin/campaign-compact-car
 import { ClippersTable } from '../../shared/admin/clippers-table';
 import { PageHeader } from '../../shared/admin/page-header';
 import { SubmissionsTable } from '../../shared/admin/submissions-table';
+import { SnapchatIcon } from '../../shared/icons/snapchat-icon';
 import { ShareCampaignButton } from '../../shared/public/share-campaign-button';
 
 type DetailState = 'loading' | 'ready' | 'not-found' | 'error';
@@ -53,9 +55,11 @@ type DetailState = 'loading' | 'ready' | 'not-found' | 'error';
     RouterLink,
     ShareCampaignButton,
     SkeletonModule,
+    SnapchatIcon,
     SubmissionsTable,
     Tiktok,
     Twitter,
+    Whatsapp,
     Youtube,
   ],
   selector: 'app-admin-campaign-detail',

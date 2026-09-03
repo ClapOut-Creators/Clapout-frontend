@@ -16,6 +16,9 @@ export const PLATFORM_LABELS: Record<CampaignPlatform, string> = {
   facebook: 'Facebook',
   instagram: 'Instagram',
   youtube: 'YouTube',
+  snapchat: 'Snapchat',
+  /** A story, not a post — the label says so wherever a clipper picks a platform. */
+  whatsapp: 'WhatsApp Stories',
 };
 
 export function platformLabel(platform: CampaignPlatform): string {

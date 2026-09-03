@@ -43,6 +43,7 @@ import {
 } from '../../core/util/campaign-format';
 import { postUrlLabel } from '../../core/util/platform-url';
 import { downloadCsv, toCsv } from '../export/csv';
+import { SnapchatIcon } from '../icons/snapchat-icon';
 
 type TableState = 'loading' | 'ready' | 'error';
 
@@ -98,6 +99,7 @@ export function previewPayout(verifiedViews: number | null, cpm: number | null):
     MessageModule,
     SelectModule,
     SkeletonModule,
+    SnapchatIcon,
     TableModule,
     TagModule,
     TextareaModule,

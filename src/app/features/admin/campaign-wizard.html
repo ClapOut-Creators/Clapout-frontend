@@ -430,6 +430,12 @@
                         @case ('x') {
                           <svg data-p-icon="twitter" [size]="21" aria-hidden="true"></svg>
                         }
+                        @case ('snapchat') {
+                          <app-snapchat-icon [size]="21" />
+                        }
+                        @case ('whatsapp') {
+                          <svg data-p-icon="whatsapp" [size]="21" aria-hidden="true"></svg>
+                        }
                       }
                       <span class="sr-only">{{ platformLabel(platform) }}</span>
                     </span>
@@ -986,7 +992,7 @@
                     class="flex h-[95px] w-full items-center gap-4 rounded-xl border border-[#D7D7D7] bg-white px-[18px]"
                   >
                     <span
-                      class="flex h-16 w-16 shrink-0 items-center justify-center rounded-[18px] text-white"
+                      class="flex h-16 w-16 shrink-0 items-center justify-center rounded-[18px]"
                       [class]="choice.tileClass"
                       aria-hidden="true"
                     >
@@ -1005,6 +1011,12 @@
                         }
                         @case ('x') {
                           <svg data-p-icon="twitter" [size]="32"></svg>
+                        }
+                        @case ('snapchat') {
+                          <app-snapchat-icon [size]="32" />
+                        }
+                        @case ('whatsapp') {
+                          <svg data-p-icon="whatsapp" [size]="32"></svg>
                         }
                       }
                     </span>
