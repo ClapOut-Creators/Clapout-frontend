@@ -8,6 +8,7 @@ import { ExternalLink } from '@primeicons/angular/external-link';
 import { Facebook } from '@primeicons/angular/facebook';
 import { Instagram } from '@primeicons/angular/instagram';
 import { Link } from '@primeicons/angular/link';
+import { Lock } from '@primeicons/angular/lock';
 import { Tiktok } from '@primeicons/angular/tiktok';
 import { Twitter } from '@primeicons/angular/twitter';
 import { Whatsapp } from '@primeicons/angular/whatsapp';
@@ -77,6 +78,7 @@ type DetailTab = 'detail' | 'leaderboard';
     Instagram,
     LeaderboardList,
     Link,
+    Lock,
     LinkifiedText,
     MessageModule,
     NgTemplateOutlet,

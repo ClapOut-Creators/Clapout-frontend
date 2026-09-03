@@ -592,7 +592,16 @@
                   "
                 />
               </p>
-              @if (campaign.requirementsDocUrl) {
+              @if (isUpcoming()) {
+                <!-- The materials stay sealed until the countdown ends; the API
+                     withholds the URL too, so this is the honest state. -->
+                <p
+                  class="m-0 mt-2 inline-flex items-center gap-2 text-[16px] leading-6 text-[#909090]"
+                >
+                  <svg data-p-icon="lock" [size]="14" aria-hidden="true"></svg>
+                  The campaign brief unlocks when the campaign opens.
+                </p>
+              } @else if (campaign.requirementsDocUrl) {
                 <a
                   [href]="campaign.requirementsDocUrl"
                   target="_blank"
@@ -612,7 +621,21 @@
               >
                 Resources
               </h2>
-              @if (campaign.resourceUrl) {
+              @if (isUpcoming()) {
+                <div
+                  class="mt-2.5 w-full max-w-[254px] rounded-[10px] border border-[#DDDDDD] bg-[#F8F8F8] px-[15px] py-[9px]"
+                >
+                  <p
+                    class="co-user-text m-0 flex items-center gap-2 text-[16px] leading-6 text-[#464646]"
+                  >
+                    <svg data-p-icon="lock" [size]="14" aria-hidden="true"></svg>
+                    {{ campaign.resourceLabel || 'Campaign resource' }}
+                  </p>
+                  <p class="m-0 mt-[11px] text-[14px] leading-[17px] text-[#909090]">
+                    Unlocks when the campaign opens
+                  </p>
+                </div>
+              } @else if (campaign.resourceUrl) {
                 <a
                   [href]="campaign.resourceUrl"
                   target="_blank"
