@@ -22,6 +22,14 @@ export const routes: Routes = [
       import('./features/admin/admin.routes').then((module) => module.ADMIN_ROUTES),
   },
   {
+    // Public, guard-free and chromeless: the token in the link is the whole
+    // credential, so a brand's representative needs no ClapOut account.
+    path: 'brand/onboard/:token',
+    loadComponent: () =>
+      import('./features/brand-onboarding/brand-onboarding').then((route) => route.BrandOnboarding),
+    title: 'Set up your brand - ClapOut',
+  },
+  {
     path: 'terms',
     loadComponent: () => import('./features/legal/legal-page').then((m) => m.LegalPage),
     data: { title: 'Terms of Service' },

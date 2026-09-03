@@ -21,8 +21,16 @@ export class App {
 
   private readonly currentUrl = signal(this.router.url);
 
-  /** Auth pages are chromeless — no nav of either kind. */
-  protected readonly isAuthRoute = computed(() => this.currentUrl().startsWith('/auth'));
+  /**
+   * Chromeless routes — no nav of either kind. The auth pages, plus the public
+   * brand onboarding link: a brand's representative arrives with no session and
+   * nothing to navigate to, so the page is the whole screen. (The name is kept
+   * because `app.html` binds it.)
+   */
+  protected readonly isAuthRoute = computed(() => {
+    const url = this.currentUrl();
+    return url.startsWith('/auth') || url.startsWith('/brand/onboard');
+  });
   /** Side nav is a signed-in (dashboard) affordance. */
   protected readonly showSideNav = computed(() => !this.isAuthRoute() && this.auth.isSignedIn());
   /**
