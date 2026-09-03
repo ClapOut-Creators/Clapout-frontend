@@ -278,6 +278,84 @@ Side nav gains Submissions for clippers, and Submissions + Inquiries for admins.
   admin queue was verified against the real (empty) state plus a Playwright route
   mock for the populated table and drawer.
 
+### Brand invites — self-serve brand onboarding (2026-09-03)
+
+Brands have no portal yet, so onboarding one meant an admin retyping everything
+the brand had already told them. An admin now generates a single-use link and
+sends it to the brand's representative, who fills in the same three-step wizard
+themselves.
+
+**The wizard's three steps are now shared.** `shared/brands/brand-form.ts` owns
+Brand Details (logo included), Brand Location and Primary Contact — the typed
+form, the per-step validation gate, the logo upload and its `data:` URL cap, and
+`value()` / `patch()`. `features/admin/brand-wizard` keeps the shell, the step
+navigation, the admin submit target and the "Brand Saved!" screen and projects
+its own Back/Continue footer into the shared form; the public page does the same
+with a single "Save brand". The host element is `display: contents` so the
+`<form>` stays a direct child of whatever column laid it out: screenshots of all
+three admin steps at 1728 are byte-identical before and after the refactor, and
+`?inquiryId=` prefill plus the CONVERTED hand-off still work.
+
+**`/brand/onboard/:token`** is public, lazy and guard-free — the token in the
+link is the whole credential. `app.ts` widens the chromeless check that already
+covered `/auth`, so the page renders with no nav, rail or footer. It handles
+loading, an invalid link (404), used / revoked / expired (each explained in the
+brand's own terms, with a "Contact ClapOut" mailto), the prefilled wizard, and
+"Brand saved! The ClapOut team will be in touch to plan your first campaign." —
+with no admin links on it. `brandInviteCompleteFailure()` maps the failures:
+`409 BRAND_EXISTS` renders under the brand-name field on step 1, the
+`410 INVITE_USED | INVITE_REVOKED | INVITE_EXPIRED` family swaps the page to the
+matching dead-link screen (a link can die while the rep is typing), 429 asks
+them to wait a few minutes, and 422 shows what the API objected to.
+
+**Admin side.** `/admin/brands` gains an "Invite a brand" secondary button beside
+"Create brand", opening `shared/admin/brand-invite-dialog.ts`: brand name,
+contact, email, an international phone reusing sign-up's country-code select,
+website, expiry (7 / 14 / 30 days, default 14) and an internal note — all
+optional, because the invite is a hint and the brand fills in the real thing. On
+success the same dialog becomes the link state: the full link in a read-only
+input with Copy, "Send on WhatsApp" when a phone was given, and Done. The API
+only ever returns the token; `core/util/brand-invite-link.ts` composes
+`${window.location.origin}/brand/onboard/${token}`, so no URL base is needed
+server side. Below the brand list, `shared/admin/brand-invites-table.ts` lists
+every invite (brand hint, contact, status tag, sent, expires, the brand it
+created) with a status filter and per-row Copy link / Revoke / Delete — Revoke
+and Copy only while PENDING, Delete never while the invite still owns a brand,
+both behind a confirm, all with toasts. The inquiry drawer gets "Send brand
+invite" next to "Create brand from inquiry", opening the same dialog prefilled
+from the inquiry (company → brand name, contact, phone, email, link → website)
+and re-reading the inquiry afterwards, since issuing the invite moves a NEW one
+to CONTACTED.
+
+`AdminStats` gains the optional `pendingBrandInvites`, and the invite status
+helpers (Pending / Completed / Revoked / Expired) sit with the other label/tone
+pairs in `core/util/campaign-format.ts`.
+
+### Live verification of brand invites (2026-09-03)
+
+- Full round trip on the live database: one invite created through the dialog
+  ("TEST invite — delete me"), its link opened in a browser context with no
+  ClapOut session, the three steps completed as "ZZ Test Brand (delete me)", and
+  the brand appeared in `/admin/brands` with the invite showing Completed and
+  linking to it. Re-opening the spent link showed "This link has already been
+  used" naming the brand. A second invite was revoked through the UI (its link
+  then read "This link was cancelled") and deleted; the test brand was deleted
+  via `DELETE /admin/brands/:id` and the first invite deleted through the UI's
+  Delete action, which only appears once the brand is gone. Nothing is left
+  behind — `GET /admin/brand-invites` is empty and the brand list is back to its
+  two real rows.
+- The inquiry drawer's "Send brand invite" was opened against the one real
+  partnership request to confirm the prefill, then cancelled: firing it would
+  have moved a real lead from NEW to CONTACTED, which is not ours to do. That
+  inquiry is untouched.
+- Screenshots at 1728×1048, 1000×800 and iPhone 13 (390px) cover the brands page
+  with the invites section, both dialog states, the inquiry drawer, and the
+  public page's three steps, used-link and success states. No horizontal
+  overflow at any width and the console is clean on every screen. The two
+  smaller widths use a Playwright-stubbed 201 for the dialog's link state and
+  the public success screen, so the screenshot set cost the database exactly one
+  invite and one brand, both since removed.
+
 ## In progress
 
 - Nothing mid-flight. The admin section passed its full live pass on
