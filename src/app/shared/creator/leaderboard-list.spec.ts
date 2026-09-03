@@ -105,7 +105,7 @@ describe('needsOwnStandingFooter', () => {
 
 @Component({
   imports: [LeaderboardList],
-  template: `<app-leaderboard-list [leaderboard]="leaderboard()" />`,
+  template: `<app-leaderboard-list [leaderboard]="leaderboard()" currency="₵" />`,
 })
 class Host {
   readonly leaderboard = signal<CampaignLeaderboard>(board());
@@ -136,9 +136,11 @@ describe('LeaderboardList', () => {
 
     const rows = element.querySelectorAll('li');
     expect(rows).toHaveLength(2);
-    expect(rows[0].textContent).toContain('Willian O.');
-    expect(rows[0].textContent).toContain('8,400');
-    expect(rows[1].textContent).toContain('1,400');
+    // The podium places 2nd on the left of 1st, so match on the board as a whole.
+    const text = element.textContent ?? '';
+    expect(text).toContain('Willian O.');
+    expect(text).toContain('8,400');
+    expect(text).toContain('1,400');
   });
 
   it('names the caller’s own row without changing anything else about it', async () => {
@@ -165,13 +167,14 @@ describe('LeaderboardList', () => {
       }),
     );
 
-    expect(element.textContent).toContain('You are #31 with 1,200 views');
+    expect(element.textContent).toContain('You are #31 with');
+    expect(element.textContent).toContain('1,200 verified views');
   });
 
   it('explains an empty board instead of drawing an empty list', async () => {
     const element = await render(board());
 
     expect(element.querySelector('ol')).toBeNull();
-    expect(element.textContent).toContain('No verified clips yet');
+    expect(element.textContent).toContain('No earners yet');
   });
 });

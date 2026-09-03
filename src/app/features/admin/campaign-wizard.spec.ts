@@ -2,6 +2,7 @@ import { CampaignPlatform } from '../../core/models/campaign';
 import { platformLabel } from '../../core/util/campaign-format';
 import {
   campaignScheduleFromParts,
+  utcOffsetSuffix,
   campaignScheduleIsOrdered,
   PLATFORM_CHOICES,
   timeFromDate,
@@ -51,9 +52,20 @@ describe('campaign schedule helpers', () => {
     );
 
     expect(schedule).toEqual({
-      startDate: '2026-09-03T23:00:00',
-      endDate: '2026-09-04T01:30:00',
+      startDate: `2026-09-03T23:00:00${utcOffsetSuffix(new Date(2026, 8, 3, 23, 0))}`,
+      endDate: `2026-09-04T01:30:00${utcOffsetSuffix(new Date(2026, 8, 4, 1, 30))}`,
     });
+  });
+
+  it('stamps the zone offset so the schedule is one instant everywhere', () => {
+    expect(utcOffsetSuffix(new Date(2026, 8, 3, 23, 0))).toMatch(/^[+-]\d{2}:\d{2}$/);
+    const startDate = campaignScheduleFromParts(
+      [new Date(2026, 8, 3), null],
+      new Date(2026, 0, 1, 23, 0),
+      null,
+    ).startDate;
+    // Round-tripping through Date must land on the same wall-clock minute.
+    expect(new Date(startDate!).getTime()).toBe(new Date(2026, 8, 3, 23, 0).getTime());
   });
 
   it('requires both dates and both times before producing a complete schedule', () => {
@@ -63,7 +75,10 @@ describe('campaign schedule helpers', () => {
         null,
         new Date(2026, 0, 1, 1, 30),
       ),
-    ).toEqual({ startDate: null, endDate: '2026-09-04T01:30:00' });
+    ).toEqual({
+      startDate: null,
+      endDate: expect.stringMatching(/^2026-09-04T01:30:00[+-]\d{2}:\d{2}$/),
+    });
 
     expect(
       campaignScheduleFromParts(
@@ -71,7 +86,10 @@ describe('campaign schedule helpers', () => {
         new Date(2026, 0, 1, 23, 0),
         new Date(2026, 0, 1, 1, 30),
       ),
-    ).toEqual({ startDate: '2026-09-03T23:00:00', endDate: null });
+    ).toEqual({
+      startDate: expect.stringMatching(/^2026-09-03T23:00:00[+-]\d{2}:\d{2}$/),
+      endDate: null,
+    });
   });
 
   it('rejects an end datetime that is before or equal to the start datetime', () => {

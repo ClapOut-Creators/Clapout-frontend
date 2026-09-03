@@ -963,7 +963,21 @@ function toLocalIsoDateTime(value: Date): string {
   const hour = String(value.getHours()).padStart(2, '0');
   const minute = String(value.getMinutes()).padStart(2, '0');
   const second = String(value.getSeconds()).padStart(2, '0');
-  return `${year}-${month}-${day}T${hour}:${minute}:${second}`;
+  return `${year}-${month}-${day}T${hour}:${minute}:${second}${utcOffsetSuffix(value)}`;
+}
+
+/**
+ * '+00:00' / '-05:00' for the admin's zone at that instant, so the stored
+ * timestamp pins one moment for every viewer instead of being re-read in each
+ * browser's local time (and as UTC on the server).
+ */
+export function utcOffsetSuffix(value: Date): string {
+  const offsetMinutes = -value.getTimezoneOffset();
+  const sign = offsetMinutes < 0 ? '-' : '+';
+  const absolute = Math.abs(offsetMinutes);
+  const hours = String(Math.floor(absolute / 60)).padStart(2, '0');
+  const minutes = String(absolute % 60).padStart(2, '0');
+  return `${sign}${hours}:${minutes}`;
 }
 
 function parseDate(value: string | null): Date | null {
