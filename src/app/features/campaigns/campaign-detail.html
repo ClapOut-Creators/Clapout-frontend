@@ -121,7 +121,22 @@
         }
       </div>
     </section>
-    <!-- SUBMIT_DIALOG_HOST: <app-submit-post-dialog> is mounted here by the integrator -->
+    <!-- The submit flow is an overlay over this page, driven by `?submit=1`. It
+         needs the campaign and an ACCEPTED registration, so it only mounts once
+         both are known; a stray `?submit=1` on any other state is simply ignored. -->
+    @if (campaign(); as campaign) {
+      @if (existingRegistration(); as registration) {
+        @if (canSubmitContent()) {
+          <app-submit-post-dialog
+            [visible]="submitOpen()"
+            (visibleChange)="$event ? openSubmit() : closeSubmit()"
+            [campaign]="campaign"
+            [registration]="registration"
+            (submitted)="onSubmitted()"
+          />
+        }
+      }
+    }
   </main>
 } @else {
   <main class="mx-auto w-full max-w-[1249px] px-4 pb-16 pt-[18px] lg:px-6 lg:pb-24 lg:pt-8 xl:px-0">

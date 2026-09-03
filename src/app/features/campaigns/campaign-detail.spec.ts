@@ -2,7 +2,9 @@ import { computed, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router, withComponentInputBinding } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
-import { MessageService } from 'primeng/api';
+import { provideHttpClient } from '@angular/common/http';
+import { ConfirmationService, MessageService } from 'primeng/api';
+import { provideAppConfiguration } from '../../core/config/app-environment';
 import { AuthService } from '../../core/auth/auth-service';
 import { CampaignsRepository } from '../../core/data/campaigns-repository';
 import { RegistrationsRepository } from '../../core/data/registrations-repository';
@@ -93,7 +95,11 @@ describe('CampaignDetail — studio tabs', () => {
     leaderboardCalls = 0;
     await TestBed.configureTestingModule({
       providers: [
+        // The mounted submit overlay pulls in the HTTP client and the app config.
+        ConfirmationService,
         MessageService,
+        provideAppConfiguration(),
+        provideHttpClient(),
         provideRouter(
           [{ path: 'campaigns/:slug', component: CampaignDetail }],
           withComponentInputBinding(),

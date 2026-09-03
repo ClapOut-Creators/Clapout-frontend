@@ -1,5 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { ArrowRight } from '@primeicons/angular/arrow-right';
 import { Check } from '@primeicons/angular/check';
 import { Home } from '@primeicons/angular/home';
 import { Link } from '@primeicons/angular/link';
@@ -70,6 +71,7 @@ function readJoinedCommunity(): boolean {
  */
 @Component({
   imports: [
+    ArrowRight,
     ButtonModule,
     Check,
     Home,

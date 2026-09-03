@@ -38,6 +38,7 @@ import {
 import { BrandLogoTile } from '../../shared/admin/brand-logo-tile';
 import { CreatorPageHeader } from '../../shared/creator/creator-page-header';
 import { LeaderboardList } from '../../shared/creator/leaderboard-list';
+import { SubmitPostDialog } from '../../shared/creator/submit-post-dialog';
 import { ShareCampaignButton } from '../../shared/public/share-campaign-button';
 import { LinkifiedText } from '../../shared/text/linkified-text';
 import { createNowSignal } from '../../shared/time/clock';
@@ -80,6 +81,7 @@ type DetailTab = 'detail' | 'leaderboard';
     RouterLink,
     ShareCampaignButton,
     SkeletonModule,
+    SubmitPostDialog,
     TagModule,
     Tiktok,
     Twitter,
@@ -278,6 +280,17 @@ export class CampaignDetail {
     });
   }
 
+  /**
+   * A clip just went in: the leaderboard may now include the clipper, so the
+   * board is refetched the next time it is shown (immediately if it is showing).
+   */
+  protected onSubmitted(): void {
+    if (this.tab() === 'leaderboard') {
+      void this.loadLeaderboard();
+      return;
+    }
+    this.leaderboardState.set('idle');
+  }
   protected retryLeaderboard(): void {
     void this.loadLeaderboard();
   }

@@ -11,7 +11,7 @@
     <p
       class="m-0 inline-flex items-center gap-2 rounded-[26px] bg-[#F1F1F1] py-1.5 pr-1.5 pl-3.5 text-[14px] leading-[17px] text-[#464646]"
     >
-      <span class="max-w-[16rem] truncate">{{ displayName() }}</span>
+      <span class="max-w-[16rem] truncate max-sm:hidden">{{ displayName() }}</span>
       <span
         class="flex size-[30px] shrink-0 items-center justify-center rounded-full border border-[#EC612C] bg-[#BABABA] text-[12px] font-semibold text-white"
         aria-hidden="true"
@@ -43,10 +43,10 @@
       </p>
 
       <ul class="mt-[35px] flex list-none flex-col gap-[35px] p-0">
-        <li class="flex flex-wrap items-center justify-between gap-4">
+        <li class="flex flex-wrap items-center justify-between gap-4 max-sm:flex-nowrap">
           <div class="flex min-w-0 items-center gap-4">
             <span
-              class="flex size-14 shrink-0 items-center justify-center rounded-full bg-[#EC612C]"
+              class="flex size-14 shrink-0 items-center justify-center rounded-full bg-[#EC612C] max-sm:size-[46px]"
             >
               <span class="flex size-6 items-center justify-center rounded-full bg-white">
                 <svg
@@ -58,19 +58,25 @@
               </span>
             </span>
             <div class="min-w-0">
-              <p class="m-0 text-[18px] leading-[26px] font-medium text-[#767676]">
+              <p
+                class="m-0 text-[18px] leading-[26px] font-medium text-[#767676] max-sm:text-[14px] max-sm:leading-[17px] max-sm:font-semibold"
+              >
                 Create your account
               </p>
-              <p class="m-0 text-[16px] leading-[26px] text-[#808080]">You&rsquo;re all set!</p>
+              <p
+                class="m-0 text-[16px] leading-[26px] text-[#808080] max-sm:text-[12px] max-sm:leading-[14px]"
+              >
+                You&rsquo;re all set!
+              </p>
             </div>
           </div>
         </li>
 
-        <li class="flex flex-wrap items-center justify-between gap-4">
+        <li class="flex flex-wrap items-center justify-between gap-4 max-sm:flex-nowrap">
           <div class="flex min-w-0 items-center gap-4">
             @if (socialsDone()) {
               <span
-                class="flex size-14 shrink-0 items-center justify-center rounded-full bg-[#EC612C]"
+                class="flex size-14 shrink-0 items-center justify-center rounded-full bg-[#EC612C] max-sm:size-[46px]"
               >
                 <span class="flex size-6 items-center justify-center rounded-full bg-white">
                   <svg
@@ -83,37 +89,47 @@
               </span>
             } @else {
               <span
-                class="flex size-14 shrink-0 items-center justify-center rounded-full bg-[#EEEEEE]"
+                class="flex size-14 shrink-0 items-center justify-center rounded-full bg-[#EEEEEE] max-sm:size-[46px]"
               >
                 <svg data-p-icon="link" [size]="24" class="text-[#787878]" aria-hidden="true"></svg>
               </span>
             }
             <div class="min-w-0">
               <p
-                class="m-0 text-[18px] leading-[26px] font-medium"
+                class="m-0 text-[18px] leading-[26px] font-medium max-sm:text-[14px] max-sm:leading-[17px] max-sm:font-semibold"
                 [class]="socialsDone() ? 'text-[#767676]' : 'text-[#2B2B2B]'"
               >
                 Add your social accounts
               </p>
-              <p class="m-0 text-[16px] leading-[26px] text-[#808080]">
+              <p
+                class="m-0 text-[16px] leading-[26px] text-[#808080] max-sm:text-[12px] max-sm:leading-[14px]"
+              >
                 {{ socialsSubtitle() }}
               </p>
             </div>
           </div>
           <button
             type="button"
-            class="inline-flex h-[50px] shrink-0 items-center justify-center rounded-[34px] bg-[#EEEEEE] px-[27.74px] text-[18px] leading-[23.8px] font-medium text-[#2B2B2B] transition-colors hover:bg-[#E4E4E4]"
+            class="inline-flex h-[50px] shrink-0 items-center justify-center rounded-[34px] bg-[#EEEEEE] px-[27.74px] text-[18px] leading-[23.8px] font-medium text-[#2B2B2B] transition-colors hover:bg-[#E4E4E4] max-sm:h-7 max-sm:w-7 max-sm:px-0"
             (click)="openSocialsDialog()"
           >
-            {{ socialsDone() ? 'Manage socials' : 'Add socials link' }}
+            <span class="max-sm:sr-only">{{
+              socialsDone() ? 'Manage socials' : 'Add socials link'
+            }}</span>
+            <svg
+              data-p-icon="arrow-right"
+              [size]="16"
+              class="text-[#131313] sm:hidden"
+              aria-hidden="true"
+            ></svg>
           </button>
         </li>
 
-        <li class="flex flex-wrap items-center justify-between gap-4">
+        <li class="flex flex-wrap items-center justify-between gap-4 max-sm:flex-nowrap">
           <div class="flex min-w-0 items-center gap-4">
             @if (joinedCommunity()) {
               <span
-                class="flex size-14 shrink-0 items-center justify-center rounded-full bg-[#EC612C]"
+                class="flex size-14 shrink-0 items-center justify-center rounded-full bg-[#EC612C] max-sm:size-[46px]"
               >
                 <span class="flex size-6 items-center justify-center rounded-full bg-white">
                   <svg
@@ -126,7 +142,7 @@
               </span>
             } @else {
               <span
-                class="flex size-14 shrink-0 items-center justify-center rounded-full bg-[#EEEEEE]"
+                class="flex size-14 shrink-0 items-center justify-center rounded-full bg-[#EEEEEE] max-sm:size-[46px]"
               >
                 <svg
                   data-p-icon="whatsapp"
@@ -138,12 +154,14 @@
             }
             <div class="min-w-0">
               <p
-                class="m-0 text-[18px] leading-[26px] font-medium"
+                class="m-0 text-[18px] leading-[26px] font-medium max-sm:text-[14px] max-sm:leading-[17px] max-sm:font-semibold"
                 [class]="joinedCommunity() ? 'text-[#767676]' : 'text-[#2B2B2B]'"
               >
                 Join our WhatsApp community
               </p>
-              <p class="m-0 text-[16px] leading-[26px] text-[#808080]">
+              <p
+                class="m-0 text-[16px] leading-[26px] text-[#808080] max-sm:text-[12px] max-sm:leading-[14px]"
+              >
                 {{ communitySubtitle() }}
               </p>
             </div>
@@ -152,18 +170,26 @@
             [href]="communityUrl"
             target="_blank"
             rel="noopener noreferrer"
-            class="inline-flex h-[50px] shrink-0 items-center justify-center rounded-[34px] bg-[#EEEEEE] px-[27.74px] text-[18px] leading-[23.8px] font-medium text-[#2B2B2B] no-underline transition-colors hover:bg-[#E4E4E4]"
+            class="inline-flex h-[50px] shrink-0 items-center justify-center rounded-[34px] bg-[#EEEEEE] px-[27.74px] text-[18px] leading-[23.8px] font-medium text-[#2B2B2B] no-underline transition-colors hover:bg-[#E4E4E4] max-sm:h-7 max-sm:w-7 max-sm:px-0"
             (click)="markCommunityJoined()"
           >
-            {{ joinedCommunity() ? 'Open the community' : 'Join the community' }}
+            <span class="max-sm:sr-only">{{
+              joinedCommunity() ? 'Open the community' : 'Join the community'
+            }}</span>
+            <svg
+              data-p-icon="arrow-right"
+              [size]="16"
+              class="text-[#131313] sm:hidden"
+              aria-hidden="true"
+            ></svg>
           </a>
         </li>
 
-        <li class="flex flex-wrap items-center justify-between gap-4">
+        <li class="flex flex-wrap items-center justify-between gap-4 max-sm:flex-nowrap">
           <div class="flex min-w-0 items-center gap-4">
             @if (campaignsDone()) {
               <span
-                class="flex size-14 shrink-0 items-center justify-center rounded-full bg-[#EC612C]"
+                class="flex size-14 shrink-0 items-center justify-center rounded-full bg-[#EC612C] max-sm:size-[46px]"
               >
                 <span class="flex size-6 items-center justify-center rounded-full bg-white">
                   <svg
@@ -176,7 +202,7 @@
               </span>
             } @else {
               <span
-                class="flex size-14 shrink-0 items-center justify-center rounded-full bg-[#EEEEEE]"
+                class="flex size-14 shrink-0 items-center justify-center rounded-full bg-[#EEEEEE] max-sm:size-[46px]"
               >
                 <svg
                   data-p-icon="search"
@@ -188,29 +214,37 @@
             }
             <div class="min-w-0">
               <p
-                class="m-0 text-[18px] leading-[26px] font-medium"
+                class="m-0 text-[18px] leading-[26px] font-medium max-sm:text-[14px] max-sm:leading-[17px] max-sm:font-semibold"
                 [class]="campaignsDone() ? 'text-[#767676]' : 'text-[#2B2B2B]'"
               >
                 Start your first campaign
               </p>
-              <p class="m-0 text-[16px] leading-[26px] text-[#808080]">
+              <p
+                class="m-0 text-[16px] leading-[26px] text-[#808080] max-sm:text-[12px] max-sm:leading-[14px]"
+              >
                 {{ campaignsSubtitle() }}
               </p>
             </div>
           </div>
           <a
             routerLink="/campaigns"
-            class="inline-flex h-[50px] shrink-0 items-center justify-center rounded-[34px] bg-[#EEEEEE] px-[27.74px] text-[18px] leading-[23.8px] font-medium text-[#2B2B2B] no-underline transition-colors hover:bg-[#E4E4E4]"
+            class="inline-flex h-[50px] shrink-0 items-center justify-center rounded-[34px] bg-[#EEEEEE] px-[27.74px] text-[18px] leading-[23.8px] font-medium text-[#2B2B2B] no-underline transition-colors hover:bg-[#E4E4E4] max-sm:h-7 max-sm:w-7 max-sm:px-0"
           >
-            Browse campaigns
+            <span class="max-sm:sr-only">Browse campaigns</span>
+            <svg
+              data-p-icon="arrow-right"
+              [size]="16"
+              class="text-[#131313] sm:hidden"
+              aria-hidden="true"
+            ></svg>
           </a>
         </li>
 
-        <li class="flex flex-wrap items-center justify-between gap-4">
+        <li class="flex flex-wrap items-center justify-between gap-4 max-sm:flex-nowrap">
           <div class="flex min-w-0 items-center gap-4">
             @if (submissionsDone()) {
               <span
-                class="flex size-14 shrink-0 items-center justify-center rounded-full bg-[#EC612C]"
+                class="flex size-14 shrink-0 items-center justify-center rounded-full bg-[#EC612C] max-sm:size-[46px]"
               >
                 <span class="flex size-6 items-center justify-center rounded-full bg-white">
                   <svg
@@ -223,7 +257,7 @@
               </span>
             } @else {
               <span
-                class="flex size-14 shrink-0 items-center justify-center rounded-full bg-[#EEEEEE]"
+                class="flex size-14 shrink-0 items-center justify-center rounded-full bg-[#EEEEEE] max-sm:size-[46px]"
               >
                 <svg
                   data-p-icon="video"
@@ -235,12 +269,14 @@
             }
             <div class="min-w-0">
               <p
-                class="m-0 text-[18px] leading-[26px] font-medium"
+                class="m-0 text-[18px] leading-[26px] font-medium max-sm:text-[14px] max-sm:leading-[17px] max-sm:font-semibold"
                 [class]="submissionsDone() ? 'text-[#767676]' : 'text-[#2B2B2B]'"
               >
                 Submit your first video
               </p>
-              <p class="m-0 text-[16px] leading-[26px] text-[#808080]">
+              <p
+                class="m-0 text-[16px] leading-[26px] text-[#808080] max-sm:text-[12px] max-sm:leading-[14px]"
+              >
                 {{ submissionsSubtitle() }}
               </p>
             </div>
@@ -251,9 +287,17 @@
             <a
               [routerLink]="submitLink()"
               [queryParams]="submitLinkQuery()"
-              class="inline-flex h-[50px] shrink-0 items-center justify-center rounded-[34px] bg-[#EEEEEE] px-[27.74px] text-[18px] leading-[23.8px] font-medium text-[#2B2B2B] no-underline transition-colors hover:bg-[#E4E4E4]"
+              class="inline-flex h-[50px] shrink-0 items-center justify-center rounded-[34px] bg-[#EEEEEE] px-[27.74px] text-[18px] leading-[23.8px] font-medium text-[#2B2B2B] no-underline transition-colors hover:bg-[#E4E4E4] max-sm:h-7 max-sm:w-7 max-sm:px-0"
             >
-              {{ submissionsDone() ? 'Submit another clip' : 'Submit content' }}
+              <span class="max-sm:sr-only">{{
+                submissionsDone() ? 'Submit another clip' : 'Submit content'
+              }}</span>
+              <svg
+                data-p-icon="arrow-right"
+                [size]="16"
+                class="text-[#131313] sm:hidden"
+                aria-hidden="true"
+              ></svg>
             </a>
           } @else {
             <span
@@ -264,9 +308,15 @@
               <button
                 type="button"
                 disabled
-                class="inline-flex h-[50px] cursor-not-allowed items-center justify-center rounded-[34px] bg-[#EEEEEE] px-[27.74px] text-[18px] leading-[23.8px] font-medium text-[#2B2B2B] opacity-60"
+                class="inline-flex h-[50px] cursor-not-allowed items-center justify-center rounded-[34px] bg-[#EEEEEE] px-[27.74px] text-[18px] leading-[23.8px] font-medium text-[#2B2B2B] opacity-60 max-sm:h-7 max-sm:w-7 max-sm:px-0"
               >
-                Submit content
+                <span class="max-sm:sr-only">Submit content</span>
+                <svg
+                  data-p-icon="arrow-right"
+                  [size]="16"
+                  class="text-[#131313] sm:hidden"
+                  aria-hidden="true"
+                ></svg>
               </button>
             </span>
           }
@@ -276,11 +326,11 @@
 
     <section aria-labelledby="creator-stats-heading">
       <h2 id="creator-stats-heading" class="sr-only">Your totals</h2>
-      <dl class="m-0 grid grid-cols-1 gap-[15px] sm:grid-cols-2 xl:grid-cols-4">
-        <app-stat-card label="Earned" [value]="earnedValue()" />
-        <app-stat-card label="Views" [value]="viewsValue()" />
-        <app-stat-card label="Campaigns" [value]="campaignsValue()" />
-        <app-stat-card label="Submissions" [value]="submissionsValue()" />
+      <dl class="m-0 grid grid-cols-2 gap-[15px] max-sm:gap-[7px] xl:grid-cols-4">
+        <app-stat-card [phoneCompact]="true" label="Earned" [value]="earnedValue()" />
+        <app-stat-card [phoneCompact]="true" label="Views" [value]="viewsValue()" />
+        <app-stat-card [phoneCompact]="true" label="Campaigns" [value]="campaignsValue()" />
+        <app-stat-card [phoneCompact]="true" label="Submissions" [value]="submissionsValue()" />
       </dl>
     </section>
 

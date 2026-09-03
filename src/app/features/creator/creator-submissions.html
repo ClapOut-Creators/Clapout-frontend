@@ -37,10 +37,15 @@
   <section aria-labelledby="creator-submission-stats-heading">
     <h2 id="creator-submission-stats-heading" class="sr-only">Your totals</h2>
     <dl class="m-0 grid grid-cols-1 gap-[15px] sm:grid-cols-2 xl:grid-cols-4">
-      <app-stat-card label="Submissions" [value]="submissionsValue()" />
-      <app-stat-card label="Pending" [value]="pendingValue()" tone="attention" />
-      <app-stat-card label="Verified views" [value]="viewsValue()" />
-      <app-stat-card label="Earned" [value]="earnedValue()" />
+      <app-stat-card [phoneCompact]="true" label="Submissions" [value]="submissionsValue()" />
+      <app-stat-card
+        [phoneCompact]="true"
+        label="Pending"
+        [value]="pendingValue()"
+        tone="attention"
+      />
+      <app-stat-card [phoneCompact]="true" label="Verified views" [value]="viewsValue()" />
+      <app-stat-card [phoneCompact]="true" label="Earned" [value]="earnedValue()" />
     </dl>
     @if (statsError(); as message) {
       <p class="mt-2 mb-0 text-[14px] leading-5 text-[#808080]">
