@@ -199,4 +199,16 @@ body {
   body > .p-contextmenu > * {
     zoom: var(--ui-scale);
   }
+
+  /* Overlays that stay inside their component (`appendTo="self"`, the default
+     for p-select and friends) are positioned relatively and need no zoom
+     compensation — except for PrimeNG's viewport-overflow check, which adds the
+     panel's *layout* width (in zoomed px) to the trigger's *visual* left edge.
+     Under a 0.8 zoom that sum is 25% too large, so a select near the right edge
+     (every field in a right-hand drawer) is judged to overflow and gets shoved
+     left, out of its container. The panel is exactly as wide as its trigger, so
+     if the trigger fits, the panel fits: keep it flush with the trigger. */
+  p-overlay > .p-overlay {
+    inset-inline-start: 0 !important;
+  }
 }
