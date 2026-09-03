@@ -614,3 +614,46 @@ submit button reads "Create account" rather than the design's "Sign in".
   steps 3–4); the success panel keeps the same top offset as the rest rather
   than dropping 59px (desktop) / 140px (mobile) as its frame does — a modal that
   jumps on its last step reads as a bug.
+
+## Campaign timeline datetime + PrimeNG control scale (2026-09-03)
+
+### Outcome
+
+Campaign creation/editing now captures exact start and end times in the timeline step. The wizard
+still sends the existing `startDate` and `endDate` campaign fields, but now serializes them as
+browser-local ISO datetimes (`YYYY-MM-DDTHH:mm:ss`) instead of date-only strings.
+
+### Files and routes changed
+
+- `/admin/campaigns/new` and `/admin/campaigns/:slug/edit`: timeline step now requires a complete
+  date range plus required start/end time-only PrimeNG pickers.
+- Admin campaign preview, admin campaign detail, and dashboard campaign summaries render schedule
+  values through `formatDateTime`.
+- `src/styles.css`: shared PrimeNG/input font-size and minimum-height rules were added for form
+  fields, selects, date pickers, buttons, menus, messages, and tags.
+
+### Validation and contract notes
+
+- Start date, end date, start time, and end time are all required before the wizard can continue
+  past the timeline step.
+- End datetime must be strictly after start datetime; equal moments are rejected.
+- Existing campaign datetimes are parsed back into editable date-range and time controls.
+- API readiness remains `INTEGRATED`: no new endpoint or field was invented.
+
+### Verification
+
+| Check                    | Result                                                                                                                                 |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run format:check`   | PASS                                                                                                                                   |
+| `npm run lint`           | PASS                                                                                                                                   |
+| `npm run test:unit`      | PASS with Node `v24.18.0`: 19 files, 168 tests.                                                                                        |
+| `npm run build`          | PASS unsandboxed. Initial total `900.11 kB`, over the `850 kB` warning budget and below the configured error budget.                   |
+| `npm run test:e2e`       | PASS unsandboxed: 2 foundation Playwright tests, including responsive widths and critical AXE check. Sandboxed run hit `listen EPERM`. |
+| Signed-in admin UI smoke | NOT RUN. The current Playwright suite does not authenticate into `/admin/campaigns/new`; manual admin-session visual/AXE pass remains. |
+
+### Next phase recommendation
+
+`HOLD`
+
+Reason: Code and automated gates passed, but the signed-in campaign wizard still needs a manual
+desktop/tablet/mobile and AXE pass against an admin session.

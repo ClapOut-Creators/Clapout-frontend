@@ -15,11 +15,13 @@ import { MessageModule } from 'primeng/message';
 import { SkeletonModule } from 'primeng/skeleton';
 import { ApiError } from '../../core/api/api-error';
 import { AdminRepository } from '../../core/data/admin-repository';
+import { CampaignsRepository } from '../../core/data/campaigns-repository';
 import { PublicCampaign } from '../../core/models/campaign';
+import { CampaignLeaderboard } from '../../core/models/leaderboard';
 import {
   budgetPercent,
   campaignStatusLabel,
-  formatDate,
+  formatDateTime,
   formatMoneyExact,
   hasBudget,
   NOT_ANNOUNCED,
@@ -28,12 +30,14 @@ import {
 import { BrandLogoTile } from '../../shared/admin/brand-logo-tile';
 import { campaignStatusPillClass } from '../../shared/admin/campaign-compact-card';
 import { ClippersTable } from '../../shared/admin/clippers-table';
+import { LeaderboardList } from '../../shared/creator/leaderboard-list';
 import { PageHeader } from '../../shared/admin/page-header';
 import { SubmissionsTable } from '../../shared/admin/submissions-table';
 import { SnapchatIcon } from '../../shared/icons/snapchat-icon';
 import { ShareCampaignButton } from '../../shared/public/share-campaign-button';
 
 type DetailState = 'loading' | 'ready' | 'not-found' | 'error';
+type LeaderboardState = 'idle' | 'loading' | 'ready' | 'error';
 
 /**
  * Admin view of one campaign: the public-facing detail plus the performance
@@ -50,6 +54,7 @@ type DetailState = 'loading' | 'ready' | 'not-found' | 'error';
     ExternalLink,
     Facebook,
     Instagram,
+    LeaderboardList,
     MessageModule,
     PageHeader,
     RouterLink,
@@ -70,6 +75,7 @@ export class AdminCampaignDetail {
   readonly slug = input.required<string>();
 
   private readonly admin = inject(AdminRepository);
+  private readonly campaigns = inject(CampaignsRepository);
   private readonly router = inject(Router);
   private readonly messages = inject(MessageService);
   private readonly confirmations = inject(ConfirmationService);
@@ -82,6 +88,9 @@ export class AdminCampaignDetail {
   protected readonly campaign = signal<PublicCampaign | null>(null);
   protected readonly errorMessage = signal('');
   protected readonly actionMessage = signal('');
+  protected readonly leaderboardState = signal<LeaderboardState>('idle');
+  protected readonly leaderboard = signal<CampaignLeaderboard | null>(null);
+  protected readonly leaderboardError = signal('');
   protected readonly working = signal(false);
   protected readonly descriptionExpanded = signal(false);
   /**
@@ -94,12 +103,13 @@ export class AdminCampaignDetail {
   protected readonly budgetPercent = budgetPercent;
   protected readonly campaignStatusLabel = campaignStatusLabel;
   protected readonly campaignStatusPillClass = campaignStatusPillClass;
-  protected readonly formatDate = formatDate;
+  protected readonly formatDateTime = formatDateTime;
   /** Two decimals with a thin space, per the design. */
   protected readonly formatMoney = formatMoneyExact;
   protected readonly hasBudget = hasBudget;
   protected readonly platformLabel = platformLabel;
   protected readonly notAnnounced = NOT_ANNOUNCED;
+  protected readonly skeletonRows = [0, 1, 2];
 
   protected readonly activeCreatorsLabel = computed(() => {
     const count = this.acceptedCount();
@@ -127,7 +137,7 @@ export class AdminCampaignDetail {
   }
 
   protected dateRangeLabel(campaign: PublicCampaign): string {
-    return `${formatDate(campaign.startDate)} - ${formatDate(campaign.endDate)}`;
+    return `${formatDateTime(campaign.startDate)} - ${formatDateTime(campaign.endDate)}`;
   }
 
   protected editCampaign(slug: string): void {
@@ -148,6 +158,10 @@ export class AdminCampaignDetail {
 
   protected canExportSubmissions(): boolean {
     return this.submissions()?.canExport() ?? false;
+  }
+
+  protected retryLeaderboard(): void {
+    void this.loadLeaderboard(this.slug());
   }
 
   protected async publish(): Promise<void> {
@@ -242,6 +256,9 @@ export class AdminCampaignDetail {
     this.state.set('loading');
     this.actionMessage.set('');
     this.acceptedCount.set(null);
+    this.leaderboard.set(null);
+    this.leaderboardState.set('idle');
+    this.leaderboardError.set('');
     try {
       const campaign = await this.admin.campaignBySlug(slug);
       if (!campaign) {
@@ -252,12 +269,36 @@ export class AdminCampaignDetail {
       this.campaign.set(campaign);
       this.state.set('ready');
       void this.loadAcceptedCount(slug);
+      void this.loadLeaderboard(slug);
     } catch (error) {
       this.campaign.set(null);
       this.errorMessage.set(
         error instanceof ApiError ? error.message : 'We could not load this campaign.',
       );
       this.state.set('error');
+    }
+  }
+
+  private async loadLeaderboard(slug: string): Promise<void> {
+    this.leaderboardState.set('loading');
+    this.leaderboardError.set('');
+    try {
+      const board = await this.campaigns.leaderboard(slug);
+      if (slug !== this.slug()) {
+        return;
+      }
+      this.leaderboard.set(board);
+      this.leaderboardState.set('ready');
+    } catch (error) {
+      if (slug !== this.slug()) {
+        return;
+      }
+      this.leaderboardError.set(
+        error instanceof ApiError && !error.isNotFound
+          ? error.message
+          : 'We could not load the leaderboard for this campaign.',
+      );
+      this.leaderboardState.set('error');
     }
   }
 
