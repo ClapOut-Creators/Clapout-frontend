@@ -214,16 +214,16 @@
                   >
                   <span class="h-5 w-px bg-[#DCDCDC]" aria-hidden="true"></span>
                   <span
-                    >Start date:
+                    >Starts:
                     <span class="font-medium text-[#171A1C]">{{
-                      formatDate(campaign.startDate)
+                      formatDateTime(campaign.startDate)
                     }}</span></span
                   >
                   <span class="h-5 w-px bg-[#DCDCDC]" aria-hidden="true"></span>
                   <span
-                    >End date:
+                    >Ends:
                     <span class="font-medium text-[#171A1C]">{{
-                      formatDate(campaign.endDate)
+                      formatDateTime(campaign.endDate)
                     }}</span></span
                   >
                 </div>
@@ -253,7 +253,7 @@
                     </dd>
                   </div>
                   <div class="flex items-center justify-between gap-4 px-[17px] py-[14px]">
-                    <dt class="text-[15.8px] text-[#7F7F7F]">Start - End date</dt>
+                    <dt class="text-[15.8px] text-[#7F7F7F]">Campaign schedule</dt>
                     <dd class="m-0 text-right text-[15.8px] text-[#272727]">
                       {{ dateRangeLabel(campaign) }}
                     </dd>

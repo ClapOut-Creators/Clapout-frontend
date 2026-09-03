@@ -1,6 +1,11 @@
 import { CampaignPlatform } from '../../core/models/campaign';
 import { platformLabel } from '../../core/util/campaign-format';
-import { PLATFORM_CHOICES } from './campaign-wizard';
+import {
+  campaignScheduleFromParts,
+  campaignScheduleIsOrdered,
+  PLATFORM_CHOICES,
+  timeFromDate,
+} from './campaign-wizard';
 
 /**
  * The "Campaign Platforms" step is a fixed list of rows, in the order the design
@@ -34,5 +39,67 @@ describe('PLATFORM_CHOICES', () => {
       expect(choice.tileClass).toMatch(/^bg-\[/);
       expect(choice.tileClass).toMatch(/\btext-(white|\[#[0-9A-Fa-f]{6}\])$/);
     }
+  });
+});
+
+describe('campaign schedule helpers', () => {
+  it('composes local dates and times into campaign ISO datetimes', () => {
+    const schedule = campaignScheduleFromParts(
+      [new Date(2026, 8, 3), new Date(2026, 8, 4)],
+      new Date(2026, 0, 1, 23, 0),
+      new Date(2026, 0, 1, 1, 30),
+    );
+
+    expect(schedule).toEqual({
+      startDate: '2026-09-03T23:00:00',
+      endDate: '2026-09-04T01:30:00',
+    });
+  });
+
+  it('requires both dates and both times before producing a complete schedule', () => {
+    expect(
+      campaignScheduleFromParts(
+        [new Date(2026, 8, 3), new Date(2026, 8, 4)],
+        null,
+        new Date(2026, 0, 1, 1, 30),
+      ),
+    ).toEqual({ startDate: null, endDate: '2026-09-04T01:30:00' });
+
+    expect(
+      campaignScheduleFromParts(
+        [new Date(2026, 8, 3), null],
+        new Date(2026, 0, 1, 23, 0),
+        new Date(2026, 0, 1, 1, 30),
+      ),
+    ).toEqual({ startDate: '2026-09-03T23:00:00', endDate: null });
+  });
+
+  it('rejects an end datetime that is before or equal to the start datetime', () => {
+    expect(
+      campaignScheduleIsOrdered({
+        startDate: '2026-09-03T23:00:00',
+        endDate: '2026-09-03T22:59:00',
+      }),
+    ).toBe(false);
+    expect(
+      campaignScheduleIsOrdered({
+        startDate: '2026-09-03T23:00:00',
+        endDate: '2026-09-03T23:00:00',
+      }),
+    ).toBe(false);
+    expect(
+      campaignScheduleIsOrdered({
+        startDate: '2026-09-03T23:00:00',
+        endDate: '2026-09-04T00:00:00',
+      }),
+    ).toBe(true);
+  });
+
+  it('extracts editable time values from existing campaign datetimes', () => {
+    const time = timeFromDate(new Date('2026-09-03T23:15:00'));
+
+    expect(time.getHours()).toBe(23);
+    expect(time.getMinutes()).toBe(15);
+    expect(time.getSeconds()).toBe(0);
   });
 });

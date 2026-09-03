@@ -21,7 +21,7 @@ import {
   budgetPercent,
   campaignStatusLabel,
   campaignStatusTone,
-  formatDate,
+  formatDateTime,
   formatMoney,
   hasBudget,
 } from '../../core/util/campaign-format';
@@ -247,7 +247,7 @@ export class AdminDashboard {
   protected readonly budgetPercent = budgetPercent;
   protected readonly campaignStatusLabel = campaignStatusLabel;
   protected readonly campaignStatusTone = campaignStatusTone;
-  protected readonly formatDate = formatDate;
+  protected readonly formatDateTime = formatDateTime;
   protected readonly formatMoney = formatMoney;
   protected readonly hasBudget = hasBudget;
 

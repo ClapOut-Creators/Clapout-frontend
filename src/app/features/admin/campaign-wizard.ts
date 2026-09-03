@@ -44,7 +44,7 @@ import {
   INDUSTRY_OPTIONS,
   Option,
 } from '../../core/util/admin-options';
-import { formatDate, formatMoney, platformLabel } from '../../core/util/campaign-format';
+import { formatDateTime, formatMoney, platformLabel } from '../../core/util/campaign-format';
 import { BrandLogoTile } from '../../shared/admin/brand-logo-tile';
 import { WizardShell } from '../../shared/admin/wizard-shell';
 import { firstErrorMessage, httpUrlValidator } from '../../shared/forms/form-errors';
@@ -116,8 +116,8 @@ const STEPS = [
   },
   {
     title: 'Campaign Timeline',
-    subtitle: 'Set the start date and end date',
-    fields: ['dateRange'],
+    subtitle: 'Set the start and end date with exact times',
+    fields: ['dateRange', 'startTime', 'endTime'],
   },
   {
     title: 'Campaign Platforms',
@@ -169,8 +169,8 @@ const API_FIELD_TO_CONTROL: Record<string, string> = {
   currency: 'currency',
   cpm: 'cpm',
   budgetTotal: 'budgetTotal',
-  startDate: 'dateRange',
-  endDate: 'dateRange',
+  startDate: 'startTime',
+  endDate: 'endTime',
   platforms: 'platforms',
   requirementsNote: 'requirementsNote',
 };
@@ -190,7 +190,12 @@ const MESSAGES: Record<string, Record<string, string>> = {
     min: 'The budget must be more than 0.',
   },
   cpm: { required: 'Enter the rate paid per 1,000 views.', min: 'The rate must be more than 0.' },
-  dateRange: { required: 'Pick the date the campaign opens.' },
+  dateRange: {
+    required: 'Pick the date the campaign opens.',
+    endRequired: 'Pick the date the campaign ends.',
+  },
+  startTime: { required: 'Pick the time the campaign opens.' },
+  endTime: { required: 'Pick the time the campaign ends.' },
   platforms: { required: 'Select at least one platform.' },
   requirementsNote: {
     required: 'Tell clippers what the content must include.',
@@ -214,12 +219,35 @@ const BRAND_MESSAGES: Record<string, Record<string, string>> = {
 };
 
 /**
- * The range picker holds `[start, end]`; only the start date is required, so a
- * single-date selection means "opens then, no announced end".
+ * The range picker holds `[start, end]`; both dates are required because the
+ * time controls turn this into an exact campaign schedule.
  */
-function dateRangeStartValidator(control: AbstractControl): ValidationErrors | null {
+function dateRangeValidator(control: AbstractControl): ValidationErrors | null {
   const range = control.value as (Date | null)[] | null;
-  return range && range[0] instanceof Date ? null : { required: true };
+  if (!range || !(range[0] instanceof Date)) {
+    return { required: true };
+  }
+  return range[1] instanceof Date ? null : { endRequired: true };
+}
+
+function campaignScheduleValidator(control: AbstractControl): ValidationErrors | null {
+  const form = control as {
+    controls?: {
+      dateRange?: AbstractControl<(Date | null)[] | null>;
+      startTime?: AbstractControl<Date | null>;
+      endTime?: AbstractControl<Date | null>;
+    };
+  };
+  const range = form.controls?.dateRange?.value ?? null;
+  const startTime = form.controls?.startTime?.value ?? null;
+  const endTime = form.controls?.endTime?.value ?? null;
+  const schedule = campaignScheduleFromParts(range, startTime, endTime);
+
+  if (!schedule.startDate || !schedule.endDate) {
+    return null;
+  }
+
+  return campaignScheduleIsOrdered(schedule) ? null : { dateTimeOrder: true };
 }
 
 /**
@@ -318,32 +346,39 @@ export class CampaignWizard {
   protected readonly logoErrorMessage = signal('');
   protected readonly logoUrlOpen = signal(false);
 
-  protected readonly formatDate = formatDate;
+  protected readonly formatDateTime = formatDateTime;
   protected readonly formatMoney = formatMoney;
   protected readonly platformLabel = platformLabel;
 
-  protected readonly form = this.formBuilder.group({
-    brandId: ['', [Validators.required]],
-    bannerUrl: this.formBuilder.control<string | null>(null),
-    title: ['', [Validators.required]],
-    description: ['', [Validators.required, Validators.maxLength(LONG_TEXT_LIMIT)]],
-    category: ['', [Validators.required]],
-    // The design's "Product" field is not in the campaign contract; it maps onto
-    // `tags`, stored as a single-element array (see `buildPayload`).
-    tag: ['', [Validators.required]],
-    currency: ['₵', [Validators.required]],
-    budgetTotal: this.formBuilder.control<number | null>(null, [
-      Validators.required,
-      Validators.min(0.01),
-    ]),
-    cpm: this.formBuilder.control<number | null>(null, [Validators.required, Validators.min(0.01)]),
-    // PrimeNG's range picker writes `[start, end]`; the end stays null until picked.
-    dateRange: this.formBuilder.control<(Date | null)[] | null>(null, [dateRangeStartValidator]),
-    platforms: this.formBuilder.control<CampaignPlatform[]>([], [Validators.required]),
-    requirementsNote: ['', [Validators.required, Validators.maxLength(LONG_TEXT_LIMIT)]],
-    resourceLabel: [''],
-    resourceUrl: ['', [httpUrlValidator]],
-  });
+  protected readonly form = this.formBuilder.group(
+    {
+      brandId: ['', [Validators.required]],
+      bannerUrl: this.formBuilder.control<string | null>(null),
+      title: ['', [Validators.required]],
+      description: ['', [Validators.required, Validators.maxLength(LONG_TEXT_LIMIT)]],
+      category: ['', [Validators.required]],
+      // The design's "Product" field is not in the campaign contract; it maps onto
+      // `tags`, stored as a single-element array (see `buildPayload`).
+      tag: ['', [Validators.required]],
+      currency: ['₵', [Validators.required]],
+      budgetTotal: this.formBuilder.control<number | null>(null, [
+        Validators.required,
+        Validators.min(0.01),
+      ]),
+      cpm: this.formBuilder.control<number | null>(null, [
+        Validators.required,
+        Validators.min(0.01),
+      ]),
+      dateRange: this.formBuilder.control<(Date | null)[] | null>(null, [dateRangeValidator]),
+      startTime: this.formBuilder.control<Date | null>(null, [Validators.required]),
+      endTime: this.formBuilder.control<Date | null>(null, [Validators.required]),
+      platforms: this.formBuilder.control<CampaignPlatform[]>([], [Validators.required]),
+      requirementsNote: ['', [Validators.required, Validators.maxLength(LONG_TEXT_LIMIT)]],
+      resourceLabel: [''],
+      resourceUrl: ['', [httpUrlValidator]],
+    },
+    { validators: [campaignScheduleValidator] },
+  );
 
   /** Mirrors the standalone brand wizard's fields so both produce the same record. */
   protected readonly brandForm = this.formBuilder.group({
@@ -393,6 +428,15 @@ export class CampaignWizard {
     return firstErrorMessage(this.form.get(field), MESSAGES[field] ?? {}, this.submitted());
   }
 
+  protected scheduleError(): string | null {
+    if (!this.submitted() && !this.form.touched) {
+      return null;
+    }
+    return this.form.hasError('dateTimeOrder')
+      ? 'End date and time must be after the start date and time.'
+      : null;
+  }
+
   protected brandFieldError(field: string): string | null {
     return firstErrorMessage(
       this.brandForm.get(field),
@@ -426,23 +470,33 @@ export class CampaignWizard {
   }
 
   protected rangeStartLabel(): string {
-    const start = this.form.controls.dateRange.value?.[0];
-    return start ? formatDate(start.toISOString()) : '—';
+    return formatDateTime(this.scheduleValue().startDate);
   }
 
   protected rangeEndLabel(): string {
-    const end = this.form.controls.dateRange.value?.[1];
-    return end ? formatDate(end.toISOString()) : '—';
+    return formatDateTime(this.scheduleValue().endDate);
   }
 
   protected rangeLabel(): string {
-    const range = this.form.controls.dateRange.value;
-    if (!range?.[0]) {
-      return 'Pick a start date, then an end date.';
+    const schedule = this.scheduleValue();
+    if (!schedule.startDate && !schedule.endDate) {
+      return 'Pick start and end dates, then choose the exact times.';
     }
-    return range[1]
-      ? `${this.rangeStartLabel()} – ${this.rangeEndLabel()}`
-      : `${this.rangeStartLabel()} – no end date announced`;
+    if (!schedule.startDate) {
+      return 'Choose the start date and time.';
+    }
+    if (!schedule.endDate) {
+      return 'Choose the end date and time.';
+    }
+    return `${this.rangeStartLabel()} – ${this.rangeEndLabel()}`;
+  }
+
+  private scheduleValue(): CampaignScheduleIso {
+    return campaignScheduleFromParts(
+      this.form.controls.dateRange.value,
+      this.form.controls.startTime.value,
+      this.form.controls.endTime.value,
+    );
   }
 
   /** Never dump a huge `data:` URL into the visible "paste a URL" field. */
@@ -798,13 +852,17 @@ export class CampaignWizard {
         valid = false;
       }
     }
+    group.updateValueAndValidity({ emitEvent: false });
+    if (fields.includes('dateRange') && group.hasError('dateTimeOrder')) {
+      valid = false;
+    }
     submitted.set(!valid);
     return valid;
   }
 
   private buildPayload(): CampaignDraftInput {
     const value = this.form.getRawValue();
-    const range = value.dateRange ?? [];
+    const schedule = campaignScheduleFromParts(value.dateRange, value.startTime, value.endTime);
     return {
       title: value.title.trim(),
       brandId: value.brandId,
@@ -813,8 +871,8 @@ export class CampaignWizard {
       currency: value.currency,
       cpm: value.cpm,
       budgetTotal: value.budgetTotal,
-      startDate: toIsoDate(range[0] ?? null),
-      endDate: toIsoDate(range[1] ?? null),
+      startDate: schedule.startDate,
+      endDate: schedule.endDate,
       platforms: value.platforms,
       // "Product" in the design is the campaign's single tag.
       tags: value.tag ? [value.tag] : [],
@@ -849,6 +907,8 @@ export class CampaignWizard {
         budgetTotal: campaign.budgetTotal,
         cpm: campaign.cpm,
         dateRange: start ? [start, end] : null,
+        startTime: start ? timeFromDate(start) : null,
+        endTime: end ? timeFromDate(end) : null,
         platforms: campaign.platforms,
         requirementsNote: campaign.requirementsNote ?? '',
         resourceLabel: campaign.resourceLabel ?? '',
@@ -864,15 +924,46 @@ export class CampaignWizard {
   }
 }
 
-/** The API takes ISO dates; the picker gives us local `Date`s. */
-function toIsoDate(value: Date | null): string | null {
-  if (!value) {
+interface CampaignScheduleIso {
+  startDate: string | null;
+  endDate: string | null;
+}
+
+export function campaignScheduleFromParts(
+  range: (Date | null)[] | null,
+  startTime: Date | null,
+  endTime: Date | null,
+): CampaignScheduleIso {
+  return {
+    startDate: composeLocalDateTime(range?.[0] ?? null, startTime),
+    endDate: composeLocalDateTime(range?.[1] ?? null, endTime),
+  };
+}
+
+export function campaignScheduleIsOrdered(schedule: CampaignScheduleIso): boolean {
+  if (!schedule.startDate || !schedule.endDate) {
+    return true;
+  }
+  return new Date(schedule.endDate).getTime() > new Date(schedule.startDate).getTime();
+}
+
+function composeLocalDateTime(date: Date | null, time: Date | null): string | null {
+  if (!date || !time) {
     return null;
   }
+  const value = new Date(date);
+  value.setHours(time.getHours(), time.getMinutes(), 0, 0);
+  return toLocalIsoDateTime(value);
+}
+
+function toLocalIsoDateTime(value: Date): string {
   const year = value.getFullYear();
   const month = String(value.getMonth() + 1).padStart(2, '0');
   const day = String(value.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
+  const hour = String(value.getHours()).padStart(2, '0');
+  const minute = String(value.getMinutes()).padStart(2, '0');
+  const second = String(value.getSeconds()).padStart(2, '0');
+  return `${year}-${month}-${day}T${hour}:${minute}:${second}`;
 }
 
 function parseDate(value: string | null): Date | null {
@@ -881,4 +972,10 @@ function parseDate(value: string | null): Date | null {
   }
   const parsed = new Date(value);
   return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+export function timeFromDate(value: Date): Date {
+  const time = new Date();
+  time.setHours(value.getHours(), value.getMinutes(), 0, 0);
+  return time;
 }

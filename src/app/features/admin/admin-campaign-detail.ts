@@ -19,7 +19,7 @@ import { PublicCampaign } from '../../core/models/campaign';
 import {
   budgetPercent,
   campaignStatusLabel,
-  formatDate,
+  formatDateTime,
   formatMoneyExact,
   hasBudget,
   NOT_ANNOUNCED,
@@ -94,7 +94,7 @@ export class AdminCampaignDetail {
   protected readonly budgetPercent = budgetPercent;
   protected readonly campaignStatusLabel = campaignStatusLabel;
   protected readonly campaignStatusPillClass = campaignStatusPillClass;
-  protected readonly formatDate = formatDate;
+  protected readonly formatDateTime = formatDateTime;
   /** Two decimals with a thin space, per the design. */
   protected readonly formatMoney = formatMoneyExact;
   protected readonly hasBudget = hasBudget;
@@ -127,7 +127,7 @@ export class AdminCampaignDetail {
   }
 
   protected dateRangeLabel(campaign: PublicCampaign): string {
-    return `${formatDate(campaign.startDate)} - ${formatDate(campaign.endDate)}`;
+    return `${formatDateTime(campaign.startDate)} - ${formatDateTime(campaign.endDate)}`;
   }
 
   protected editCampaign(slug: string): void {
