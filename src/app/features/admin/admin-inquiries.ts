@@ -208,6 +208,10 @@ export class AdminInquiries {
    * The API moves a NEW inquiry to CONTACTED as it issues the invite, so the
    * drawer re-reads the row. A failed re-read still nudges the status locally
    * rather than showing a state we know is stale.
+   *
+   * Deliberately wired to `created` only: the dialog's `emailed` output fires
+   * on a resend, which touches the invite and nothing on the inquiry, so
+   * hanging this re-read off it would cost two requests to learn nothing.
    */
   protected async onInviteCreated(): Promise<void> {
     const row = this.selected();

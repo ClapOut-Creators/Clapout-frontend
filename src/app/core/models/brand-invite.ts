@@ -39,6 +39,15 @@ export interface BrandInvite {
   expiresAt: string;
   completedAt: string | null;
   revokedAt: string | null;
+  /**
+   * Delivery state of the invite email. The platform can send the link from
+   * `hello@mail.clapoutcreators.com` instead of — or as well as — the admin
+   * pasting it into WhatsApp, and resending is allowed (a corrected address, a
+   * nudge), so the count is how many went out in total.
+   */
+  emailSentTo: string | null;
+  emailSentAt: string | null;
+  emailSendCount: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -71,6 +80,27 @@ export interface CreateBrandInviteInput {
   expiresInDays?: number;
   /** Moves a NEW inquiry to CONTACTED; `422 INQUIRY_NOT_FOUND` when unknown. */
   inquiryId?: string;
+  /**
+   * Emails the link to `contactEmail` the moment the invite exists. Ignored
+   * without a `contactEmail`, and a failed send never fails the create — it
+   * comes back as {@link CreatedBrandInvite.warning} instead.
+   */
+  sendEmail?: boolean;
+}
+
+/**
+ * `POST /admin/brand-invites` answers `{ data, warning? }`: the invite always
+ * exists, but the auto-send may have been refused by Resend, and the admin has
+ * to be told so they can retry or fall back to WhatsApp.
+ */
+export interface BrandInviteEmailWarning {
+  code: 'EMAIL_FAILED';
+  message: string;
+}
+
+export interface CreatedBrandInvite {
+  invite: BrandInvite;
+  warning?: BrandInviteEmailWarning;
 }
 
 export interface BrandInviteQuery {

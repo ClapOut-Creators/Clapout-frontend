@@ -257,8 +257,11 @@ export class AdminBrands {
     this.inviteDialogOpen.set(true);
   }
 
-  /** A new invite belongs at the top of the list below, so re-ask the API. */
-  protected onInviteCreated(): void {
+  /**
+   * A new invite belongs at the top of the list below, and a send from the
+   * dialog changes the row's email columns, so both re-ask the API.
+   */
+  protected refreshInvites(): void {
     this.invitesTable()?.reload();
   }
 

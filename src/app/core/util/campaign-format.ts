@@ -53,6 +53,41 @@ export function formatDateTime(iso: string | null | undefined): string {
 }
 
 /**
+ * 'just now' / '3 min ago' / '2 hours ago' / '4 days ago' — for a line that
+ * sits right beside the action that caused it, where "3 September 2026, 01:20"
+ * makes the reader do the arithmetic. Anything older than a week reads better
+ * as the date itself, so it falls back to {@link formatDate}; a clock that is
+ * slightly behind the server's is reported as 'just now' rather than a
+ * negative age.
+ */
+export function relativeTime(iso: string | null | undefined, now: number = Date.now()): string {
+  if (!iso) {
+    return NOT_ANNOUNCED;
+  }
+  const parsed = new Date(iso);
+  if (Number.isNaN(parsed.getTime())) {
+    return iso;
+  }
+  const elapsedMs = now - parsed.getTime();
+  if (elapsedMs < 60_000) {
+    return 'just now';
+  }
+  const minutes = Math.floor(elapsedMs / 60_000);
+  if (minutes < 60) {
+    return `${minutes} min ago`;
+  }
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) {
+    return `${hours} ${hours === 1 ? 'hour' : 'hours'} ago`;
+  }
+  const days = Math.floor(hours / 24);
+  if (days < 7) {
+    return `${days} ${days === 1 ? 'day' : 'days'} ago`;
+  }
+  return formatDate(iso);
+}
+
+/**
  * Currency is a symbol in this contract ('₵', '$'), so it simply prefixes the
  * amount. Unannounced amounts render as '₵—' rather than '₵0'.
  */

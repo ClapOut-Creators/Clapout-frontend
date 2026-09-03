@@ -354,4 +354,8 @@
   </div>
 </main>
 
-<app-brand-invite-dialog [(visible)]="inviteDialogOpen" (created)="onInviteCreated()" />
+<app-brand-invite-dialog
+  [(visible)]="inviteDialogOpen"
+  (created)="refreshInvites()"
+  (emailed)="refreshInvites()"
+/>

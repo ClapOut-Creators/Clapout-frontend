@@ -4,6 +4,8 @@ import { RouterLink } from '@angular/router';
 import { Copy } from '@primeicons/angular/copy';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
+import { DialogModule } from 'primeng/dialog';
+import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { SelectModule } from 'primeng/select';
 import { SkeletonModule } from 'primeng/skeleton';
@@ -20,6 +22,7 @@ import {
   formatDate,
   NOT_ANNOUNCED,
 } from '../../core/util/campaign-format';
+import { brandInviteEmailError } from './brand-invite-dialog';
 
 type TableState = 'loading' | 'ready' | 'error';
 
@@ -34,6 +37,9 @@ const STATUS_OPTIONS: Option<BrandInviteStatus | null>[] = [
 /** `409` from DELETE while the invite still points at the brand it created. */
 const INVITE_HAS_BRAND = 'INVITE_HAS_BRAND';
 
+/** Enough to catch a typo before spending a request; the API is the real judge. */
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 /**
  * The "Brand invites" section under the brand list: who was invited, whether
  * they finished, and the three things an admin does with a live link — copy it
@@ -46,7 +52,9 @@ const INVITE_HAS_BRAND = 'INVITE_HAS_BRAND';
   imports: [
     ButtonModule,
     Copy,
+    DialogModule,
     FormsModule,
+    InputTextModule,
     MessageModule,
     RouterLink,
     SelectModule,
@@ -70,6 +78,14 @@ export class BrandInvitesTable {
   protected readonly busyIds = signal<ReadonlySet<string>>(new Set());
   /** The row whose link was copied last, for the transient "Copied" label. */
   protected readonly copiedId = signal<string | null>(null);
+  /**
+   * The invite waiting on an address. Only invites created without a
+   * `contactEmail` ever land here — everything else is a one-tap confirm.
+   */
+  protected readonly emailInvite = signal<BrandInvite | null>(null);
+  protected readonly emailDialogOpen = signal(false);
+  protected readonly emailAddress = signal('');
+  protected readonly emailDialogError = signal('');
 
   protected readonly statusOptions = STATUS_OPTIONS;
   protected readonly skeletonRows = [0, 1, 2];
@@ -131,6 +147,74 @@ export class BrandInvitesTable {
         summary: 'Could not copy',
         detail: 'Your browser refused clipboard access. Open the invite and copy it by hand.',
       });
+    }
+  }
+
+  /**
+   * A live invite with an address is one confirm away from going out; one
+   * without gets the little dialog instead, because `422 INVITE_EMAIL_MISSING`
+   * is not a useful way to ask a question.
+   */
+  protected confirmEmail(invite: BrandInvite): void {
+    if (this.isBusy(invite.id)) {
+      return;
+    }
+    const address = invite.contactEmail?.trim();
+    if (!address) {
+      this.askForAddress(invite);
+      return;
+    }
+    this.confirmations.confirm({
+      header: invite.emailSentAt ? 'Send this invite again' : 'Email this invite',
+      message: `Email the link to ${address}?`,
+      icon: 'pi pi-envelope',
+      acceptLabel: invite.emailSentAt ? 'Send again' : 'Send email',
+      rejectLabel: 'Cancel',
+      accept: () => void this.send(invite, address),
+    });
+  }
+
+  protected askForAddress(invite: BrandInvite): void {
+    this.emailInvite.set(invite);
+    this.emailAddress.set('');
+    this.emailDialogError.set('');
+    this.emailDialogOpen.set(true);
+  }
+
+  protected submitAddress(): void {
+    const invite = this.emailInvite();
+    if (!invite) {
+      return;
+    }
+    const address = this.emailAddress().trim();
+    if (!EMAIL_PATTERN.test(address)) {
+      this.emailDialogError.set('Enter a valid email address, for example name@brand.com');
+      return;
+    }
+    this.emailDialogOpen.set(false);
+    void this.send(invite, address);
+  }
+
+  private async send(invite: BrandInvite, address: string): Promise<void> {
+    this.markBusy(invite.id, true);
+    try {
+      const updated = await this.admin.sendBrandInviteEmail(invite.id, address);
+      // The row carries the new count and timestamp, so it updates in place
+      // rather than costing the list another round trip.
+      this.rows.update((rows) => rows.map((row) => (row.id === invite.id ? updated : row)));
+      this.messages.add({
+        severity: 'success',
+        summary: 'Email sent',
+        detail: `The invite link is on its way to ${updated.emailSentTo ?? address}.`,
+      });
+    } catch (error) {
+      this.messages.add({
+        severity: 'error',
+        summary: 'Could not send email',
+        detail: brandInviteEmailError(error),
+      });
+    } finally {
+      this.markBusy(invite.id, false);
     }
   }
 

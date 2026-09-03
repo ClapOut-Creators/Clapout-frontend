@@ -13,8 +13,10 @@ import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angula
 import { Check } from '@primeicons/angular/check';
 import { Copy } from '@primeicons/angular/copy';
 import { Whatsapp } from '@primeicons/angular/whatsapp';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
+import { CheckboxModule } from 'primeng/checkbox';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
@@ -24,6 +26,7 @@ import { ApiError } from '../../core/api/api-error';
 import { AdminRepository } from '../../core/data/admin-repository';
 import { BrandInvite } from '../../core/models/brand-invite';
 import { Option } from '../../core/util/admin-options';
+import { relativeTime } from '../../core/util/campaign-format';
 import {
   brandInviteLink,
   brandInviteMessage,
@@ -60,9 +63,38 @@ const EXPIRY_OPTIONS: Option<number>[] = [
 /** Long enough to read, short enough not to look stuck. */
 const COPIED_FEEDBACK_MS = 2000;
 
+const EMAIL_MESSAGE = 'Enter a valid email address, for example name@brand.com';
+
 const MESSAGES: Record<string, Record<string, string>> = {
-  contactEmail: { email: 'Enter a valid email address, for example name@brand.com' },
+  contactEmail: { email: EMAIL_MESSAGE },
+  to: { required: 'Enter the address the link should go to.', email: EMAIL_MESSAGE },
 };
+
+/**
+ * What the admin reads when a send is refused, keyed on the contract's codes.
+ * `EMAIL_FAILED` passes Resend's own reason straight through — "domain not
+ * verified" or "recipient suppressed" is the whole answer, and paraphrasing it
+ * would only hide the one useful sentence.
+ */
+export function brandInviteEmailError(error: unknown): string {
+  const fallback = 'We could not send this email. Please try again in a moment.';
+  if (!(error instanceof ApiError)) {
+    return fallback;
+  }
+  switch (error.code) {
+    case 'INVITE_EMAIL_MISSING':
+      return 'This invite has no email address — type one above and send again.';
+    case 'VALIDATION':
+      return error.message || EMAIL_MESSAGE;
+    case 'INVITE_NOT_PENDING':
+      return 'This invite is no longer live, so it cannot be emailed. Create a new one.';
+    case 'INVITE_NOT_FOUND':
+      return 'This invite no longer exists. Refresh the list and try again.';
+    case 'EMAIL_FAILED':
+    default:
+      return error.message || fallback;
+  }
+}
 
 /**
  * "Invite a brand": creates a single-use onboarding link and then hands the
@@ -77,6 +109,7 @@ const MESSAGES: Record<string, Record<string, string>> = {
   imports: [
     ButtonModule,
     Check,
+    CheckboxModule,
     Copy,
     DialogModule,
     InputTextModule,
@@ -102,10 +135,7 @@ const MESSAGES: Record<string, Record<string, string>> = {
         <div class="flex flex-col gap-5">
           <div>
             <h3 class="m-0 text-[18px] font-semibold text-[#171A1C]">Link ready</h3>
-            <p class="m-0 mt-1 text-sm text-[#7B7B7B]">
-              Single use, expires {{ expiryLabel() }}. Send it to
-              {{ created.contactName || 'the brand' }} — we do not email it for you.
-            </p>
+            <p class="m-0 mt-1 text-sm text-[#7B7B7B]">{{ linkIntro() }}</p>
           </div>
 
           <div class="flex flex-col gap-2">
@@ -155,6 +185,54 @@ const MESSAGES: Record<string, Record<string, string>> = {
               Send on WhatsApp
             </a>
           }
+
+          <!-- The other way to hand the link over: the platform mails it from
+               hello@mail.clapoutcreators.com, and says where it landed. -->
+          <form
+            class="flex flex-col gap-2 border-t border-[#ECECEC] pt-4"
+            novalidate
+            [formGroup]="emailForm"
+            (ngSubmit)="sendEmail()"
+          >
+            <label class="text-sm font-medium text-[#171A1C]" for="brand-invite-email-to"
+              >Email the link</label
+            >
+            <div class="flex flex-wrap items-center gap-2">
+              <input
+                pInputText
+                id="brand-invite-email-to"
+                type="email"
+                class="min-w-0 flex-1 !text-sm"
+                placeholder="name@brand.com"
+                formControlName="to"
+                [attr.aria-invalid]="emailFieldError() ? 'true' : null"
+              />
+              <p-button
+                type="submit"
+                [label]="sendLabel()"
+                styleClass="!rounded-lg !px-4 !py-2 !text-sm !shadow-none"
+                [loading]="sendingEmail()"
+                [disabled]="sendingEmail()"
+              />
+            </div>
+
+            @if (emailFieldError(); as message) {
+              <p class="text-sm text-red-700">{{ message }}</p>
+            }
+            @if (emailError(); as message) {
+              <p class="text-sm text-red-700" role="alert">{{ message }}</p>
+            }
+
+            @if (created.emailSentAt && created.emailSentTo) {
+              <p class="text-sm text-[#16AC20]" aria-live="polite">
+                Sent to {{ created.emailSentTo }} · {{ sentLabel() }}
+              </p>
+            } @else if (emailWarning(); as warning) {
+              <!-- The invite exists; only the automatic send failed, so this is
+                   a warning with a retry above it, never an error state. -->
+              <p-message severity="warn" [closable]="false">{{ warning }}</p-message>
+            }
+          </form>
 
           <div class="flex justify-end">
             <p-button
@@ -223,6 +301,23 @@ const MESSAGES: Record<string, Record<string, string>> = {
               }
             </div>
           </div>
+
+          <!-- Only offered once there is somewhere to send to: an empty or
+               half-typed address has no address to name in the label. -->
+          @if (emailTarget(); as address) {
+            <div class="flex items-start gap-[6px] rounded-lg bg-[#F9F9F9] px-3 py-2.5">
+              <p-checkbox
+                inputId="brand-invite-send-email"
+                formControlName="sendEmail"
+                class="mt-[2px] [&_.p-checkbox-box]:!h-4 [&_.p-checkbox-box]:!w-4 [&_.p-checkbox-box]:!rounded-[4px] [&_.p-checkbox-box]:!border-[#D7D7D7]"
+                [binary]="true"
+              />
+              <label class="cursor-pointer text-sm text-[#333333]" for="brand-invite-send-email">
+                Email the link to <span class="font-medium text-[#171A1C]">{{ address }}</span>
+                right away
+              </label>
+            </div>
+          }
 
           <div class="flex flex-col gap-2">
             <label class="text-sm font-medium text-[#171A1C]" for="brand-invite-phone"
@@ -328,8 +423,18 @@ export class BrandInviteDialog {
   readonly visible = model(false);
   /** Seeds the form each time the dialog opens. */
   readonly prefill = input<BrandInvitePrefill | null>(null);
-  /** Fires once the API has issued the invite, so hosts can refresh. */
+  /**
+   * Fires once the API has issued the invite — carrying the email fields when
+   * `sendEmail` was ticked, since the API sends before it answers.
+   */
   readonly created = output<BrandInvite>();
+  /**
+   * A manual send from the link state. Separate from {@link created} because
+   * hosts hang more than a refresh off that one (the inquiry drawer re-reads
+   * its row, since issuing an invite moves a NEW inquiry to CONTACTED) and a
+   * resend changes nothing but this invite.
+   */
+  readonly emailed = output<BrandInvite>();
 
   private readonly admin = inject(AdminRepository);
   private readonly messages = inject(MessageService);
@@ -349,6 +454,14 @@ export class BrandInviteDialog {
     website: [''],
     expiresInDays: [14],
     note: [''],
+    // Only ever sent when there is a valid address to send to; the API ignores
+    // it otherwise, but the payload should not claim something it cannot mean.
+    sendEmail: [true],
+  });
+
+  /** The link state's own field, validated exactly like the one above it. */
+  protected readonly emailForm = this.formBuilder.group({
+    to: ['', [Validators.required, Validators.email]],
   });
 
   protected readonly saving = signal(false);
@@ -357,6 +470,13 @@ export class BrandInviteDialog {
   protected readonly invite = signal<BrandInvite | null>(null);
   protected readonly copied = signal(false);
   protected readonly copyError = signal(false);
+  protected readonly sendingEmail = signal(false);
+  protected readonly emailSubmitted = signal(false);
+  protected readonly emailError = signal('');
+  /** `warning` from the create call: the invite exists, the auto-send did not. */
+  protected readonly emailWarning = signal('');
+  /** Mirrors the email control so the checkbox can appear as it is typed. */
+  private readonly emailHint = signal('');
   private copiedTimer: ReturnType<typeof setTimeout> | null = null;
 
   /** The platform composes the link; the API only ever returns the token. */
@@ -385,6 +505,30 @@ export class BrandInviteDialog {
     return days <= 1 ? 'tomorrow' : `in ${days} days`;
   });
 
+  /** An address only becomes a target once it would actually pass validation. */
+  protected readonly emailTarget = computed(() => {
+    const value = this.emailHint().trim();
+    return value && !this.form.controls.contactEmail.hasError('email') ? value : null;
+  });
+
+  /** Recomputed on every send, which is the only moment the age resets. */
+  protected readonly sentLabel = computed(() => relativeTime(this.invite()?.emailSentAt));
+
+  protected readonly sendLabel = computed(() =>
+    this.invite()?.emailSentAt ? 'Send again' : 'Send email',
+  );
+
+  protected readonly linkIntro = computed(() => {
+    const invite = this.invite();
+    if (!invite) {
+      return '';
+    }
+    const expiry = `Single use, expires ${this.expiryLabel()}.`;
+    return invite.emailSentAt
+      ? `${expiry} It is already on its way — send it again or share the link yourself.`
+      : `${expiry} Email it below, or send the link to ${invite.contactName || 'the brand'} yourself.`;
+  });
+
   constructor() {
     // Opening is always a fresh start: a stale link from the previous invite
     // must never be the thing the admin copies. Only the open/close transition
@@ -400,10 +544,20 @@ export class BrandInviteDialog {
         }
       });
     });
+
+    // The checkbox appears and names its address as the admin types, so the
+    // control's value has to reach a signal.
+    this.form.controls.contactEmail.valueChanges
+      .pipe(takeUntilDestroyed())
+      .subscribe((value) => this.emailHint.set(value ?? ''));
   }
 
   protected fieldError(field: string): string | null {
     return firstErrorMessage(this.form.get(field), MESSAGES[field] ?? {}, this.submitted());
+  }
+
+  protected emailFieldError(): string | null {
+    return firstErrorMessage(this.emailForm.controls.to, MESSAGES['to'], this.emailSubmitted());
   }
 
   protected close(): void {
@@ -453,15 +607,20 @@ export class BrandInviteDialog {
     this.saving.set(true);
     this.errorMessage.set('');
     try {
-      const invite = await this.admin.createBrandInvite(this.buildPayload());
-      this.invite.set(invite);
+      const { invite, warning } = await this.admin.createBrandInvite(this.buildPayload());
+      this.applyInvite(invite);
+      // A refused auto-send is reported beside the resend button, not thrown:
+      // the link exists and is the point of the dialog.
+      this.emailWarning.set(warning?.message ?? '');
       this.created.emit(invite);
       this.messages.add({
         severity: 'success',
         summary: 'Invite created',
-        detail: invite.brandName
-          ? `${invite.brandName} can now set themselves up.`
-          : 'Send the link to the brand.',
+        detail: invite.emailSentTo
+          ? `The link is on its way to ${invite.emailSentTo}.`
+          : invite.brandName
+            ? `${invite.brandName} can now set themselves up.`
+            : 'Send the link to the brand.',
       });
     } catch (error) {
       this.errorMessage.set(
@@ -470,6 +629,50 @@ export class BrandInviteDialog {
     } finally {
       this.saving.set(false);
     }
+  }
+
+  /**
+   * `POST /admin/brand-invites/:id/send-email`. The address in the field wins,
+   * so a typo caught after the fact is fixed by correcting it and sending
+   * again rather than by starting a second invite.
+   */
+  protected async sendEmail(): Promise<void> {
+    const invite = this.invite();
+    this.emailSubmitted.set(true);
+    if (!invite || this.emailForm.invalid || this.sendingEmail()) {
+      this.emailForm.markAllAsTouched();
+      return;
+    }
+    const address = this.emailForm.controls.to.value.trim();
+    this.sendingEmail.set(true);
+    this.emailError.set('');
+    try {
+      const updated = await this.admin.sendBrandInviteEmail(invite.id, address);
+      this.applyInvite(updated);
+      this.emailWarning.set('');
+      this.emailed.emit(updated);
+      this.messages.add({
+        severity: 'success',
+        summary: 'Email sent',
+        detail: `The invite link is on its way to ${updated.emailSentTo ?? address}.`,
+      });
+    } catch (error) {
+      this.emailError.set(brandInviteEmailError(error));
+    } finally {
+      this.sendingEmail.set(false);
+    }
+  }
+
+  /**
+   * Keeps the address field pointing at wherever the invite last went, so
+   * "Send again" repeats the send the admin can see rather than the hint the
+   * invite was created with.
+   */
+  private applyInvite(invite: BrandInvite): void {
+    this.invite.set(invite);
+    this.emailForm.reset({ to: invite.emailSentTo ?? invite.contactEmail ?? '' });
+    this.emailSubmitted.set(false);
+    this.emailError.set('');
   }
 
   /** Empty strings are dropped: the API stores "unknown" as null, not ''. */
@@ -486,6 +689,7 @@ export class BrandInviteDialog {
       note: value.note.trim() || null,
       expiresInDays: value.expiresInDays,
       ...(prefill?.inquiryId ? { inquiryId: prefill.inquiryId } : {}),
+      ...(value.sendEmail && this.emailTarget() ? { sendEmail: true } : {}),
     };
   }
 
@@ -501,11 +705,16 @@ export class BrandInviteDialog {
       website: normaliseWebsiteHint(prefill?.website),
       expiresInDays: 14,
       note: '',
+      sendEmail: true,
     });
+    this.emailForm.reset({ to: '' });
     this.invite.set(null);
     this.submitted.set(false);
     this.errorMessage.set('');
     this.copied.set(false);
     this.copyError.set(false);
+    this.emailSubmitted.set(false);
+    this.emailError.set('');
+    this.emailWarning.set('');
   }
 }

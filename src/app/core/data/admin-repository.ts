@@ -16,7 +16,13 @@ import {
   PartnershipInquiry,
 } from '../models/admin';
 import { Brand, BrandDetail, BrandInput } from '../models/brand';
-import { BrandInvite, BrandInviteQuery, CreateBrandInviteInput } from '../models/brand-invite';
+import {
+  BrandInvite,
+  BrandInviteEmailWarning,
+  BrandInviteQuery,
+  CreateBrandInviteInput,
+  CreatedBrandInvite,
+} from '../models/brand-invite';
 import { PublicCampaign } from '../models/campaign';
 import { RegistrationStatus } from '../models/registration';
 
@@ -288,11 +294,41 @@ export class AdminRepository {
    * `POST /admin/brand-invites` — returns the token the platform composes the
    * link from. An `inquiryId` also moves a NEW inquiry to CONTACTED
    * (`422 INQUIRY_NOT_FOUND` when the inquiry is unknown).
+   *
+   * With `sendEmail` the API also mails the link. A refused send does not fail
+   * the create, so the envelope's `warning` sibling rides back beside the
+   * invite rather than being thrown: the link exists either way and the admin
+   * decides whether to retry or send it themselves.
    */
-  async createBrandInvite(input: CreateBrandInviteInput): Promise<BrandInvite> {
+  async createBrandInvite(input: CreateBrandInviteInput): Promise<CreatedBrandInvite> {
     try {
       const response = await firstValueFrom(
-        this.http.post<{ data: BrandInvite }>(`${this.baseUrl}/brand-invites`, input),
+        this.http.post<{ data: BrandInvite; warning?: BrandInviteEmailWarning }>(
+          `${this.baseUrl}/brand-invites`,
+          input,
+        ),
+      );
+      return { invite: response.data, warning: response.warning ?? undefined };
+    } catch (error) {
+      throw toApiError(error);
+    }
+  }
+
+  /**
+   * `POST /admin/brand-invites/:id/send-email` — mails the link. `to` wins over
+   * the invite's `contactEmail` and is stored as it when the invite had none.
+   * Only a live invite can be emailed (`409 INVITE_NOT_PENDING`);
+   * `422 INVITE_EMAIL_MISSING` when there is no address at all, `422 VALIDATION`
+   * for a bad one, and `502 EMAIL_FAILED` carrying Resend's own reason.
+   */
+  async sendBrandInviteEmail(id: string, to?: string | null): Promise<BrandInvite> {
+    const address = to?.trim();
+    try {
+      const response = await firstValueFrom(
+        this.http.post<{ data: BrandInvite }>(
+          `${this.baseUrl}/brand-invites/${encodeURIComponent(id)}/send-email`,
+          address ? { to: address } : {},
+        ),
       );
       return response.data;
     } catch (error) {

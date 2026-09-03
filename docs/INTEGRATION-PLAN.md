@@ -516,6 +516,67 @@ Platform:
   dialog prefilled from the inquiry (company → brand name, contact, phone, email, link →
   website, `inquiryId`), so the admin never retypes what the brand already sent.
 
+### Brand invite emails (added 2026-09-03 — the invite goes out from hello@mail.clapoutcreators.com)
+
+Admins can have the platform email the invite link to the brand's contact, on the
+company's own domain (Resend, `MAIL_FROM` = `ClapOut <hello@mail.clapoutcreators.com>`,
+reply-to `MAIL_REPLY_TO`), instead of — or as well as — copying the link into WhatsApp.
+The domain is verified in Resend, so external addresses deliver.
+
+```ts
+interface BrandInvite {                  // additions
+  emailSentTo: string | null;            // address the most recent email went to
+  emailSentAt: string | null;            // when
+  emailSendCount: number;                // resends included
+}
+```
+
+- `POST /admin/brand-invites/:id/send-email` `{ to? }` → `200 { data: BrandInvite }`.
+  `to` (valid email, ≤ 160) wins when given, else the invite's `contactEmail`; when the
+  invite had no `contactEmail`, `to` is stored as it. Only PENDING (not expired) invites
+  can be emailed: `409 INVITE_NOT_PENDING` otherwise. `422 INVITE_EMAIL_MISSING` when
+  there is no address at all, `422 VALIDATION` for a bad one, `404 INVITE_NOT_FOUND`,
+  and `502 EMAIL_FAILED` when Resend rejects the send (the message carries Resend's
+  reason). Success records `emailSentTo` / `emailSentAt` and bumps `emailSendCount`;
+  resending is allowed (a corrected address, a nudge).
+- `POST /admin/brand-invites` accepts `sendEmail?: boolean`: when true and
+  `contactEmail` is present, the email goes out right after the invite is created (a
+  send failure does NOT fail the create — the invite is returned with a `warning` sibling
+  field `{ data, warning?: { code: 'EMAIL_FAILED', message } }` so the UI can offer a resend).
+- The link inside the email is `${PLATFORM_URL}/brand/onboard/<token>`. New optional
+  env `PLATFORM_URL`; when unset the API uses the origin of `RESET_URL_BASE` (already the
+  production platform in Vercel's env), else `http://localhost:4200`.
+
+Email (rendered through the shared branded layout in `src/lib/email-template.ts` — same
+header, orange accent, dark footer as the password-reset mail; the layout gains optional
+building blocks for this, and the password-reset mail must render unchanged):
+
+- Subject: `You're invited to set up <Brand> on ClapOut` (`your brand` when no name).
+- Preheader: `Your private link to set up <Brand> — it takes about two minutes.`
+- Heading: `Set up <Brand> on ClapOut` / `Set up your brand on ClapOut`.
+- Body: `Hi <contact name>,` (or `Hi there,`); one line on what ClapOut is ("ClapOut runs
+  clipping campaigns: creators cut and post clips of your content across TikTok,
+  Instagram and YouTube, and you pay only for verified views."); one line on the link
+  ("We've prepared a private link for <Brand>. It takes about two minutes: add your logo,
+  a few details and the best person for us to talk to."); CTA button `Set up your brand`;
+  a numbered "What happens next" list (1 Complete your brand profile · 2 We plan your first
+  campaign with you · 3 Creators post, you pay per verified 1,000 views); a plain fallback
+  line with the full link for clients that strip buttons.
+- Footnote: `This link is meant for <Brand> and expires on <date>. If you weren't
+  expecting it, you can ignore this email.`
+- Plain-text alternative kept in step, as the existing template does.
+
+Platform:
+
+- Invite dialog, form state: when an email is entered, a checkbox `Email the link to
+  <address> right away` (checked by default) → create with `sendEmail: true`.
+- Invite dialog, link-ready state: an "Email the link" block — editable address (prefilled
+  with contactEmail), `Send email` / `Send again`, and the delivery line (`Sent to x · just
+  now` from `emailSentAt`/`emailSentTo`, or the `warning` from create). Errors inline,
+  including Resend's reason for `EMAIL_FAILED`.
+- Brand invites table: an `Email` action on pending rows (small dialog asking for the
+  address when the invite has none), and an "Emailed <date>" line under the contact.
+
 ### Misc
 
 - `GET /health` → `200 { ok: true }`

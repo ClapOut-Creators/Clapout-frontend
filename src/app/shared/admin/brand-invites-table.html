@@ -8,7 +8,8 @@
         Brand invites
       </h2>
       <p class="mt-1 text-sm text-[#7B7B7B]">
-        Single-use links that let a brand set itself up. We never email them — you send the link.
+        Single-use links that let a brand set itself up. Email one from here, or send the link
+        yourself.
       </p>
     </div>
 
@@ -123,6 +124,16 @@
                   } @else {
                     <span class="text-surface-400">{{ notAnnounced }}</span>
                   }
+                  <!-- Delivery, under the address it went to. The count only
+                       earns its space once there has been a resend. -->
+                  @if (row.emailSentAt) {
+                    <span class="mt-0.5 block text-xs text-[#16AC20]">
+                      Emailed {{ formatDate(row.emailSentAt) }}
+                      @if (row.emailSendCount > 1) {
+                        (×{{ row.emailSendCount }})
+                      }
+                    </span>
+                  }
                 </td>
 
                 <td>
@@ -158,6 +169,14 @@
                   <span class="flex flex-wrap items-center justify-end gap-2">
                     <!-- Only a live link is worth copying or revoking. -->
                     @if (row.status === 'PENDING') {
+                      <button
+                        type="button"
+                        class="inline-flex items-center rounded-lg bg-[#F1F1F1] px-3 py-1.5 text-xs font-medium text-[#525252] hover:bg-[#E2E2E2] disabled:cursor-not-allowed disabled:opacity-60 max-sm:min-h-10"
+                        [disabled]="isBusy(row.id)"
+                        (click)="confirmEmail(row)"
+                      >
+                        {{ row.emailSentAt ? 'Email again' : 'Email' }}
+                      </button>
                       <button
                         type="button"
                         class="inline-flex items-center gap-1.5 rounded-lg bg-[#171A1C] px-3 py-1.5 text-xs font-medium text-white hover:bg-[#383838] max-sm:min-h-10"
@@ -199,3 +218,56 @@
     }
   }
 </section>
+
+<!-- Only reached from an invite created without a contact email. -->
+<p-dialog
+  header="Email this invite"
+  styleClass="!w-[min(26rem,calc(100vw-2rem))]"
+  [modal]="true"
+  [draggable]="false"
+  [dismissableMask]="true"
+  [visible]="emailDialogOpen()"
+  (visibleChange)="emailDialogOpen.set($event)"
+>
+  <form class="flex flex-col gap-3" novalidate (ngSubmit)="submitAddress()">
+    <p class="m-0 text-sm text-[#7B7B7B]">
+      This invite has no contact email yet. Where should the link go?
+    </p>
+
+    <div class="flex flex-col gap-2">
+      <label class="text-sm font-medium text-[#171A1C]" for="brand-invite-row-email">
+        Email address
+      </label>
+      <input
+        pInputText
+        id="brand-invite-row-email"
+        type="email"
+        class="w-full"
+        placeholder="name@brand.com"
+        [ngModel]="emailAddress()"
+        [ngModelOptions]="{ standalone: true }"
+        (ngModelChange)="emailAddress.set($event)"
+        [attr.aria-invalid]="emailDialogError() ? 'true' : null"
+      />
+      @if (emailDialogError(); as message) {
+        <p class="text-sm text-red-700">{{ message }}</p>
+      }
+    </div>
+
+    <div class="flex flex-wrap justify-end gap-2">
+      <p-button
+        type="button"
+        label="Cancel"
+        severity="secondary"
+        [text]="true"
+        styleClass="!rounded-lg !px-4 !py-2 !text-sm !shadow-none"
+        (onClick)="emailDialogOpen.set(false)"
+      />
+      <p-button
+        type="submit"
+        label="Send email"
+        styleClass="!rounded-lg !px-5 !py-2 !text-sm !shadow-none"
+      />
+    </div>
+  </form>
+</p-dialog>
