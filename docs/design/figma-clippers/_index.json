@@ -38,5 +38,105 @@
   "id": "349:3267",
   "name": "Clipper dashboard",
   "file": "clipper-dashboard-349-3267"
+ },
+ {
+  "id": "380:844",
+  "name": "Dashboard - data - desktop",
+  "file": "dashboard-data-desktop-380-844"
+ },
+ {
+  "id": "397:2720",
+  "name": "Dashboard - data - mobile",
+  "file": "dashboard-data-mobile-397-2720"
+ },
+ {
+  "id": "366:376",
+  "name": "Dashboard (empty) - mobile",
+  "file": "dashboard-mobile-366-376"
+ },
+ {
+  "id": "397:3135",
+  "name": "Clipping details - desktop",
+  "file": "clipping-details-desktop-397-3135"
+ },
+ {
+  "id": "398:4552",
+  "name": "Clipping details - mobile",
+  "file": "clipping-details-mobile-398-4552"
+ },
+ {
+  "id": "398:6785",
+  "name": "Clipping details - leaderboard - desktop",
+  "file": "clipping-leaderboard-desktop-398-6785"
+ },
+ {
+  "id": "398:6940",
+  "name": "Clipping details - leaderboard - mobile",
+  "file": "clipping-leaderboard-mobile-398-6940"
+ },
+ {
+  "id": "398:5569",
+  "name": "Submit post (1) - desktop",
+  "file": "submit-post-1-desktop-398-5569"
+ },
+ {
+  "id": "402:7789",
+  "name": "Submit screenshot - desktop",
+  "file": "submit-screenshot-desktop-402-7789"
+ },
+ {
+  "id": "402:8770",
+  "name": "Submit post (3) - desktop",
+  "file": "submit-post-3-desktop-402-8770"
+ },
+ {
+  "id": "402:8276",
+  "name": "Submit post (4) - desktop",
+  "file": "submit-post-4-desktop-402-8276"
+ },
+ {
+  "id": "398:6048",
+  "name": "Success - desktop",
+  "file": "submit-success-desktop-398-6048"
+ },
+ {
+  "id": "398:5724",
+  "name": "Submit post (1) - mobile",
+  "file": "submit-post-1-mobile-398-5724"
+ },
+ {
+  "id": "402:7975",
+  "name": "Submit post (2) - mobile",
+  "file": "submit-post-2-mobile-402-7975"
+ },
+ {
+  "id": "402:8964",
+  "name": "Submit post (3) - mobile",
+  "file": "submit-post-3-mobile-402-8964"
+ },
+ {
+  "id": "402:8462",
+  "name": "Submit post (4) - mobile",
+  "file": "submit-post-4-mobile-402-8462"
+ },
+ {
+  "id": "398:6238",
+  "name": "Success - mobile",
+  "file": "submit-success-mobile-398-6238"
+ },
+ {
+  "id": "397:1535",
+  "name": "Add social - desktop",
+  "file": "add-social-desktop-397-1535"
+ },
+ {
+  "id": "378:640",
+  "name": "Add social - mobile",
+  "file": "add-social-mobile-378-640"
+ },
+ {
+  "id": "366:324",
+  "name": "Create account - mobile",
+  "file": "create-account-mobile-366-324"
  }
 ]

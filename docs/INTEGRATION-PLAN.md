@@ -577,6 +577,108 @@ Platform:
 - Brand invites table: an `Email` action on pending rows (small dialog asking for the
   address when the invite has none), and an "Emailed <date>" line under the contact.
 
+### Clipper portal screens (added 2026-09-03 — Figma "Web App - clippers", 20 new frames)
+
+Design refs live in `Clapout-frontend/docs/design/figma-clippers/` (1:1 PNG + node spec per
+frame; `_README.md` maps every Figma id). Desktop boards are 1728 wide, mobile boards 402.
+The rail stays the 80px icon rail the platform already has (the boards draw a 260px rail —
+same deviation the first clipper dashboard shipped with).
+
+Surfaces, in the order a clipper meets them:
+
+1. **Signed-in campaign page** — "Clipping details" 397:3135 (desktop) / 398:4552 (mobile),
+   with the "Leaderboard" tab 398:6785 / 398:6940. Route stays `/campaigns/:slug`; when the
+   session is a CREATOR the page renders the studio variant: the creator page header row
+   (`Dashboard | <campaign title>` breadcrumb pill + the user chip, exactly as the dashboard
+   draws it), then one white card holding a light "‹ Back" pill on the left, a black "Share"
+   pill on the right, the two tab pills (Detail = orange, Leaderboard = grey), and the same
+   content the public page shows. Tabs are URL state: `?tab=leaderboard`, default detail.
+   Back goes to the previous in-app page, else `/creator/dashboard`. Anonymous visitors keep
+   the public design (344:2763 / 344:2929) pixel for pixel; admins keep what they see today.
+   CTA slot on the studio variant: "Submit post link" (orange, full width) when the clipper
+   is ACCEPTED on an ACTIVE campaign — it opens the submit flow below by setting
+   `?submit=1` — otherwise the same panels the public page uses (register / already applied /
+   registration closed / opens in …).
+2. **Leaderboard tab** — "Top earners" list from `GET /public/campaigns/:slug/leaderboard`
+   (contract below): rank badge (1 = orange with the crown glyph, 2 = yellow, 3 = dark grey,
+   4+ = light grey), a gradient avatar (deterministic per `creatorId`; users have no photo),
+   the abbreviated name, and the eye glyph + verified views. The caller's own row reads
+   "(you)"; when they are ranked beyond the list, a footer line says "You are #N with X views".
+   States: loading skeleton rows, empty ("No verified clips yet — approved clips appear here
+   as the campaign progresses."), error with retry.
+3. **Submit post flow** — 398:5569 → 402:7789 → 402:8770 → 402:8276 → 398:6048 (mobile
+   398:5724 → 402:7975 → 402:8964 → 402:8462 → 398:6238). A full-screen overlay over the
+   campaign page (the page shows through a heavy blur; × top right; a 506px centred column;
+   Poppins 40px title, 20px subtitle), opened by `?submit=1` on `/campaigns/:slug` and closed by
+   ×, Escape or "Return to campaign" (which also refreshes the page's registration/leaderboard
+   data). Closing with data entered asks "Discard this submission?" first. Steps:
+   1. "Submit Post link": Post Link (required; https, must be on the registered platform —
+      same rules as before) with the platform glyph inside the field, and "Number of views"
+      (optional integer ≥ 0, grouped "34,000"). Terms line links `/terms` and `/privacy`.
+      "Continue →" (black).
+   2. "Upload Screenshot": the dropzone card with the image glyph and the orange "Upload
+      image" button; once chosen the card shows the preview with Replace / Remove. Same
+      client-side resize (≤ 700 000 chars data URL) and the same file errors. Back / Continue.
+   3. "Payment preferences": the three green-tick reassurance lines, then either the saved
+      method (`Me.payout`) as a card with a "Change" action, or the dashed "+ Add payment
+      method" button which expands to
+   4. Network (MTN MoMo / Telecel Cash / AT Money → `MTN_MOMO` / `TELECEL_CASH` / `AT_MONEY`),
+      Account number, and Account name (the contract requires it; prefilled with the
+      session's `fullName`; one field more than the board shows). Continue saves via
+      `PATCH /me { payout }` only when it changed, then `POST /submissions
+      { registrationId, postUrl, screenshotUrl, claimedViews? }` (no caption / note /
+      postedAt — the API keeps them optional), then
+   5. "Successful" with the green tick, the copy from the board, and "Return to campaign".
+   API failures render inline on the step that caused them, mapped with the existing
+   `submissionErrorMessage` rules (platform mismatch, duplicate, closed, not accepted).
+   `/creator/campaigns/:slug/submit` becomes a redirect to `/campaigns/:slug?submit=1`; every
+   "Submit content" / "Submit clip" link on the dashboard and the submissions picker points
+   there. The old standalone submit page is removed.
+4. **Add social account** — 397:1535 / 378:640. The same overlay shell replaces the p-dialog:
+   "Social Link" rows (platform glyph inside the field detected from the URL host —
+   TikTok / Instagram / YouTube / Facebook / X, a link glyph otherwise; red trash button),
+   the orange "Add link" chip, the terms line, and the black "Save social" button. Still
+   `PATCH /me { socials }`; the dashboard checklist API of the component is unchanged.
+5. **Dashboard with data** — 380:844 (desktop) / 397:2720 (mobile) / 366:376 (mobile,
+   empty). Already built from 349:3267; verify against the new boards and fix deviations
+   only. The boards' stat-card trend chips ("+7.4% ↑") have no data behind them (`GET
+   /me/stats` has no period comparison) — NOT built; open question for Steve.
+6. **Mobile chrome for creators** (every 402 board): a white 86px bottom tab bar with five
+   slots — Home → `/creator/dashboard`, Planet → `/campaigns`, the centre 62px orange-gradient
+   circle ("Library") → `/creator/submissions`, Video Frame and Wallet disabled ("Coming
+   soon", `aria-disabled`). Active glyph `#242424`, inactive `#BABABA`. The content column
+   gets enough bottom padding that the bar never covers it. The mobile top bar keeps its
+   hamburger (it is the only sign-out on a phone; the boards have none).
+7. **Create account, mobile** — 366:324: verify the existing sign-up at 402 and fix
+   responsive deviations only.
+
+```ts
+interface LeaderboardEntry {
+  rank: number;            // 1-based; equal views share a rank (1, 2, 2, 4)
+  creatorId: string;
+  displayName: string;     // 'Willian O.' — first name + initial of the last word; never the email
+  verifiedViews: number;   // sum of verifiedViews over APPROVED | PAID submissions on this campaign
+  clips: number;           // submissions counted into that sum
+  isMe: boolean;           // the caller's own row (needs a Bearer token; false otherwise)
+}
+
+interface CampaignLeaderboard {
+  entries: LeaderboardEntry[];   // top 25 by verifiedViews desc, then earliest first approval
+  totalRanked: number;           // creators with ≥ 1 APPROVED | PAID submission on the campaign
+  me: { rank: number; verifiedViews: number; clips: number } | null;
+  // the caller's standing even beyond the top 25; null when anonymous or unranked
+}
+```
+
+- `GET /public/campaigns/:slug/leaderboard` → `200 { data: CampaignLeaderboard }` |
+  `404 CAMPAIGN_NOT_FOUND` (unknown or DRAFT slug, like the detail endpoint). No auth
+  required; a valid `Authorization: Bearer` fills `isMe` / `me` (new `optionalAuth`
+  middleware: no header → anonymous; a present but invalid token → `401 UNAUTHORIZED`, same
+  as everywhere else). Views come from `Submission.verifiedViews`; SUBMITTED / UNDER_REVIEW /
+  REJECTED rows never count. Rate-limited like the other public endpoints (60 / 10 min per IP).
+- `PATCH /me { payout: { method, accountNumber, accountName } }` — unchanged, used by step 4.
+- `POST /submissions` — unchanged.
+
 ### Misc
 
 - `GET /health` → `200 { ok: true }`

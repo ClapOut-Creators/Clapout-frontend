@@ -22,3 +22,8 @@ Rule of the house: admin screens match these designs 1:1, verified by screenshot
 Same format, from the Figma page **"Web App - clippers"** (node 140:2972): public campaigns list
 (desktop 1728 + mobile 402), public campaign detail (desktop + mobile), sign-in ("Sign A"),
 create-account ("Sign B"), and the clipper dashboard. See `figma-clippers/_README.md`.
+
+Added 2026-09-03: 20 more clipper frames (dashboard with data, signed-in campaign page + leaderboard,
+the submit-post overlay flow, add-social overlay, and their 402px mobile boards). They were
+exported with `figma-extract-clippers.js <out dir>` (PNG at scale 1 + node spec per frame, then
+merged into `figma-clippers/_index.json`); edit its `NEW` table to pull further frames.
