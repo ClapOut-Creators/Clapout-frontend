@@ -28,4 +28,9 @@ export interface CampaignLeaderboard {
    * unranked.
    */
   me: { rank: number; verifiedViews: number; clips: number } | null;
+  /**
+   * When the board last moved: the latest `viewsCheckedAt ?? reviewedAt` over
+   * the clips it counts. null while nothing is ranked.
+   */
+  updatedAt: string | null;
 }

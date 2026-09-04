@@ -1,6 +1,7 @@
 import { Component, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { CampaignLeaderboard, LeaderboardEntry } from '../../core/models/leaderboard';
+import { shortElapsed } from '../../core/util/relative-time';
 import {
   avatarGradient,
   entryLabel,
@@ -23,7 +24,7 @@ function entry(overrides: Partial<LeaderboardEntry> = {}): LeaderboardEntry {
 }
 
 function board(overrides: Partial<CampaignLeaderboard> = {}): CampaignLeaderboard {
-  return { entries: [], totalRanked: 0, me: null, ...overrides };
+  return { entries: [], totalRanked: 0, me: null, updatedAt: null, ...overrides };
 }
 
 describe('rankBadgeClass', () => {
@@ -176,5 +177,45 @@ describe('LeaderboardList', () => {
 
     expect(element.querySelector('ol')).toBeNull();
     expect(element.textContent).toContain('No earners yet');
+  });
+
+  it('says how long ago the board last moved, beside the period pill', async () => {
+    const element = await render(
+      board({
+        entries: [entry()],
+        totalRanked: 1,
+        updatedAt: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
+      }),
+    );
+
+    expect(element.textContent).toContain('Updated 3h ago');
+    expect(element.textContent).toContain('All time');
+  });
+
+  it('hides the label entirely when the board has never moved', async () => {
+    const element = await render(board({ entries: [entry()], totalRanked: 1, updatedAt: null }));
+
+    expect(element.textContent).not.toContain('Updated');
+  });
+});
+
+describe('shortElapsed', () => {
+  const now = Date.parse('2026-09-04T12:00:00.000Z');
+
+  it('degrades from days to hours to minutes', () => {
+    expect(shortElapsed('2026-09-01T12:00:00.000Z', now)).toBe('3d ago');
+    expect(shortElapsed('2026-09-04T09:00:00.000Z', now)).toBe('3h ago');
+    expect(shortElapsed('2026-09-04T11:45:00.000Z', now)).toBe('15m ago');
+    expect(shortElapsed('2026-09-04T11:59:30.000Z', now)).toBe('just now');
+  });
+
+  it('has nothing to say about a missing or unparsable timestamp', () => {
+    expect(shortElapsed(null, now)).toBeNull();
+    expect(shortElapsed(undefined, now)).toBeNull();
+    expect(shortElapsed('not a date', now)).toBeNull();
+  });
+
+  it('never reads as negative when a clock is a little ahead', () => {
+    expect(shortElapsed('2026-09-04T12:05:00.000Z', now)).toBe('just now');
   });
 });

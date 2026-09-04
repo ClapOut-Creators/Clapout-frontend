@@ -36,6 +36,19 @@
       (ngModelChange)="statusFilter.set($event)"
     />
 
+    <span class="flex items-center gap-2.5">
+      <p-checkbox
+        inputId="filter-stale-views"
+        [binary]="true"
+        [ngModelOptions]="{ standalone: true }"
+        [ngModel]="staleViewsOnly()"
+        (ngModelChange)="staleViewsOnly.set($event)"
+      />
+      <label class="text-[16px] whitespace-nowrap text-[#525252]" for="filter-stale-views"
+        >Stale views ({{ staleViewsDays }}d+)</label
+      >
+    </span>
+
     <p-button
       label="Export CSV"
       severity="secondary"
@@ -107,10 +120,10 @@
     } @else {
       <!--
         Ten columns is more than the 1400px the clippers table needs, so this one
-        scrolls horizontally below ~1560px and fills the panel above it.
+        scrolls horizontally below ~1600px and fills the panel above it.
       -->
       <div class="mt-4 overflow-x-auto rounded-[12.11px] bg-white">
-        <p-table [value]="rows()" [tableStyle]="{ 'min-width': '1560px', 'table-layout': 'fixed' }">
+        <p-table [value]="rows()" [tableStyle]="{ 'min-width': '1600px', 'table-layout': 'fixed' }">
           <ng-template #header>
             <tr>
               <th
@@ -163,7 +176,7 @@
               </th>
               <th
                 scope="col"
-                class="!w-[130px] !rounded-r-[12.11px] !border-0 !bg-[#F9F9F9] !px-6 !py-[22px] !text-[17.49px] !font-medium !whitespace-nowrap !text-[#171A1C]"
+                class="!w-[170px] !rounded-r-[12.11px] !border-0 !bg-[#F9F9F9] !px-6 !py-[22px] !text-[17.49px] !font-medium !whitespace-nowrap !text-[#171A1C]"
               >
                 Review
               </th>
@@ -280,6 +293,11 @@
                 <span class="mt-0.5 block whitespace-nowrap font-medium text-[#171A1C]"
                   >{{ formatViews(row.verifiedViews) }} verified</span
                 >
+                @if (row.status === 'APPROVED' && viewsCheckedLabel(row); as checked) {
+                  <span class="mt-0.5 block text-xs whitespace-nowrap text-[#7B7B7B]"
+                    >Views checked · {{ checked }}</span
+                  >
+                }
               </td>
 
               <td class="!border-0 !px-6 !py-5 !text-right !text-[16px] !text-[#444444]">
@@ -303,13 +321,28 @@
               </td>
 
               <td class="!border-0 !px-6 !py-5">
-                <button
-                  type="button"
-                  class="inline-flex cursor-pointer items-center gap-2 rounded-[10px] border-0 bg-[#ECECEC] px-[15px] py-2 text-[16px] text-[#525252] hover:bg-[#E2E2E2]"
-                  (click)="openReview(row)"
-                >
-                  Review
-                </button>
+                <span class="flex flex-col items-start gap-1.5">
+                  <button
+                    type="button"
+                    class="inline-flex cursor-pointer items-center gap-2 rounded-[10px] border-0 bg-[#ECECEC] px-[15px] py-2 text-[16px] text-[#525252] hover:bg-[#E2E2E2]"
+                    [attr.aria-label]="'Review the clip from ' + row.creator.fullName"
+                    (click)="openReview(row)"
+                  >
+                    Review
+                  </button>
+                  @if (canUpdateViews(row)) {
+                    <button
+                      type="button"
+                      class="inline-flex cursor-pointer items-center gap-2 rounded-[10px] border border-[#ECECEC] bg-white px-[15px] py-2 text-[16px] whitespace-nowrap text-[#525252] hover:bg-[#F7F7F7]"
+                      [attr.aria-label]="
+                        'Update the verified views on the clip from ' + row.creator.fullName
+                      "
+                      (click)="openViewCheck(row)"
+                    >
+                      Update views
+                    </button>
+                  }
+                </span>
               </td>
             </tr>
           </ng-template>
@@ -340,6 +373,180 @@
       [alt]="'Screenshot submitted by ' + row.creator.fullName"
       class="max-h-[70vh] w-full rounded-xl object-contain"
     />
+
+    @if (row.status === 'APPROVED' || row.status === 'PAID') {
+      <section class="mt-5" aria-labelledby="submission-view-history-heading">
+        <h3
+          id="submission-view-history-heading"
+          class="m-0 text-[16px] font-semibold text-[#171A1C]"
+        >
+          View checks
+        </h3>
+        @if (viewsCheckedLabel(row); as checked) {
+          <p class="m-0 mt-1 text-sm text-[#7B7B7B]">Views checked · {{ checked }}</p>
+        }
+
+        @switch (historyState()) {
+          @case ('loading') {
+            <div class="mt-3 flex flex-col gap-2" aria-busy="true" aria-live="polite">
+              <span class="sr-only">Loading the view history</span>
+              <p-skeleton width="100%" height="3rem" borderRadius="12px" />
+              <p-skeleton width="100%" height="3rem" borderRadius="12px" />
+            </div>
+          }
+
+          @case ('error') {
+            <div class="mt-3">
+              <p-message severity="warn" [closable]="false"
+                >We could not load the view history for this clip.</p-message
+              >
+              <p-button
+                label="Try again"
+                size="small"
+                [outlined]="true"
+                styleClass="mt-3"
+                (onClick)="retryHistory()"
+              />
+            </div>
+          }
+
+          @default {
+            @if (history().length === 0) {
+              <p class="m-0 mt-3 text-sm text-[#7B7B7B]">No checks yet.</p>
+            } @else {
+              <ol class="m-0 mt-3 flex list-none flex-col gap-2 p-0">
+                @for (check of history(); track check.id) {
+                  <li class="rounded-xl border border-[#ECECEC] bg-[#F9F9F9] px-4 py-3">
+                    <span class="flex flex-wrap items-baseline gap-x-2">
+                      <span class="text-[16px] font-medium text-[#171A1C]"
+                        >{{ formatViews(check.views) }} views</span
+                      >
+                      @if (check.previousViews !== null) {
+                        <span class="text-sm text-[#7B7B7B]"
+                          >was {{ formatViews(check.previousViews) }}</span
+                        >
+                      } @else {
+                        <span class="text-sm text-[#7B7B7B]">at approval</span>
+                      }
+                    </span>
+                    <span class="mt-0.5 block text-xs text-[#7B7B7B]">
+                      {{ formatDateTime(check.checkedAt) }} · {{ check.checkedBy.fullName }}
+                    </span>
+                    @if (check.note) {
+                      <span class="co-user-text mt-1 block text-sm text-[#464646]">{{
+                        check.note
+                      }}</span>
+                    }
+                  </li>
+                }
+              </ol>
+            }
+          }
+        }
+      </section>
+    }
+  }
+</p-dialog>
+
+<!-- Update views -->
+<p-dialog
+  header="Update views"
+  [visible]="viewCheckRow() !== null"
+  (visibleChange)="onViewCheckVisibleChange($event)"
+  [modal]="true"
+  [draggable]="false"
+  [dismissableMask]="true"
+  [style]="{ width: '32rem' }"
+  [breakpoints]="{ '640px': '92vw' }"
+>
+  @if (viewCheckRow(); as row) {
+    <p class="m-0 text-sm text-[#7B7B7B]">
+      Re-count the views on the clip from
+      <span class="co-user-text font-medium text-[#171A1C]">{{ row.creator.fullName }}</span
+      >. Saving records a history row and refreezes the payout at the campaign's current rate.
+    </p>
+
+    <dl class="m-0 mt-4 grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+      <div>
+        <dt class="text-[#7B7B7B]">Current verified views</dt>
+        <dd class="m-0 mt-0.5 text-[16px] text-[#171A1C]">{{ formatViews(row.verifiedViews) }}</dd>
+      </div>
+      <div>
+        <dt class="text-[#7B7B7B]">Last checked</dt>
+        <dd class="m-0 mt-0.5 text-[16px] text-[#171A1C]">
+          {{ viewsCheckedLabel(row) ?? notAnnounced }}
+        </dd>
+      </div>
+    </dl>
+
+    <div class="mt-5 flex flex-col gap-2">
+      <label class="text-sm font-medium text-[#171A1C]" for="view-check-views">New views</label>
+      <p-inputnumber
+        inputId="view-check-views"
+        class="w-full"
+        mode="decimal"
+        placeholder="0"
+        [min]="0"
+        [useGrouping]="true"
+        [maxFractionDigits]="0"
+        [ngModel]="newViews()"
+        (ngModelChange)="newViews.set($event)"
+      />
+      @if (row.campaign.cpm === null) {
+        <p-message severity="warn" [closable]="false"
+          >Campaign has no CPM, so the payout cannot be recalculated.</p-message
+        >
+      } @else {
+        <p class="m-0 text-sm text-[#7B7B7B]">
+          Payout at {{ formatMoneyExact(row.campaign.currency, row.campaign.cpm) }}/1k:
+          <span class="font-medium text-[#171A1C]">{{
+            formatMoneyExact(row.campaign.currency, viewCheckPayoutPreview())
+          }}</span>
+          <span class="text-[#7B7B7B]">
+            (was {{ formatMoneyExact(row.campaign.currency, row.payoutAmount) }})</span
+          >
+        </p>
+      }
+    </div>
+
+    <div class="mt-4 flex flex-col gap-2">
+      <label class="text-sm font-medium text-[#171A1C]" for="view-check-note"
+        >Note (optional)</label
+      >
+      <textarea
+        pTextarea
+        id="view-check-note"
+        rows="2"
+        class="w-full"
+        placeholder="Where the number came from — the analytics tab, a fresh screenshot, …"
+        [ngModel]="viewCheckNote()"
+        (ngModelChange)="viewCheckNote.set($event)"
+      ></textarea>
+    </div>
+
+    @if (viewCheckError(); as message) {
+      <div class="mt-4">
+        <p-message severity="error" [closable]="false">{{ message }}</p-message>
+      </div>
+    }
+
+    <div class="mt-5 flex flex-wrap items-center gap-2">
+      <p-button
+        label="Save"
+        size="small"
+        [loading]="viewCheckSaving()"
+        [disabled]="viewCheckSaving()"
+        (onClick)="saveViewCheck()"
+      />
+      <p-button
+        label="Cancel"
+        severity="secondary"
+        size="small"
+        [text]="true"
+        [disabled]="viewCheckSaving()"
+        (onClick)="closeViewCheck()"
+      />
+    </div>
   }
 </p-dialog>
 

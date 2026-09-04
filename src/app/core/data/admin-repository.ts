@@ -25,6 +25,7 @@ import {
 } from '../models/brand-invite';
 import { PublicCampaign } from '../models/campaign';
 import { RegistrationStatus } from '../models/registration';
+import { SubmissionViewCheck, SubmissionViewCheckInput } from '../models/submission';
 
 /**
  * Typed HTTP access to `/admin/*`. Every call requires a session whose user has
@@ -388,6 +389,9 @@ export class AdminRepository {
     if (query.search) {
       params = params.set('search', query.search);
     }
+    if (query.staleViewsDays !== undefined) {
+      params = params.set('staleViewsDays', String(query.staleViewsDays));
+    }
 
     try {
       const response = await firstValueFrom(
@@ -413,6 +417,41 @@ export class AdminRepository {
         ),
       );
       return response.data;
+    } catch (error) {
+      throw toApiError(error);
+    }
+  }
+
+  /**
+   * `POST /admin/submissions/:id/view-checks` — re-verifies an approved clip.
+   * Writes a history row, moves `verifiedViews` and `viewsCheckedAt`, and
+   * refreezes the payout from the campaign's CPM (`409 CAMPAIGN_CPM_MISSING`
+   * when there is none). Only APPROVED rows qualify: a paid clip answers
+   * `409 SUBMISSION_PAID`, anything else `409 SUBMISSION_NOT_APPROVED`.
+   */
+  async recordViewCheck(id: string, body: SubmissionViewCheckInput): Promise<AdminSubmission> {
+    try {
+      const response = await firstValueFrom(
+        this.http.post<{ data: AdminSubmission }>(
+          `${this.baseUrl}/submissions/${encodeURIComponent(id)}/view-checks`,
+          body,
+        ),
+      );
+      return response.data;
+    } catch (error) {
+      throw toApiError(error);
+    }
+  }
+
+  /** `GET /admin/submissions/:id/view-checks` — newest first. */
+  async viewChecks(id: string): Promise<SubmissionViewCheck[]> {
+    try {
+      const response = await firstValueFrom(
+        this.http.get<{ data: SubmissionViewCheck[] }>(
+          `${this.baseUrl}/submissions/${encodeURIComponent(id)}/view-checks`,
+        ),
+      );
+      return response.data ?? [];
     } catch (error) {
       throw toApiError(error);
     }
