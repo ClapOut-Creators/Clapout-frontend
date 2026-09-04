@@ -154,7 +154,9 @@ export class CampaignApply {
     }
     switch (error.code) {
       case 'ALREADY_REGISTERED':
+        // Registered in another tab meanwhile: the campaign page shows the status.
         this.alreadyRegistered.set(true);
+        void this.router.navigateByUrl(`/campaigns/${this.slug()}`, { replaceUrl: true });
         return;
       case 'REGISTRATION_CLOSED':
         this.submitErrorMessage.set('Registration for this campaign has just closed.');
@@ -174,7 +176,19 @@ export class CampaignApply {
     this.state.set('loading');
     this.alreadyRegistered.set(false);
     try {
-      const campaign = await this.campaignsRepository.bySlug(slug);
+      const [campaign, mine] = await Promise.all([
+        this.campaignsRepository.bySlug(slug),
+        // Best effort: an unreadable registration list must not block applying.
+        this.registrations.listMine().catch(() => []),
+      ]);
+      // Already registered (typically: signed in from the campaign page's
+      // "Register" link with this page as the return URL): there is nothing to
+      // apply for, so go to the campaign page, which shows the registration's
+      // status and the submit action, instead of a form that would only 409.
+      if (mine.some((registration) => registration.campaign.slug === slug)) {
+        await this.router.navigateByUrl(`/campaigns/${slug}`, { replaceUrl: true });
+        return;
+      }
       this.campaign.set(campaign);
       if (campaign.platforms.length === 1) {
         this.form.controls.platform.setValue(campaign.platforms[0]);
