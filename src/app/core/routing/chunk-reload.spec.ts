@@ -32,6 +32,14 @@ describe('reloadForFreshBundle', () => {
     expect(assign).toHaveBeenCalledTimes(1);
   });
 
+  it('refuses to leave the origin', () => {
+    const assign = vi.fn();
+
+    expect(reloadForFreshBundle('//evil.example/admin', assign)).toBe(false);
+    expect(reloadForFreshBundle('https://evil.example/', assign)).toBe(false);
+    expect(assign).not.toHaveBeenCalled();
+  });
+
   it('treats a different URL as a fresh attempt', () => {
     const assign = vi.fn();
     reloadForFreshBundle('/admin/dashboard', assign);

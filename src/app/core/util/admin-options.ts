@@ -75,6 +75,8 @@ export const CAMPAIGN_CATEGORY_OPTIONS: Option[] = [
   'Event',
   'App',
   'Music',
+  'Interview',
+  'Podcast',
   'Other',
 ].map((value) => ({ label: value, value }));
 

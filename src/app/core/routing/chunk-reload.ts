@@ -43,7 +43,13 @@ export function reloadForFreshBundle(
 ): boolean {
   let target: string;
   try {
-    target = new URL(url, location.origin).href;
+    const parsed = new URL(url, location.origin);
+    // Only ever reload within the app: a returnUrl of "//evil.example" must not
+    // turn this recovery into an off-site redirect.
+    if (parsed.origin !== location.origin) {
+      return false;
+    }
+    target = parsed.href;
   } catch {
     return false;
   }
