@@ -108,7 +108,7 @@ export function needsOwnStandingFooter(leaderboard: CampaignLeaderboard | null):
           <li
             class="flex min-h-[62px] items-center justify-between gap-3 rounded-[18px] border border-[#F0F0F0] bg-white px-[14px] py-[15px] lg:min-h-[76px] lg:gap-4 lg:px-[26px]"
           >
-            <span class="flex min-w-0 items-center">
+            <span class="flex min-w-0 flex-1 items-center">
               <span class="w-[43px] shrink-0 lg:w-[127px]">
                 <span
                   class="inline-flex h-5 min-w-5 items-center justify-center gap-[7px] rounded-full px-2 text-white lg:h-[35px] lg:min-w-[37px] lg:gap-3 lg:px-[13px]"
@@ -143,7 +143,7 @@ export function needsOwnStandingFooter(leaderboard: CampaignLeaderboard | null):
               </span>
             </span>
 
-            <span class="flex shrink-0 items-center gap-3 lg:gap-8">
+            <span class="flex shrink-0 items-center gap-3 lg:w-[46%] lg:justify-between lg:gap-8">
               <span class="flex items-center gap-[7px] lg:gap-[11px]">
                 <svg
                   data-p-icon="eye"
