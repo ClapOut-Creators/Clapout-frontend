@@ -69,7 +69,7 @@ export function formatEarnings(
   cpm: number | null | undefined,
 ): string {
   const amount = earnedAmount(verifiedViews, cpm);
-  return amount === null ? `${currency} ${NOT_ANNOUNCED}` : formatMoneyExact(currency, amount);
+  return amount === null ? `${currency}\u2009${NOT_ANNOUNCED}` : formatMoneyExact(currency, amount);
 }
 
 /**
