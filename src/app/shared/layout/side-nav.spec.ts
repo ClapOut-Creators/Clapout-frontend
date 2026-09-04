@@ -94,7 +94,7 @@ describe('SideNav', () => {
     accountButton?.click();
     fixture.detectChanges();
 
-    expect(element.querySelector('[role="menu"]')?.textContent).toContain('Ada Admin');
+    expect(element.querySelector('[role="menu"]')?.textContent).toContain('admin@clapout.test');
 
     element.querySelector<HTMLButtonElement>('[role="menuitem"]')?.click();
     expect(auth.signOut).toHaveBeenCalledOnce();
