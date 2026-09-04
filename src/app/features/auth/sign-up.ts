@@ -10,6 +10,11 @@ import { PasswordModule } from 'primeng/password';
 import { SelectModule } from 'primeng/select';
 import { ApiError } from '../../core/api/api-error';
 import { AuthService } from '../../core/auth/auth-service';
+import {
+  isChunkLoadError,
+  NEXT_PAGE_FAILED_MESSAGE,
+  reloadForFreshBundle,
+} from '../../core/routing/chunk-reload';
 import { SignUpPayload } from '../../core/models/user';
 import {
   DEFAULT_PHONE_ISO,
@@ -110,7 +115,6 @@ export class SignUp {
     this.submitting.set(true);
     try {
       await this.auth.signUp(this.buildPayload());
-      await this.router.navigateByUrl(this.returnUrl() || '/creator/dashboard');
     } catch (error) {
       this.errorMessage.set(
         error instanceof ApiError
@@ -119,6 +123,20 @@ export class SignUp {
             : error.message
           : 'We could not create your account. Please try again.',
       );
+      this.submitting.set(false);
+      return;
+    }
+
+    // The account exists and the session is live; a failure from here on is
+    // the next page not loading, not the sign-up.
+    const target = this.returnUrl() || '/creator/dashboard';
+    try {
+      await this.router.navigateByUrl(target);
+    } catch (error) {
+      if (isChunkLoadError(error) && reloadForFreshBundle(target)) {
+        return;
+      }
+      this.errorMessage.set(NEXT_PAGE_FAILED_MESSAGE);
     } finally {
       this.submitting.set(false);
     }

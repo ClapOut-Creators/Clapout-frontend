@@ -9,6 +9,11 @@ import { MessageModule } from 'primeng/message';
 import { PasswordModule } from 'primeng/password';
 import { ApiError } from '../../core/api/api-error';
 import { AuthService } from '../../core/auth/auth-service';
+import {
+  isChunkLoadError,
+  NEXT_PAGE_FAILED_MESSAGE,
+  reloadForFreshBundle,
+} from '../../core/routing/chunk-reload';
 import { firstErrorMessage } from '../../shared/forms/form-errors';
 
 const MESSAGES: Record<string, Record<string, string>> = {
@@ -89,11 +94,12 @@ export class SignIn {
     }
 
     this.submitting.set(true);
+    let target: string;
     try {
       const { email, password, rememberMe } = this.form.getRawValue();
       const user = await this.auth.signIn({ email, password }, rememberMe);
       const home = user.role === 'ADMIN' ? '/admin/dashboard' : '/creator/dashboard';
-      await this.router.navigateByUrl(this.returnUrl() || home);
+      target = this.returnUrl() || home;
     } catch (error) {
       this.errorMessage.set(
         error instanceof ApiError
@@ -102,6 +108,20 @@ export class SignIn {
             : error.message
           : 'We could not sign you in. Please try again.',
       );
+      this.submitting.set(false);
+      return;
+    }
+
+    // Signed in. Anything that fails from here is the next page not loading —
+    // usually a stale bundle after a deploy — and must not read as a
+    // credentials problem.
+    try {
+      await this.router.navigateByUrl(target);
+    } catch (error) {
+      if (isChunkLoadError(error) && reloadForFreshBundle(target)) {
+        return; // the page is reloading with a fresh bundle
+      }
+      this.errorMessage.set(NEXT_PAGE_FAILED_MESSAGE);
     } finally {
       this.submitting.set(false);
     }
