@@ -344,7 +344,7 @@
         @case ('loading') {
           <div class="p-[30px]" aria-busy="true" aria-live="polite">
             <span class="sr-only">Loading your campaigns</span>
-            <div class="grid gap-[15px] sm:grid-cols-2 2xl:grid-cols-3">
+            <div class="grid gap-[15px] sm:grid-cols-2 xl:grid-cols-3">
               @for (card of skeletonCards; track card) {
                 <p-skeleton width="100%" height="15rem" borderRadius="26.27px" />
               }
@@ -407,7 +407,7 @@
                    identical wherever the clipper meets it. The registration status is
                    overlaid on the banner corner the public card leaves empty. -->
               <ul
-                class="mt-[22px] grid list-none grid-cols-1 gap-x-[18px] gap-y-[10px] p-0 sm:grid-cols-2 2xl:grid-cols-3"
+                class="mt-[22px] grid list-none grid-cols-1 gap-x-[18px] gap-y-[10px] p-0 sm:grid-cols-2 xl:grid-cols-3"
               >
                 @for (application of applications(); track application.id) {
                   <li class="relative flex flex-col">
