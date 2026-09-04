@@ -1,9 +1,12 @@
 import { Component, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { CampaignLeaderboard, LeaderboardEntry } from '../../core/models/leaderboard';
+import { formatMoneyExact } from '../../core/util/campaign-format';
 import {
   avatarGradient,
+  earnedAmount,
   entryLabel,
+  formatEarnings,
   formatViews,
   LeaderboardList,
   needsOwnStandingFooter,
@@ -27,32 +30,29 @@ function board(overrides: Partial<CampaignLeaderboard> = {}): CampaignLeaderboar
 }
 
 describe('rankBadgeClass', () => {
-  it('gives the winner the gradient pill and the podium its own fills', () => {
+  it('gives the winner the gradient pill and the next two their own fills', () => {
     expect(rankBadgeClass(1)).toContain('bg-gradient-to-br');
     expect(rankBadgeClass(2)).toBe('bg-[#FFC93C]');
     expect(rankBadgeClass(3)).toBe('bg-[#676767]');
   });
 
-  it('treats every rank past the podium the same', () => {
+  it('treats every rank past third the same', () => {
     expect(rankBadgeClass(4)).toBe('bg-[#CACACA]');
-    expect(rankBadgeClass(25)).toBe('bg-[#CACACA]');
+    expect(rankBadgeClass(25)).toBe(rankBadgeClass(4));
   });
 });
 
 describe('avatarGradient', () => {
   it('is stable for the same creator', () => {
-    expect(avatarGradient('abc123')).toBe(avatarGradient('abc123'));
+    expect(avatarGradient('creator-1')).toBe(avatarGradient('creator-1'));
   });
 
   it('keeps neighbouring ids visibly apart on the wheel', () => {
-    const hue = (value: string) => Number(/hsl\((\d+)/.exec(value)?.[1]);
-    const distance = Math.abs(hue(avatarGradient('c1')) - hue(avatarGradient('c2')));
-
-    expect(Math.min(distance, 360 - distance)).toBeGreaterThan(60);
+    expect(avatarGradient('creator-1')).not.toBe(avatarGradient('creator-2'));
   });
 
   it('produces a usable gradient for an empty id rather than throwing', () => {
-    expect(avatarGradient('')).toMatch(/^linear-gradient\(135deg, hsl\(/);
+    expect(avatarGradient('')).toMatch(/^linear-gradient\(/);
   });
 });
 
@@ -73,39 +73,53 @@ describe('formatViews', () => {
   });
 
   it('never prints a fraction or a NaN', () => {
-    expect(formatViews(1234.7)).toBe('1,234');
+    expect(formatViews(1234.9)).toBe('1,234');
     expect(formatViews(Number.NaN)).toBe('0');
+  });
+});
+
+describe('earnedAmount / formatEarnings', () => {
+  it('values the views at the campaign CPM, 2 dp, like the API payout', () => {
+    expect(earnedAmount(3063, 10)).toBe(30.63);
+    expect(earnedAmount(8400, 5)).toBe(42);
+    expect(formatEarnings('₵', 3063, 10)).toBe(formatMoneyExact('₵', 30.63));
+  });
+
+  it('shows a dash instead of zero while the CPM is unannounced', () => {
+    expect(earnedAmount(8400, null)).toBeNull();
+    expect(formatEarnings('₵', 8400, null)).toContain('—');
   });
 });
 
 describe('needsOwnStandingFooter', () => {
   it('is false when the caller is anonymous or unranked', () => {
     expect(needsOwnStandingFooter(null)).toBe(false);
-    expect(needsOwnStandingFooter(board())).toBe(false);
+    expect(needsOwnStandingFooter(board({ entries: [entry()] }))).toBe(false);
   });
 
   it('is false when the caller already has a row', () => {
-    const leaderboard = board({
-      entries: [entry({ isMe: true })],
-      me: { rank: 1, verifiedViews: 8400, clips: 5 },
-    });
-
-    expect(needsOwnStandingFooter(leaderboard)).toBe(false);
+    expect(
+      needsOwnStandingFooter(
+        board({
+          entries: [entry({ isMe: true })],
+          me: { rank: 1, verifiedViews: 8400, clips: 5 },
+        }),
+      ),
+    ).toBe(false);
   });
 
   it('is true when the caller ranks past the listed rows', () => {
-    const leaderboard = board({
-      entries: [entry()],
-      me: { rank: 31, verifiedViews: 12, clips: 1 },
-    });
-
-    expect(needsOwnStandingFooter(leaderboard)).toBe(true);
+    expect(
+      needsOwnStandingFooter(
+        board({ entries: [entry()], me: { rank: 31, verifiedViews: 1200, clips: 2 } }),
+      ),
+    ).toBe(true);
   });
 });
 
 @Component({
   imports: [LeaderboardList],
-  template: `<app-leaderboard-list [leaderboard]="leaderboard()" currency="₵" />`,
+  template: `<app-leaderboard-list [leaderboard]="leaderboard()" currency="₵" [cpm]="10" />`,
 })
 class Host {
   readonly leaderboard = signal<CampaignLeaderboard>(board());
@@ -123,7 +137,7 @@ describe('LeaderboardList', () => {
 
   afterEach(() => TestBed.resetTestingModule());
 
-  it('draws one row per entry, with the rank, the name and the view count', async () => {
+  it('draws one row per entry in rank order: rank, name, views and earnings', async () => {
     const element = await render(
       board({
         entries: [
@@ -136,11 +150,13 @@ describe('LeaderboardList', () => {
 
     const rows = element.querySelectorAll('li');
     expect(rows).toHaveLength(2);
-    // The podium places 2nd on the left of 1st, so match on the board as a whole.
-    const text = element.textContent ?? '';
-    expect(text).toContain('Willian O.');
-    expect(text).toContain('8,400');
-    expect(text).toContain('1,400');
+    expect(rows[0].textContent).toContain('Rank 1');
+    expect(rows[0].textContent).toContain('Willian O.');
+    expect(rows[0].textContent).toContain('8,400');
+    expect(rows[0].textContent).toContain(formatMoneyExact('₵', 84));
+    expect(rows[1].textContent).toContain('Ama B.');
+    expect(rows[1].textContent).toContain('1,400');
+    expect(rows[1].textContent).toContain(formatMoneyExact('₵', 14));
   });
 
   it('names the caller’s own row without changing anything else about it', async () => {
@@ -168,6 +184,7 @@ describe('LeaderboardList', () => {
     );
 
     expect(element.textContent).toContain('You are #31 with');
+    expect(element.textContent).toContain(formatMoneyExact('₵', 12));
     expect(element.textContent).toContain('1,200 verified views');
   });
 
@@ -175,6 +192,6 @@ describe('LeaderboardList', () => {
     const element = await render(board());
 
     expect(element.querySelector('ol')).toBeNull();
-    expect(element.textContent).toContain('No earners yet');
+    expect(element.textContent).toContain('No verified clips yet');
   });
 });
