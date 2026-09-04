@@ -293,6 +293,7 @@
                     optionLabel="label"
                     optionValue="value"
                     ariaLabel="Change review status"
+                    appendTo="body"
                     [options]="statusOptions"
                     [ngModel]="row.status"
                     [disabled]="isSaving(row.id)"
