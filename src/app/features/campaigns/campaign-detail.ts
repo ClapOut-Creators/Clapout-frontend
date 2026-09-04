@@ -1,14 +1,5 @@
 import { Location, NgTemplateOutlet } from '@angular/common';
-import {
-  Component,
-  computed,
-  DestroyRef,
-  effect,
-  inject,
-  input,
-  signal,
-  untracked,
-} from '@angular/core';
+import { Component, computed, effect, inject, input, signal, untracked } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ChevronDown } from '@primeicons/angular/chevron-down';
@@ -58,12 +49,6 @@ import { createNowSignal } from '../../shared/time/clock';
 type DetailState = 'loading' | 'ready' | 'not-found' | 'error';
 type LeaderboardState = 'idle' | 'loading' | 'ready' | 'error';
 type DetailTab = 'detail' | 'leaderboard';
-
-/**
- * How often the open leaderboard re-reads itself. The backend raised the
- * board's throttle to 120 requests / 10 min per IP for exactly this.
- */
-export const LEADERBOARD_POLL_MS = 30_000;
 
 /**
  * Campaign detail, in two variants over the same content body.
@@ -262,60 +247,6 @@ export class CampaignDetail {
         }
       });
     });
-
-    // A board that is on screen keeps itself current; one that is not costs
-    // nothing. Switching tabs, navigating away and destroying the component all
-    // run through the same teardown.
-    effect(() => {
-      const polling = this.tab() === 'leaderboard' && this.isStudio();
-      untracked(() => (polling ? this.startPolling() : this.stopPolling()));
-    });
-
-    inject(DestroyRef).onDestroy(() => this.stopPolling());
-  }
-
-  // ------------------------------------------------------- leaderboard polling
-
-  private pollTimer: ReturnType<typeof setInterval> | null = null;
-  private onVisibilityChange: (() => void) | null = null;
-  private leaderboardInFlight = false;
-
-  private startPolling(): void {
-    if (this.pollTimer !== null || typeof document === 'undefined') {
-      return;
-    }
-    // A hidden tab is not worth a request; coming back to one is, since the
-    // board may have moved for the whole time it was away.
-    this.onVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        void this.refreshLeaderboard();
-      }
-    };
-    document.addEventListener('visibilitychange', this.onVisibilityChange);
-    this.pollTimer = setInterval(() => {
-      if (document.visibilityState === 'visible') {
-        void this.refreshLeaderboard();
-      }
-    }, LEADERBOARD_POLL_MS);
-  }
-
-  private stopPolling(): void {
-    if (this.pollTimer !== null) {
-      clearInterval(this.pollTimer);
-      this.pollTimer = null;
-    }
-    if (this.onVisibilityChange !== null && typeof document !== 'undefined') {
-      document.removeEventListener('visibilitychange', this.onVisibilityChange);
-    }
-    this.onVisibilityChange = null;
-  }
-
-  /** A poll tick: never two at once, and never before the first load lands. */
-  private async refreshLeaderboard(): Promise<void> {
-    if (this.leaderboardInFlight || this.leaderboardState() === 'idle') {
-      return;
-    }
-    await this.loadLeaderboard(true);
   }
 
   /** Breadcrumb trail on the studio header: Dashboard › this campaign. */
@@ -480,20 +411,11 @@ export class CampaignDetail {
    * The board is its own request, so a 404 (the endpoint is newer than this
    * page) or an outage degrades to a retryable message instead of taking the
    * campaign down with it.
-   *
-   * A `silent` refresh is a poll tick: the board on screen stays put and the
-   * state is left alone, so the skeleton only ever appears on the first load or
-   * after an error. A failed tick is swallowed for the same reason — replacing
-   * a good board with an error because one background request timed out would
-   * be a worse page than a board that is thirty seconds old.
    */
-  private async loadLeaderboard(silent = false): Promise<void> {
+  private async loadLeaderboard(): Promise<void> {
     const slug = this.slug();
-    if (!silent) {
-      this.leaderboardState.set('loading');
-      this.leaderboardError.set('');
-    }
-    this.leaderboardInFlight = true;
+    this.leaderboardState.set('loading');
+    this.leaderboardError.set('');
 
     try {
       const board = await this.campaigns.leaderboard(slug);
@@ -501,10 +423,9 @@ export class CampaignDetail {
         return;
       }
       this.leaderboard.set(board);
-      this.leaderboardError.set('');
       this.leaderboardState.set('ready');
     } catch (error) {
-      if (slug !== this.slug() || silent) {
+      if (slug !== this.slug()) {
         return;
       }
       this.leaderboardError.set(
@@ -513,8 +434,6 @@ export class CampaignDetail {
           : 'We could not load the leaderboard for this campaign.',
       );
       this.leaderboardState.set('error');
-    } finally {
-      this.leaderboardInFlight = false;
     }
   }
 

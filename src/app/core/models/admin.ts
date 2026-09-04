@@ -128,8 +128,6 @@ export interface AdminSubmissionRegistration {
 export interface AdminSubmission extends Submission {
   creator: AdminSubmissionCreator;
   registration: AdminSubmissionRegistration;
-  /** History rows on this clip, the approval's own check included. */
-  viewCheckCount: number;
 }
 
 export interface AdminSubmissionQuery {
@@ -140,11 +138,6 @@ export interface AdminSubmissionQuery {
   status?: SubmissionStatus;
   /** Matches creator name / email and the post URL, case-insensitive contains. */
   search?: string;
-  /**
-   * Narrows to APPROVED clips on live campaigns whose views were last confirmed
-   * more than N days ago — the queue of boards that have gone stale.
-   */
-  staleViewsDays?: number;
 }
 
 /** Body for `PATCH /admin/submissions/:id`. */

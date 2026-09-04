@@ -6,7 +6,6 @@ import { InfoCircle } from '@primeicons/angular/info-circle';
 import { Trophy } from '@primeicons/angular/trophy';
 import { CampaignLeaderboard, LeaderboardEntry } from '../../core/models/leaderboard';
 import { formatMoneyExact, NOT_ANNOUNCED } from '../../core/util/campaign-format';
-import { shortElapsed } from '../../core/util/relative-time';
 
 /**
  * Rank pill fill (Figma "Frame 292" on each row): a warm gradient for the
@@ -127,22 +126,14 @@ export function needsOwnStandingFooter(leaderboard: CampaignLeaderboard | null):
           </p>
         </div>
 
-        <div class="flex items-center gap-3">
-          @if (updatedLabel(); as updated) {
-            <span class="text-[14px] text-[#666666] lg:text-[15px]" aria-live="polite"
-              >Updated {{ updated }}</span
-            >
-          }
-
-          <button
-            type="button"
-            class="inline-flex h-10 cursor-default items-center gap-2 rounded-[14px] border border-[#ECECEC] bg-white px-4 text-[14px] font-medium text-[#2D2D2D]"
-            aria-label="Leaderboard period: all time"
-          >
-            <svg data-p-icon="calendar" [size]="16" class="text-[#6F6F6F]" aria-hidden="true" />
-            All time
-          </button>
-        </div>
+        <button
+          type="button"
+          class="inline-flex h-10 cursor-default items-center gap-2 rounded-[14px] border border-[#ECECEC] bg-white px-4 text-[14px] font-medium text-[#2D2D2D]"
+          aria-label="Leaderboard period: all time"
+        >
+          <svg data-p-icon="calendar" [size]="16" class="text-[#6F6F6F]" aria-hidden="true" />
+          All time
+        </button>
       </div>
 
       @if (leaderboard().entries.length) {
@@ -150,21 +141,11 @@ export function needsOwnStandingFooter(leaderboard: CampaignLeaderboard | null):
           class="relative mt-6 overflow-hidden rounded-[20px] bg-[linear-gradient(100deg,#FFF4E8_0%,#FFFFFF_48%,#FFF0F5_100%)] px-4 py-8 lg:rounded-[24px] lg:px-8 lg:py-10"
         >
           <div class="pointer-events-none absolute inset-0 opacity-70" aria-hidden="true">
-            <span
-              class="absolute left-[7%] top-[28%] h-1 w-3 rotate-45 rounded-full bg-[#EC612C]"
-            ></span>
-            <span
-              class="absolute left-[14%] top-[45%] h-1 w-2 -rotate-12 rounded-full bg-[#FFC93C]"
-            ></span>
-            <span
-              class="absolute left-[28%] top-[22%] h-1 w-3 -rotate-45 rounded-full bg-[#CE65E8]"
-            ></span>
-            <span
-              class="absolute left-[74%] top-[26%] h-1 w-3 rotate-45 rounded-full bg-[#72D980]"
-            ></span>
-            <span
-              class="absolute right-[9%] top-[35%] h-1 w-3 -rotate-45 rounded-full bg-[#F05252]"
-            ></span>
+            <span class="absolute left-[7%] top-[28%] h-1 w-3 rotate-45 rounded-full bg-[#EC612C]"></span>
+            <span class="absolute left-[14%] top-[45%] h-1 w-2 -rotate-12 rounded-full bg-[#FFC93C]"></span>
+            <span class="absolute left-[28%] top-[22%] h-1 w-3 -rotate-45 rounded-full bg-[#CE65E8]"></span>
+            <span class="absolute left-[74%] top-[26%] h-1 w-3 rotate-45 rounded-full bg-[#72D980]"></span>
+            <span class="absolute right-[9%] top-[35%] h-1 w-3 -rotate-45 rounded-full bg-[#F05252]"></span>
           </div>
 
           <ol
@@ -192,9 +173,7 @@ export function needsOwnStandingFooter(leaderboard: CampaignLeaderboard | null):
                 <span class="mt-1 text-[15px] font-semibold text-[#171A1C] lg:text-[20px]">
                   {{ formatEarnings(currency(), entry.verifiedViews, cpm()) }}
                 </span>
-                <span
-                  class="mt-1 flex items-center gap-1 text-[13px] text-[#666666] lg:text-[15px]"
-                >
+                <span class="mt-1 flex items-center gap-1 text-[13px] text-[#666666] lg:text-[15px]">
                   <svg data-p-icon="eye" [size]="15" class="text-[#8E8E93]" aria-hidden="true" />
                   {{ formatViews(entry.verifiedViews) }} views
                 </span>
@@ -293,11 +272,4 @@ export class LeaderboardList {
   protected readonly rankBadgeClass = rankBadgeClass;
   protected readonly podium = computed(() => podiumEntries(this.leaderboard().entries));
   protected readonly rest = computed(() => remainingEntries(this.leaderboard().entries));
-
-  /**
-   * '3h ago' beside the period pill: how long since a view check or an approval
-   * last moved the board. Recomputed on every poll, since a new board object is
-   * what the host hands back. Hidden entirely while nothing is ranked.
-   */
-  protected readonly updatedLabel = computed(() => shortElapsed(this.leaderboard().updatedAt));
 }
