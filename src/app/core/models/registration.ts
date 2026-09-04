@@ -43,6 +43,7 @@ export function registrationCampaign(campaign: RegistrationCampaign): PublicCamp
     },
     status: campaign.status ?? 'ACTIVE',
     registrationOpen: campaign.registrationOpen ?? false,
+    autoApproveRegistrations: campaign.autoApproveRegistrations ?? false,
     platforms: campaign.platforms ?? [],
     currency: campaign.currency ?? '',
     cpm: campaign.cpm ?? null,

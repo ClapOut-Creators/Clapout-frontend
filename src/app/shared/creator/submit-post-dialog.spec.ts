@@ -16,6 +16,7 @@ const CAMPAIGN = {
   brand: { name: 'E-wale tech', logoUrl: null, logoBg: '#025af4', logoFit: 'cover' },
   status: 'ACTIVE',
   registrationOpen: true,
+  autoApproveRegistrations: false,
   platforms: ['tiktok'],
   currency: '₵',
   cpm: 10,

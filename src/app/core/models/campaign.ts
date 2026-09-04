@@ -37,6 +37,8 @@ export interface PublicCampaign {
   /** Denormalised from the Brand relation for rendering. */
   brand: CampaignBrand;
   status: CampaignStatus;
+  /** Registrations are ACCEPTED on creation instead of queued for admin review. */
+  autoApproveRegistrations: boolean;
   /**
    * `status === 'ACTIVE' && startDate <= now && (endDate == null || now < endDate)`,
    * computed server side.

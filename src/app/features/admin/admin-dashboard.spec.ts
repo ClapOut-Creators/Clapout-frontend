@@ -31,6 +31,7 @@ const activeCampaign: PublicCampaign = {
   },
   status: 'ACTIVE',
   registrationOpen: true,
+  autoApproveRegistrations: false,
   platforms: ['tiktok'],
   currency: 'GHS ',
   cpm: 20,

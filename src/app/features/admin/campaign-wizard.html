@@ -1165,6 +1165,24 @@
                   <p class="text-[16px] text-[#D00000]">{{ message }}</p>
                 }
               </div>
+
+              <div
+                class="flex items-center justify-between gap-4 rounded-xl border border-[#D7D7D7] bg-white px-[18px] py-4"
+              >
+                <div class="flex flex-col gap-1">
+                  <label class="text-[20px] font-medium text-[#0C0C0C]" for="wizard-auto-approve"
+                    >Auto-approve registrations</label
+                  >
+                  <p class="m-0 text-[16px] text-[#7B7B7B]">
+                    Clippers who register are accepted straight away, with no admin review.
+                  </p>
+                </div>
+                <p-toggleswitch
+                  inputId="wizard-auto-approve"
+                  formControlName="autoApproveRegistrations"
+                  ariaLabel="Auto-approve registrations"
+                />
+              </div>
             }
           }
 

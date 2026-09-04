@@ -372,6 +372,10 @@
                   campaign.avgReviewTime || notAnnounced
                 }}</span></span
               >
+              @if (campaign.autoApproveRegistrations) {
+                <span class="h-5 w-px bg-[#DCDCDC]" aria-hidden="true"></span>
+                <span class="text-[#0C0C0C]">Instant approval</span>
+              }
               <span class="h-5 w-px bg-[#DCDCDC]" aria-hidden="true"></span>
               <span
                 >Start date:

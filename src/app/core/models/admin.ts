@@ -79,6 +79,8 @@ export interface CampaignDraftInput {
   title: string;
   slug?: string;
   demo?: boolean;
+  /** Accept every registration on creation instead of queueing it for review. */
+  autoApproveRegistrations?: boolean;
   /** Campaigns are owned by a Brand; identity comes from the brand record. */
   brandId: string;
   description: string;

@@ -29,6 +29,7 @@ import { MessageModule } from 'primeng/message';
 import { SelectModule } from 'primeng/select';
 import { SkeletonModule } from 'primeng/skeleton';
 import { TextareaModule } from 'primeng/textarea';
+import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { ApiError } from '../../core/api/api-error';
 import { AdminRepository } from '../../core/data/admin-repository';
 import { CampaignDraftInput } from '../../core/models/admin';
@@ -281,6 +282,7 @@ function campaignScheduleValidator(control: AbstractControl): ValidationErrors |
     ShareCampaignButton,
     SkeletonModule,
     TextareaModule,
+    ToggleSwitchModule,
     SnapchatIcon,
     Tiktok,
     Times,
@@ -374,6 +376,7 @@ export class CampaignWizard {
       endTime: this.formBuilder.control<Date | null>(null, [Validators.required]),
       platforms: this.formBuilder.control<CampaignPlatform[]>([], [Validators.required]),
       requirementsNote: ['', [Validators.required, Validators.maxLength(LONG_TEXT_LIMIT)]],
+      autoApproveRegistrations: this.formBuilder.control<boolean>(false),
       resourceLabel: [''],
       resourceUrl: ['', [httpUrlValidator]],
     },
@@ -878,6 +881,7 @@ export class CampaignWizard {
       tags: value.tag ? [value.tag] : [],
       bannerUrl: value.bannerUrl,
       requirementsNote: value.requirementsNote.trim() || null,
+      autoApproveRegistrations: value.autoApproveRegistrations,
       resourceLabel: value.resourceLabel.trim() || null,
       resourceUrl: value.resourceUrl.trim() || null,
     };
@@ -911,6 +915,7 @@ export class CampaignWizard {
         endTime: end ? timeFromDate(end) : null,
         platforms: campaign.platforms,
         requirementsNote: campaign.requirementsNote ?? '',
+        autoApproveRegistrations: campaign.autoApproveRegistrations,
         resourceLabel: campaign.resourceLabel ?? '',
         resourceUrl: campaign.resourceUrl ?? '',
       });

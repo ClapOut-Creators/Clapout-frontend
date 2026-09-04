@@ -253,6 +253,12 @@
                     </dd>
                   </div>
                   <div class="flex items-center justify-between gap-4 px-[17px] py-[14px]">
+                    <dt class="text-[15.8px] text-[#7F7F7F]">Registrations</dt>
+                    <dd class="m-0 text-right text-[15.8px] text-[#272727]">
+                      {{ campaign.autoApproveRegistrations ? 'Auto-approved' : 'Reviewed by admin' }}
+                    </dd>
+                  </div>
+                  <div class="flex items-center justify-between gap-4 px-[17px] py-[14px]">
                     <dt class="text-[15.8px] text-[#7F7F7F]">Campaign schedule</dt>
                     <dd class="m-0 text-right text-[15.8px] text-[#272727]">
                       {{ dateRangeLabel(campaign) }}
