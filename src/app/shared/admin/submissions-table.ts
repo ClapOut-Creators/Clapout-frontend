@@ -18,6 +18,7 @@ import { Whatsapp } from '@primeicons/angular/whatsapp';
 import { Youtube } from '@primeicons/angular/youtube';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
+import { CheckboxModule } from 'primeng/checkbox';
 import { DialogModule } from 'primeng/dialog';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { InputTextModule } from 'primeng/inputtext';
@@ -30,10 +31,11 @@ import { TextareaModule } from 'primeng/textarea';
 import { ApiError } from '../../core/api/api-error';
 import { AdminRepository } from '../../core/data/admin-repository';
 import { AdminSubmission, AdminSubmissionQuery } from '../../core/models/admin';
-import { SubmissionStatus } from '../../core/models/submission';
+import { Submission, SubmissionStatus, SubmissionViewCheck } from '../../core/models/submission';
 import { PayoutMethod } from '../../core/models/user';
 import {
   formatDate,
+  formatDateTime,
   formatMoneyExact,
   formatViews,
   NOT_ANNOUNCED,
@@ -42,10 +44,15 @@ import {
   submissionStatusTone,
 } from '../../core/util/campaign-format';
 import { postUrlLabel } from '../../core/util/platform-url';
+import { shortElapsed } from '../../core/util/relative-time';
 import { downloadCsv, toCsv } from '../export/csv';
 import { SnapchatIcon } from '../icons/snapchat-icon';
 
 type TableState = 'loading' | 'ready' | 'error';
+type HistoryState = 'idle' | 'loading' | 'ready' | 'error';
+
+/** What the "Stale views" filter counts as stale, in days. */
+export const STALE_VIEWS_DAYS = 7;
 
 interface SelectOption<T> {
   label: string;
@@ -79,6 +86,25 @@ export function previewPayout(verifiedViews: number | null, cpm: number | null):
 }
 
 /**
+ * "Views checked · 3d ago" for an approved clip, or null when there is nothing
+ * to report. A `viewsCheckedAt` still equal to `reviewedAt` means nobody has
+ * re-checked the figure since approval, which reads better as "at approval"
+ * than as an age that only says how long ago the clip was reviewed.
+ */
+export function viewsCheckedLabel(
+  row: Pick<Submission, 'viewsCheckedAt' | 'reviewedAt'>,
+  now: number = Date.now(),
+): string | null {
+  if (!row.viewsCheckedAt) {
+    return null;
+  }
+  if (row.reviewedAt && row.viewsCheckedAt === row.reviewedAt) {
+    return 'at approval';
+  }
+  return shortElapsed(row.viewsCheckedAt, now);
+}
+
+/**
  * Admin review table for content submissions, modelled on `ClippersTable`:
  * server-side search and filters, client-side CSV export of exactly the rows on
  * screen, and a review dialog that owns the whole verify → approve → pay path.
@@ -89,6 +115,7 @@ export function previewPayout(verifiedViews: number | null, cpm: number | null):
 @Component({
   imports: [
     ButtonModule,
+    CheckboxModule,
     DialogModule,
     ExternalLink,
     Facebook,
@@ -123,7 +150,11 @@ export class SubmissionsTable {
   /** Hides the toolbar entirely (embedded, space-constrained usage). */
   readonly showToolbar = input(true);
 
-  /** Fires after a successful review PATCH, so a host page can refresh totals. */
+  /**
+   * Fires after a successful review PATCH or view check, so a host page can
+   * refresh totals. Both paths move `verifiedViews` and the payout, so they
+   * share one output rather than making every host listen twice.
+   */
   readonly reviewed = output<void>();
 
   private readonly admin = inject(AdminRepository);
@@ -140,6 +171,8 @@ export class SubmissionsTable {
   protected readonly search = signal('');
   protected readonly statusFilter = signal<SubmissionStatus | null>(null);
   protected readonly campaignFilter = signal<string | null>(null);
+  /** "Stale views (7d+)" — approved clips nobody has re-counted in a week. */
+  protected readonly staleViewsOnly = signal(false);
   private searchDebounce: ReturnType<typeof setTimeout> | null = null;
 
   /** The row open in the review dialog, or null when it is closed. */
@@ -151,20 +184,38 @@ export class SubmissionsTable {
   /** The row whose screenshot is open full size. */
   protected readonly previewRow = signal<AdminSubmission | null>(null);
 
+  /** The row open in the "Update views" dialog, or null when it is closed. */
+  protected readonly viewCheckRow = signal<AdminSubmission | null>(null);
+  protected readonly newViews = signal<number | null>(null);
+  protected readonly viewCheckNote = signal('');
+  protected readonly viewCheckSaving = signal(false);
+  protected readonly viewCheckError = signal('');
+
+  /** View history of the row in the preview dialog, fetched when it opens. */
+  protected readonly history = signal<SubmissionViewCheck[]>([]);
+  protected readonly historyState = signal<HistoryState>('idle');
+
   protected readonly statusOptions = STATUS_OPTIONS;
   protected readonly skeletonRows = [0, 1, 2, 3, 4];
   protected readonly notAnnounced = NOT_ANNOUNCED;
+  protected readonly staleViewsDays = STALE_VIEWS_DAYS;
 
   protected readonly formatDate = formatDate;
+  protected readonly formatDateTime = formatDateTime;
   protected readonly formatMoneyExact = formatMoneyExact;
   protected readonly formatViews = formatViews;
   protected readonly platformLabel = platformLabel;
   protected readonly postUrlLabel = postUrlLabel;
   protected readonly submissionStatusLabel = submissionStatusLabel;
   protected readonly submissionStatusTone = submissionStatusTone;
+  protected readonly viewsCheckedLabel = viewsCheckedLabel;
 
   protected readonly hasActiveFilters = computed(
-    () => !!this.search().trim() || this.statusFilter() !== null || this.campaignFilter() !== null,
+    () =>
+      !!this.search().trim() ||
+      this.statusFilter() !== null ||
+      this.campaignFilter() !== null ||
+      this.staleViewsOnly(),
   );
 
   /** Public so a host page can render Export in its own section header. */
@@ -183,17 +234,19 @@ export class SubmissionsTable {
     () => this.verifiedViews() !== null && (this.reviewRow()?.campaign.cpm ?? null) !== null,
   );
 
+  /** The same arithmetic in the "Update views" dialog, on the fresh count. */
+  protected readonly viewCheckPayoutPreview = computed(() => {
+    const row = this.viewCheckRow();
+    return row ? previewPayout(this.newViews(), row.campaign.cpm) : null;
+  });
+
+  protected readonly canSaveViewCheck = computed(
+    () => this.newViews() !== null && (this.viewCheckRow()?.campaign.cpm ?? null) !== null,
+  );
+
   constructor() {
     effect(() => {
-      // `campaignSlug` wins over the dropdown so an embedded table can never
-      // widen its own scope.
-      void this.load({
-        brandId: this.brandId(),
-        registrationId: this.registrationId(),
-        campaignSlug: this.campaignSlug() ?? this.campaignFilter() ?? undefined,
-        status: this.statusFilter() ?? undefined,
-        search: this.search().trim() || undefined,
-      });
+      void this.load(this.currentQuery());
     });
 
     inject(DestroyRef).onDestroy(() => {
@@ -212,14 +265,24 @@ export class SubmissionsTable {
     this.searchDebounce = setTimeout(() => this.search.set(value), 300);
   }
 
-  protected reload(): void {
-    void this.load({
+  /**
+   * `campaignSlug` wins over the dropdown so an embedded table can never widen
+   * its own scope. Read inside the load effect, so every filter signal it
+   * touches is a dependency of that effect.
+   */
+  private currentQuery(): AdminSubmissionQuery {
+    return {
       brandId: this.brandId(),
       registrationId: this.registrationId(),
       campaignSlug: this.campaignSlug() ?? this.campaignFilter() ?? undefined,
       status: this.statusFilter() ?? undefined,
       search: this.search().trim() || undefined,
-    });
+      staleViewsDays: this.staleViewsOnly() ? STALE_VIEWS_DAYS : undefined,
+    };
+  }
+
+  protected reload(): void {
+    void this.load(this.currentQuery());
   }
 
   protected clearFilters(): void {
@@ -227,6 +290,7 @@ export class SubmissionsTable {
     this.search.set('');
     this.statusFilter.set(null);
     this.campaignFilter.set(null);
+    this.staleViewsOnly.set(false);
   }
 
   protected initials(name: string): string {
@@ -266,10 +330,46 @@ export class SubmissionsTable {
 
   protected openPreview(row: AdminSubmission): void {
     this.previewRow.set(row);
+    // Only a verified clip has a history to show, so the extra request is only
+    // made for one — and only when the dialog is actually opened.
+    if (row.status === 'APPROVED' || row.status === 'PAID') {
+      void this.loadHistory(row.id);
+      return;
+    }
+    this.history.set([]);
+    this.historyState.set('idle');
   }
 
   protected closePreview(): void {
     this.previewRow.set(null);
+    this.history.set([]);
+    this.historyState.set('idle');
+  }
+
+  protected retryHistory(): void {
+    const row = this.previewRow();
+    if (row) {
+      void this.loadHistory(row.id);
+    }
+  }
+
+  /** Never fatal: a failed history leaves the screenshot and a retry behind. */
+  private async loadHistory(id: string): Promise<void> {
+    this.history.set([]);
+    this.historyState.set('loading');
+    try {
+      const checks = await this.admin.viewChecks(id);
+      if (this.previewRow()?.id !== id) {
+        return;
+      }
+      this.history.set(checks);
+      this.historyState.set('ready');
+    } catch {
+      if (this.previewRow()?.id !== id) {
+        return;
+      }
+      this.historyState.set('error');
+    }
   }
 
   protected onPreviewVisibleChange(open: boolean): void {
@@ -355,6 +455,83 @@ export class SubmissionsTable {
     }
   }
 
+  // ------------------------------------------------------- view-check dialog
+
+  /**
+   * Re-counting views is only offered on an approved clip: a paid one is frozen
+   * and anything earlier goes through the review dialog instead.
+   */
+  protected canUpdateViews(row: AdminSubmission): boolean {
+    return row.status === 'APPROVED';
+  }
+
+  protected openViewCheck(row: AdminSubmission): void {
+    if (!this.canUpdateViews(row)) {
+      return;
+    }
+    this.viewCheckRow.set(row);
+    // Starting from the standing figure makes a small correction a small edit.
+    this.newViews.set(row.verifiedViews ?? null);
+    this.viewCheckNote.set('');
+    this.viewCheckError.set('');
+  }
+
+  protected closeViewCheck(): void {
+    this.viewCheckRow.set(null);
+    this.viewCheckError.set('');
+  }
+
+  protected onViewCheckVisibleChange(open: boolean): void {
+    if (!open) {
+      this.closeViewCheck();
+    }
+  }
+
+  protected async saveViewCheck(): Promise<void> {
+    const row = this.viewCheckRow();
+    const views = this.newViews();
+    if (!row || this.viewCheckSaving()) {
+      return;
+    }
+    if (views === null || !this.canSaveViewCheck()) {
+      this.viewCheckError.set(
+        row.campaign.cpm === null
+          ? 'This campaign has no CPM, so the payout cannot be recalculated. Add a rate to the campaign first.'
+          : 'Enter the new view count before saving.',
+      );
+      return;
+    }
+
+    this.viewCheckSaving.set(true);
+    this.viewCheckError.set('');
+    try {
+      const note = this.viewCheckNote().trim();
+      const updated = await this.admin.recordViewCheck(row.id, {
+        views,
+        ...(note ? { note } : {}),
+      });
+      this.rows.update((rows) => rows.map((item) => (item.id === row.id ? updated : item)));
+      // The preview may be showing this very clip's history, which just grew.
+      if (this.previewRow()?.id === row.id) {
+        this.previewRow.set(updated);
+        void this.loadHistory(row.id);
+      }
+      this.messages.add({
+        severity: 'success',
+        summary: 'Views updated',
+        detail: `${updated.creator.fullName}'s clip is now at ${formatViews(
+          updated.verifiedViews,
+        )} verified views.`,
+      });
+      this.closeViewCheck();
+      this.reviewed.emit();
+    } catch (error) {
+      this.viewCheckError.set(reviewErrorMessage(error));
+    } finally {
+      this.viewCheckSaving.set(false);
+    }
+  }
+
   // ---------------------------------------------------------------- export
 
   /**
@@ -386,6 +563,7 @@ export class SubmissionsTable {
         'Status',
         'Posted',
         'Submitted',
+        'Views checked',
         'Review note',
       ],
       rows.map((row) => [
@@ -407,6 +585,7 @@ export class SubmissionsTable {
         submissionStatusLabel(row.status),
         row.postedAt ?? '',
         row.createdAt,
+        row.viewsCheckedAt ?? '',
         row.reviewNote ?? '',
       ]),
     );
@@ -429,7 +608,11 @@ export class SubmissionsTable {
   }
 }
 
-/** Contract failures from `PATCH /admin/submissions/:id`, in admin language. */
+/**
+ * Contract failures from `PATCH /admin/submissions/:id` and
+ * `POST /admin/submissions/:id/view-checks`, in admin language. Both dialogs
+ * move the same two fields, so they read the same mapper.
+ */
 export function reviewErrorMessage(error: unknown): string {
   if (!(error instanceof ApiError)) {
     return 'We could not update this submission. Please try again.';
@@ -439,6 +622,10 @@ export function reviewErrorMessage(error: unknown): string {
       return 'This campaign has no CPM, so a payout cannot be calculated. Add a rate to the campaign first.';
     case 'NOT_APPROVED':
       return 'Approve the clip before marking it paid.';
+    case 'SUBMISSION_PAID':
+      return 'This clip has already been paid, so its views are frozen. Refresh the table.';
+    case 'SUBMISSION_NOT_APPROVED':
+      return 'Only an approved clip can have its views re-checked. Approve it first.';
     case 'SUBMISSION_NOT_FOUND':
       return 'This submission no longer exists. Refresh the table.';
     default:

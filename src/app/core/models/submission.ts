@@ -51,6 +51,12 @@ export interface Submission {
   /** Rejection reason / message back to the clipper. */
   reviewNote: string | null;
   reviewedAt: string | null;
+  /**
+   * When `verifiedViews` was last confirmed: set at approval and again on every
+   * admin view check. Equal to `reviewedAt` while the approval figure still
+   * stands; null before approval.
+   */
+  viewsCheckedAt: string | null;
   createdAt: string;
   updatedAt: string;
   campaign: SubmissionCampaign;
@@ -91,4 +97,32 @@ export interface CreatorStats {
   earned: CurrencyTotal[];
   /** PAID only, per currency. */
   paid: CurrencyTotal[];
+}
+
+/**
+ * One row of an approved clip's view history
+ * (`GET /admin/submissions/:id/view-checks`, newest first).
+ *
+ * The first row is written by the approval itself and carries
+ * `previousViews: null`; every later row records what the figure was before the
+ * admin re-checked it.
+ */
+export interface SubmissionViewCheck {
+  id: string;
+  /** The verified figure this check froze. */
+  views: number;
+  /** What `verifiedViews` was before this check; null for the approval row. */
+  previousViews: number | null;
+  /** Where the number came from — the admin's own words. */
+  note: string | null;
+  checkedAt: string;
+  checkedBy: { id: string; fullName: string };
+}
+
+/** Body for `POST /admin/submissions/:id/view-checks`. */
+export interface SubmissionViewCheckInput {
+  /** The freshly counted views; the payout is recalculated from it. */
+  views: number;
+  /** At most 500 characters server side. */
+  note?: string;
 }

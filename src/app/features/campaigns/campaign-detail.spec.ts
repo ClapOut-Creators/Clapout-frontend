@@ -64,6 +64,7 @@ const leaderboard: CampaignLeaderboard = {
   ],
   totalRanked: 1,
   me: null,
+  updatedAt: '2026-09-03T09:00:00.000Z',
 };
 
 const creator: Me = {
@@ -212,5 +213,123 @@ describe('CampaignDetail — studio tabs', () => {
     });
 
     expect(element.querySelectorAll('[role="tab"]')).toHaveLength(0);
+  });
+});
+
+/**
+ * Only `setInterval` / `clearInterval` are faked: `whenStable` and the
+ * component's own promises still run on real timers, so the harness behaves
+ * exactly as it does everywhere else in this file.
+ */
+describe('CampaignDetail — leaderboard polling', () => {
+  let leaderboardCalls: number;
+
+  beforeEach(() => {
+    leaderboardCalls = 0;
+    vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] });
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    return TestBed.resetTestingModule();
+  });
+
+  async function render(url: string, user: Me | null = creator) {
+    await TestBed.configureTestingModule({
+      providers: [
+        ConfirmationService,
+        MessageService,
+        provideAppConfiguration(),
+        provideHttpClient(),
+        provideRouter(
+          [{ path: 'campaigns/:slug', component: CampaignDetail }],
+          withComponentInputBinding(),
+        ),
+        { provide: AuthService, useValue: authDouble(user) },
+        {
+          provide: CampaignsRepository,
+          useValue: {
+            bySlug: () => Promise.resolve(campaign),
+            leaderboard: () => {
+              leaderboardCalls += 1;
+              return Promise.resolve(leaderboard);
+            },
+          },
+        },
+        {
+          provide: RegistrationsRepository,
+          useValue: { listMine: () => Promise.resolve([acceptedRegistration]) },
+        },
+      ],
+    }).compileComponents();
+
+    const harness = await RouterTestingHarness.create(url);
+    await harness.fixture.whenStable();
+    harness.detectChanges();
+    await harness.fixture.whenStable();
+    harness.detectChanges();
+    return { harness, element: harness.routeNativeElement as HTMLElement };
+  }
+
+  async function settle(harness: RouterTestingHarness): Promise<void> {
+    await harness.fixture.whenStable();
+    harness.detectChanges();
+    await harness.fixture.whenStable();
+    harness.detectChanges();
+  }
+
+  it('re-reads the open board every 30 s, without flashing the skeleton', async () => {
+    const { harness, element } = await render('/campaigns/e-wale-clipping?tab=leaderboard');
+    expect(leaderboardCalls).toBe(1);
+
+    vi.advanceTimersByTime(30_000);
+    await settle(harness);
+
+    expect(leaderboardCalls).toBe(2);
+    // The board stayed on screen throughout: no skeleton, no lost entries.
+    expect(element.querySelector('app-leaderboard-list')?.textContent).toContain('Willian O.');
+    expect(element.querySelector('p-skeleton')).toBeNull();
+  });
+
+  it('does not poll while the detail tab is showing', async () => {
+    const { harness } = await render('/campaigns/e-wale-clipping');
+    expect(leaderboardCalls).toBe(0);
+
+    vi.advanceTimersByTime(90_000);
+    await settle(harness);
+
+    expect(leaderboardCalls).toBe(0);
+  });
+
+  it('stops polling once the board is left behind', async () => {
+    const { harness, element } = await render('/campaigns/e-wale-clipping?tab=leaderboard');
+    expect(leaderboardCalls).toBe(1);
+
+    element.querySelectorAll<HTMLButtonElement>('[role="tab"]')[0].click();
+    await settle(harness);
+
+    vi.advanceTimersByTime(90_000);
+    await settle(harness);
+
+    expect(leaderboardCalls).toBe(1);
+  });
+
+  it('re-reads the board as soon as a hidden tab comes back', async () => {
+    const { harness } = await render('/campaigns/e-wale-clipping?tab=leaderboard');
+    expect(leaderboardCalls).toBe(1);
+
+    document.dispatchEvent(new Event('visibilitychange'));
+    await settle(harness);
+
+    expect(leaderboardCalls).toBe(2);
+  });
+
+  it('never polls the public page, which has no board at all', async () => {
+    const { harness } = await render('/campaigns/e-wale-clipping?tab=leaderboard', null);
+
+    vi.advanceTimersByTime(90_000);
+    await settle(harness);
+
+    expect(leaderboardCalls).toBe(0);
   });
 });

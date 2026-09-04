@@ -1,8 +1,9 @@
-import { Component, input } from '@angular/core';
+import { Component, computed, input } from '@angular/core';
 import { Crown } from '@primeicons/angular/crown';
 import { Eye } from '@primeicons/angular/eye';
 import { CampaignLeaderboard, LeaderboardEntry } from '../../core/models/leaderboard';
 import { formatMoneyExact, NOT_ANNOUNCED } from '../../core/util/campaign-format';
+import { shortElapsed } from '../../core/util/relative-time';
 
 /**
  * Rank pill fill (Figma "Frame 292" on each row): a warm gradient for the
@@ -94,11 +95,18 @@ export function needsOwnStandingFooter(leaderboard: CampaignLeaderboard | null):
   imports: [Crown, Eye],
   selector: 'app-leaderboard-list',
   template: `
-    <h2
-      class="m-0 text-[18px] leading-[27px] font-semibold text-[#171A1C] lg:text-[23px] lg:leading-[35px]"
-    >
-      Top earners
-    </h2>
+    <div class="flex items-baseline justify-between gap-3">
+      <h2
+        class="m-0 text-[18px] leading-[27px] font-semibold text-[#171A1C] lg:text-[23px] lg:leading-[35px]"
+      >
+        Top earners
+      </h2>
+      @if (updatedLabel(); as label) {
+        <p class="m-0 shrink-0 text-[13px] leading-5 text-[#7B7B7B] lg:text-[14px]">
+          Updated {{ label }}
+        </p>
+      }
+    </div>
 
     @if (leaderboard().entries.length) {
       <ol
@@ -187,6 +195,9 @@ export class LeaderboardList {
   readonly currency = input.required<string>();
   /** The campaign's CPM; null while unannounced, in which case rows show '₵ —'. */
   readonly cpm = input<number | null>(null);
+
+  /** '3h ago' from the board's latest approval or view check; null hides it. */
+  protected readonly updatedLabel = computed(() => shortElapsed(this.leaderboard().updatedAt));
 
   protected readonly avatarGradient = avatarGradient;
   protected readonly entryLabel = entryLabel;

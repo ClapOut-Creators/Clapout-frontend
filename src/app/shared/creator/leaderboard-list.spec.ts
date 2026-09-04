@@ -26,7 +26,7 @@ function entry(overrides: Partial<LeaderboardEntry> = {}): LeaderboardEntry {
 }
 
 function board(overrides: Partial<CampaignLeaderboard> = {}): CampaignLeaderboard {
-  return { entries: [], totalRanked: 0, me: null, ...overrides };
+  return { entries: [], totalRanked: 0, me: null, updatedAt: null, ...overrides };
 }
 
 describe('rankBadgeClass', () => {
@@ -186,6 +186,17 @@ describe('LeaderboardList', () => {
     expect(element.textContent).toContain('You are #31 with');
     expect(element.textContent).toContain(formatMoneyExact('₵', 12));
     expect(element.textContent).toContain('1,200 verified views');
+  });
+
+  it('says when the board last moved', async () => {
+    const recent = new Date(Date.now() - 3 * 3_600_000).toISOString();
+    const element = await render(board({ entries: [entry()], totalRanked: 1, updatedAt: recent }));
+    expect(element.textContent).toContain('Updated 3h ago');
+  });
+
+  it('stays quiet about timing when the board has never moved', async () => {
+    const element = await render(board({ entries: [entry()], totalRanked: 1, updatedAt: null }));
+    expect(element.textContent).not.toContain('Updated');
   });
 
   it('explains an empty board instead of drawing an empty list', async () => {
