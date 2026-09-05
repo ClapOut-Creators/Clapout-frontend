@@ -1,5 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Params, Router, RouterLink } from '@angular/router';
 import { ArrowDown } from '@primeicons/angular/arrow-down';
 import { ArrowUp } from '@primeicons/angular/arrow-up';
 import { ChevronRight } from '@primeicons/angular/chevron-right';
@@ -47,6 +47,8 @@ interface AttentionItem {
   readonly detail: string;
   readonly count: number;
   readonly href: string;
+  /** Deep-links the campaigns list into the matching filter (`?show=`). */
+  readonly query?: Params;
   readonly tone: 'warning' | 'primary' | 'success' | 'neutral';
 }
 
@@ -223,6 +225,7 @@ export class AdminDashboard {
         detail: 'Ending soon',
         count: endingSoon,
         href: '/admin/campaigns',
+        query: { show: 'ending-soon' },
         tone: 'primary',
       },
       {
@@ -231,6 +234,7 @@ export class AdminDashboard {
         detail: 'Pending budget',
         count: pendingBudget,
         href: '/admin/campaigns',
+        query: { show: 'pending-budget' },
         tone: 'success',
       },
       {
