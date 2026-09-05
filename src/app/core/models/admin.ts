@@ -17,6 +17,11 @@ export interface AdminStats {
   totalCreators: number;
   totalBrands: number;
   newRegistrations7d: number;
+  /**
+   * All-time registration count. Optional while the backend rolls the field
+   * out; the dashboard shows an em dash rather than a misleading zero.
+   */
+  totalRegistrations?: number;
   awaitingReview: number;
   registrationActivity: RegistrationActivityPoint[];
   /**

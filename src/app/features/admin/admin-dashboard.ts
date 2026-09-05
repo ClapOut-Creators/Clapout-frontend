@@ -170,7 +170,17 @@ export class AdminDashboard {
    * Mock "before this window" registration total — AdminStats has no all-time
    * or previous-period count yet. Placeholder pending backend support.
    */
-  protected readonly oldRegistrationTotal = formatCount(7260);
+  /**
+   * Registrations that predate the activity window: the all-time total minus
+   * the 21 days the chart covers. An older API without the total shows '—'.
+   */
+  protected readonly oldRegistrationTotal = computed(() => {
+    const total = this.stats()?.totalRegistrations;
+    if (total === undefined) {
+      return '—';
+    }
+    return formatCount(Math.max(0, total - this.activityTotal()));
+  });
 
   private readonly activity = computed(() => this.stats()?.registrationActivity ?? []);
   protected readonly hasActivity = computed(() => this.activity().length > 0);

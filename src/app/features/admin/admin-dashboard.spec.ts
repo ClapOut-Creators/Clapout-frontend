@@ -10,6 +10,7 @@ const stats: AdminStats = {
   totalCreators: 72,
   totalBrands: 2,
   newRegistrations7d: 9,
+  totalRegistrations: 1017,
   awaitingReview: 18,
   registrationActivity: [
     { date: '2026-08-11', count: 4 },
@@ -113,6 +114,8 @@ describe('AdminDashboard', () => {
     expect(element.textContent).toContain('Published campaigns');
     expect(element.textContent).toContain('Total creators');
     expect(element.textContent).toContain('17 new registrations from 11 Aug to 13 Aug.');
+    // Old = all-time total minus the 17 inside the activity window.
+    expect(element.textContent).toContain('1,000');
     expect(element.querySelector('[echarts][role="img"]')?.getAttribute('aria-label')).toContain(
       'Bar chart of new registrations',
     );
