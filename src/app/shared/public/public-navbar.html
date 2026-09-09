@@ -34,11 +34,20 @@
           <ul class="m-0 flex list-none flex-col gap-1 p-0">
             @for (link of productLinks; track link.href) {
               <li>
-                <a
-                  [href]="link.href"
-                  class="block rounded-lg px-3 py-2 text-sm text-surface-700 no-underline hover:bg-surface-100"
-                  >{{ link.label }}</a
-                >
+                @if (isInternal(link.href)) {
+                  <a
+                    [routerLink]="link.href"
+                    class="block rounded-lg px-3 py-2 text-sm text-surface-700 no-underline hover:bg-surface-100"
+                    (click)="productMenu.hide()"
+                    >{{ link.label }}</a
+                  >
+                } @else {
+                  <a
+                    [href]="link.href"
+                    class="block rounded-lg px-3 py-2 text-sm text-surface-700 no-underline hover:bg-surface-100"
+                    >{{ link.label }}</a
+                  >
+                }
               </li>
             }
           </ul>
@@ -50,7 +59,7 @@
           >Campaigns</a
         >
         <a
-          [href]="landingUrl + '/#contact'"
+          [href]="contactUrl"
           class="text-sm text-[#383838] no-underline transition-colors hover:text-black"
           >Contact</a
         >
@@ -93,12 +102,21 @@
 >
   <nav aria-label="Primary" class="flex flex-col gap-1">
     @for (link of productLinks; track link.href) {
-      <a
-        [href]="link.href"
-        class="rounded-lg px-3 py-2.5 text-base text-surface-700 no-underline hover:bg-surface-100"
-        (click)="closeDrawer()"
-        >{{ link.label }}</a
-      >
+      @if (isInternal(link.href)) {
+        <a
+          [routerLink]="link.href"
+          class="rounded-lg px-3 py-2.5 text-base text-surface-700 no-underline hover:bg-surface-100"
+          (click)="closeDrawer()"
+          >{{ link.label }}</a
+        >
+      } @else {
+        <a
+          [href]="link.href"
+          class="rounded-lg px-3 py-2.5 text-base text-surface-700 no-underline hover:bg-surface-100"
+          (click)="closeDrawer()"
+          >{{ link.label }}</a
+        >
+      }
     }
     <a
       routerLink="/campaigns"
@@ -107,7 +125,7 @@
       >Campaigns</a
     >
     <a
-      [href]="landingUrl + '/#contact'"
+      [href]="contactUrl"
       class="rounded-lg px-3 py-2.5 text-base text-surface-700 no-underline hover:bg-surface-100"
       (click)="closeDrawer()"
       >Contact</a

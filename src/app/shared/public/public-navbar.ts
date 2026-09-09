@@ -4,7 +4,7 @@ import { ChevronDown } from '@primeicons/angular/chevron-down';
 import { Bars } from '@primeicons/angular/bars';
 import { DrawerModule } from 'primeng/drawer';
 import { PopoverModule } from 'primeng/popover';
-import { LANDING_SITE_URL, PRODUCT_LINKS } from './public-links';
+import { LANDING_CONTACT_URL, LANDING_SITE_URL, PRODUCT_LINKS } from './public-links';
 
 /**
  * The landing site's floating pill navbar, shown to anonymous visitors on the
@@ -20,7 +20,13 @@ import { LANDING_SITE_URL, PRODUCT_LINKS } from './public-links';
 export class PublicNavbar {
   protected readonly productLinks = PRODUCT_LINKS;
   protected readonly landingUrl = LANDING_SITE_URL;
+  protected readonly contactUrl = LANDING_CONTACT_URL;
   protected readonly drawerOpen = signal(false);
+
+  /** In-app routes go through the router; everything else is the marketing site. */
+  protected isInternal(href: string | null): href is string {
+    return !!href && href.startsWith('/');
+  }
 
   protected closeDrawer(): void {
     this.drawerOpen.set(false);

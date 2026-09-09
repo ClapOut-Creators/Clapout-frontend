@@ -13,20 +13,27 @@ export interface FooterColumn {
   links: PublicLink[];
 }
 
-/** "Product" dropdown — sections of the marketing site. */
+/** The marketing site's contact page; also where "Contact" in the navbar goes. */
+export const LANDING_CONTACT_URL = `${LANDING_SITE_URL}/contact`;
+
+/**
+ * "Product" dropdown. The landing site's own Product menu has two entries —
+ * Clippers (the campaign list, which this app owns) and Brand (the partnership
+ * form) — and its home page carries `#how-it-works` and `#faq` sections.
+ */
 export const PRODUCT_LINKS: PublicLink[] = [
+  { label: 'For creators', href: '/campaigns' },
+  { label: 'For brands', href: `${LANDING_SITE_URL}/contact/partnership` },
   { label: 'How it works', href: `${LANDING_SITE_URL}/#how-it-works` },
-  { label: 'For brands', href: `${LANDING_SITE_URL}/#brands` },
-  { label: 'For creators', href: `${LANDING_SITE_URL}/#creators` },
   { label: 'FAQ', href: `${LANDING_SITE_URL}/#faq` },
 ];
 
 /**
  * The footer columns as clapoutcreators.com ships them
- * (`src/components/layout/Footer.tsx`). The landing site is a hash-routed SPA,
- * so its own `#…` anchors and `#/…` routes become absolute URLs here — every
- * destination except Campaigns lives on the marketing site, and Campaigns is
- * the page this app already owns.
+ * (`src/components/layout/Footer.tsx`). The landing site routes by real path
+ * (`/guides/…`, `/terms`) with `#…` anchors only for home-page sections, so
+ * those become absolute URLs here — every destination except Campaigns lives
+ * on the marketing site, and Campaigns is the page this app already owns.
  */
 export const FOOTER_COLUMNS: FooterColumn[] = [
   {
@@ -43,27 +50,27 @@ export const FOOTER_COLUMNS: FooterColumn[] = [
     links: [
       {
         label: 'How to Become a Clipper?',
-        href: `${LANDING_SITE_URL}/#/guides/how-to-become-a-clipper`,
+        href: `${LANDING_SITE_URL}/guides/how-to-become-a-clipper`,
       },
       {
         label: 'How Much Do Clippers Make?',
-        href: `${LANDING_SITE_URL}/#/guides/how-much-do-clippers-make`,
+        href: `${LANDING_SITE_URL}/guides/how-much-do-clippers-make`,
       },
-      { label: 'Clipping Side Hustle', href: `${LANDING_SITE_URL}/#/guides/clipping-side-hustle` },
+      { label: 'Clipping Side Hustle', href: `${LANDING_SITE_URL}/guides/clipping-side-hustle` },
       {
         label: 'Freelance Clipper Guide',
-        href: `${LANDING_SITE_URL}/#/guides/freelance-clipper-guide`,
+        href: `${LANDING_SITE_URL}/guides/freelance-clipper-guide`,
       },
-      { label: 'Remote Clipping Jobs', href: `${LANDING_SITE_URL}/#/guides/remote-clipping-jobs` },
-      { label: 'Best Editing Tools', href: `${LANDING_SITE_URL}/#/guides/best-editing-tools` },
+      { label: 'Remote Clipping Jobs', href: `${LANDING_SITE_URL}/guides/remote-clipping-jobs` },
+      { label: 'Best Editing Tools', href: `${LANDING_SITE_URL}/guides/best-editing-tools` },
     ],
   },
   {
     title: 'Legal',
     links: [
-      { label: 'Terms of Service', href: `${LANDING_SITE_URL}/#/terms` },
-      { label: 'Privacy Policy', href: `${LANDING_SITE_URL}/#/privacy` },
-      { label: 'Platform Policies', href: `${LANDING_SITE_URL}/#/policies` },
+      { label: 'Terms of Service', href: `${LANDING_SITE_URL}/terms` },
+      { label: 'Privacy Policy', href: `${LANDING_SITE_URL}/privacy` },
+      { label: 'Platform Policies', href: `${LANDING_SITE_URL}/policies` },
     ],
   },
   {
