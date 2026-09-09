@@ -36,14 +36,14 @@ interface MobileTab {
 }
 
 /**
- * The three destinations a clipper has, left to right. Submissions sits in
- * the middle as the action circle the Figma bar draws; the videos and wallet
- * slots the board shows are not built and are not drawn.
+ * The three destinations a clipper has, left to right. Campaigns sits in the
+ * middle as the raised action circle; the videos and wallet slots the Figma
+ * board shows are not built and are not drawn.
  */
 const CREATOR_MOBILE_TABS: MobileTab[] = [
   { label: 'Dashboard', path: '/creator/dashboard', icon: 'home', action: false },
-  { label: 'Submissions', path: '/creator/submissions', icon: 'library', action: true },
-  { label: 'Campaigns', path: '/campaigns', icon: 'planet', action: false },
+  { label: 'Campaigns', path: '/campaigns', icon: 'planet', action: true },
+  { label: 'Submissions', path: '/creator/submissions', icon: 'library', action: false },
 ];
 
 // Order and glyphs follow the Figma rail: home → brands (shop) → campaigns
