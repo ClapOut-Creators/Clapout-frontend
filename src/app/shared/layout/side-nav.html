@@ -1,5 +1,7 @@
 <!-- Desktop: compact signed-in icon rail. -->
-<aside class="co-shell-rail sticky top-0 z-40 hidden h-screen w-20 shrink-0 flex-col lg:flex pt-[14px]">
+<aside
+  class="co-shell-rail sticky top-0 z-40 hidden h-screen w-20 shrink-0 flex-col lg:flex pt-[14px]"
+>
   <a
     [routerLink]="homeLink()"
     class="mx-auto flex size-11 items-center justify-center rounded-md text-surface-900 no-underline"
@@ -101,155 +103,190 @@
   </div>
 </aside>
 
-<!-- Mobile: slim top bar; the same links live in a labelled left drawer. -->
+<!-- Mobile: slim top bar. Clippers get their name and avatar (tap for the
+     account menu); admins keep the drawer button, their section list lives there. -->
 <header
   class="sticky top-0 z-20 flex items-center justify-between border-b border-[#ECECEC] bg-white px-4 py-3 lg:hidden"
 >
   <a [routerLink]="homeLink()" class="flex items-center text-surface-900 no-underline">
     <img src="/logo/clapout-logo.png" alt="ClapOut" class="h-9 w-9 select-none" draggable="false" />
   </a>
-  <button
-    type="button"
-    class="rounded-lg p-2 text-surface-700 hover:bg-surface-100"
-    aria-label="Open menu"
-    [attr.aria-expanded]="drawerOpen()"
-    (click)="drawerOpen.set(true)"
-  >
-    <svg data-p-icon="sidebar" [size]="22"></svg>
-  </button>
-</header>
-
-<p-drawer
-  position="left"
-  header="Menu"
-  [visible]="drawerOpen()"
-  (visibleChange)="drawerOpen.set($event)"
-  styleClass="!w-72"
->
-  <nav aria-label="Primary" class="flex flex-col gap-1">
-    @if (isSignedIn()) {
-      @for (link of links(); track link.path) {
-        <a
-          [routerLink]="link.path"
-          routerLinkActive="bg-primary-50 !text-primary-700"
-          [routerLinkActiveOptions]="{ exact: link.exact }"
-          class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-surface-600 no-underline hover:bg-surface-100 hover:text-surface-900"
-          (click)="closeDrawer()"
-        >
-          @switch (link.icon) {
-            @case ('clipboard') {
-              <svg data-p-icon="clipboard" [size]="16"></svg>
-            }
-            @case ('compass') {
-              <svg data-p-icon="compass" [size]="16"></svg>
-            }
-            @case ('shop') {
-              <svg data-p-icon="shop" [size]="16"></svg>
-            }
-            @case ('video') {
-              <svg data-p-icon="video" [size]="16"></svg>
-            }
-            @case ('inbox') {
-              <svg data-p-icon="inbox" [size]="16"></svg>
-            }
-            @default {
-              <svg data-p-icon="home" [size]="16"></svg>
-            }
-          }
-          <span>{{ link.label }}</span>
-        </a>
-      }
-      <div class="mt-4 border-t border-surface-200 px-3 pt-4">
-        <p class="truncate text-sm font-medium text-surface-900">{{ user()?.email }}</p>
-        <p class="mt-1 text-xs font-medium uppercase tracking-wide text-surface-500">
-          {{ isAdmin() ? 'Admin' : 'Creator' }}
-        </p>
-      </div>
+  @if (isAdmin()) {
+    <button
+      type="button"
+      class="rounded-lg p-2 text-surface-700 hover:bg-surface-100"
+      aria-label="Open menu"
+      [attr.aria-expanded]="drawerOpen()"
+      (click)="drawerOpen.set(true)"
+    >
+      <svg data-p-icon="sidebar" [size]="22"></svg>
+    </button>
+  } @else {
+    <div class="relative">
+      <!-- The same name-and-avatar chip the dashboard header draws. -->
       <button
         type="button"
-        class="mt-2 flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-surface-600 hover:bg-surface-100 hover:text-surface-900"
-        (click)="signOut()"
+        class="inline-flex cursor-pointer items-center gap-2 rounded-[26px] border-0 bg-[#F1F1F1] py-1.5 pr-1.5 pl-3.5 text-[14px] leading-[17px] text-[#464646]"
+        [attr.aria-label]="'Open account menu for ' + displayName()"
+        aria-haspopup="menu"
+        [attr.aria-expanded]="userMenuOpen()"
+        (click)="toggleUserMenu()"
       >
-        <svg data-p-icon="sign-out" [size]="16"></svg>
-        <span>Sign out</span>
+        <span class="max-w-[9rem] truncate">{{ displayName() }}</span>
+        <span
+          class="flex size-[30px] shrink-0 items-center justify-center rounded-full border border-[#EC612C] bg-[#BABABA] text-[12px] font-semibold text-white"
+          aria-hidden="true"
+          >{{ initials() }}</span
+        >
       </button>
-    } @else {
-      <a
-        routerLink="/campaigns"
-        routerLinkActive="bg-primary-50 !text-primary-700"
-        class="rounded-lg px-3 py-2 text-sm font-medium text-surface-600 no-underline hover:bg-surface-100 hover:text-surface-900"
-        (click)="closeDrawer()"
-        >Campaigns</a
-      >
-      <a
-        routerLink="/auth/sign-in"
-        class="rounded-lg px-3 py-2 text-sm font-medium text-surface-600 no-underline hover:bg-surface-100 hover:text-surface-900"
-        (click)="closeDrawer()"
-        >Sign in</a
-      >
-      <a
-        routerLink="/auth/sign-up"
-        class="rounded-lg bg-primary px-3 py-2 text-center text-sm font-medium text-primary-contrast no-underline"
-        (click)="closeDrawer()"
-        >Get started</a
-      >
-    }
-  </nav>
-</p-drawer>
+
+      @if (userMenuOpen()) {
+        <div
+          role="menu"
+          aria-label="Account menu"
+          class="absolute top-[calc(100%+8px)] right-0 z-30 w-56 rounded-lg border border-surface-200 bg-surface-0 p-2 shadow-[var(--clapout-shadow-overlay)]"
+        >
+          <p class="truncate px-3 py-2 text-sm font-medium text-surface-900">
+            {{ user()?.email }}
+          </p>
+          <p class="px-3 pb-2 text-xs font-medium tracking-wide text-surface-500 uppercase">
+            Creator
+          </p>
+          <button
+            type="button"
+            role="menuitem"
+            class="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm font-medium text-surface-700 hover:bg-surface-100"
+            (click)="signOut()"
+          >
+            <svg data-p-icon="sign-out" [size]="14"></svg>
+            <span>Sign out</span>
+          </button>
+        </div>
+      }
+    </div>
+  }
+</header>
+
+@if (isAdmin()) {
+  <p-drawer
+    position="left"
+    header="Menu"
+    [visible]="drawerOpen()"
+    (visibleChange)="drawerOpen.set($event)"
+    styleClass="!w-72"
+  >
+    <nav aria-label="Primary" class="flex flex-col gap-1">
+      @if (isSignedIn()) {
+        @for (link of links(); track link.path) {
+          <a
+            [routerLink]="link.path"
+            routerLinkActive="bg-primary-50 !text-primary-700"
+            [routerLinkActiveOptions]="{ exact: link.exact }"
+            class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-surface-600 no-underline hover:bg-surface-100 hover:text-surface-900"
+            (click)="closeDrawer()"
+          >
+            @switch (link.icon) {
+              @case ('clipboard') {
+                <svg data-p-icon="clipboard" [size]="16"></svg>
+              }
+              @case ('compass') {
+                <svg data-p-icon="compass" [size]="16"></svg>
+              }
+              @case ('shop') {
+                <svg data-p-icon="shop" [size]="16"></svg>
+              }
+              @case ('video') {
+                <svg data-p-icon="video" [size]="16"></svg>
+              }
+              @case ('inbox') {
+                <svg data-p-icon="inbox" [size]="16"></svg>
+              }
+              @default {
+                <svg data-p-icon="home" [size]="16"></svg>
+              }
+            }
+            <span>{{ link.label }}</span>
+          </a>
+        }
+        <div class="mt-4 border-t border-surface-200 px-3 pt-4">
+          <p class="truncate text-sm font-medium text-surface-900">{{ user()?.email }}</p>
+          <p class="mt-1 text-xs font-medium uppercase tracking-wide text-surface-500">
+            {{ isAdmin() ? 'Admin' : 'Creator' }}
+          </p>
+        </div>
+        <button
+          type="button"
+          class="mt-2 flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-surface-600 hover:bg-surface-100 hover:text-surface-900"
+          (click)="signOut()"
+        >
+          <svg data-p-icon="sign-out" [size]="16"></svg>
+          <span>Sign out</span>
+        </button>
+      } @else {
+        <a
+          routerLink="/campaigns"
+          routerLinkActive="bg-primary-50 !text-primary-700"
+          class="rounded-lg px-3 py-2 text-sm font-medium text-surface-600 no-underline hover:bg-surface-100 hover:text-surface-900"
+          (click)="closeDrawer()"
+          >Campaigns</a
+        >
+        <a
+          routerLink="/auth/sign-in"
+          class="rounded-lg px-3 py-2 text-sm font-medium text-surface-600 no-underline hover:bg-surface-100 hover:text-surface-900"
+          (click)="closeDrawer()"
+          >Sign in</a
+        >
+        <a
+          routerLink="/auth/sign-up"
+          class="rounded-lg bg-primary px-3 py-2 text-center text-sm font-medium text-primary-contrast no-underline"
+          (click)="closeDrawer()"
+          >Get started</a
+        >
+      }
+    </nav>
+  </p-drawer>
+}
 
 <!--
-  Phone tab bar (Figma 366:376 / 397:2720 / 398:4552 "Frame 274"): a 402x86
-  white bar with five 40px slots and the 62px action circle overhanging its top
-  edge. Positions are the board's x offsets as percentages of its 402px width.
-  The glyphs are Solar "Bold" icons redrawn inline — the cut-outs are painted in
-  the bar's own white rather than punched out, which is why this only ever sits
-  on the white bar (the circle's glyph uses a real hole instead).
+  Phone tab bar, after Figma 366:376 "Frame 274" reduced to the three
+  destinations the platform has: Dashboard and Campaigns as flat tabs, and
+  Submissions as the orange action circle overhanging the bar's top edge,
+  each with a small label. The two "coming soon" slots (videos, wallet) are
+  gone rather than drawn disabled. The glyphs are Solar "Bold" icons redrawn
+  inline — the cut-outs are painted in the bar's own white rather than punched
+  out, which is why this only ever sits on the white bar.
 -->
 @if (showMobileTabBar()) {
   <nav class="co-mobile-tabbar lg:hidden" aria-label="Quick navigation">
-    @for (tab of mobileTabs; track tab.icon) {
-      @if (tab.path; as path) {
-        <a
-          [routerLink]="path"
-          routerLinkActive="co-tabbar-slot-active"
-          class="co-tabbar-slot {{ tab.left }}"
-          [attr.aria-label]="tab.label"
-        >
+    @for (tab of mobileTabs; track tab.path) {
+      <a
+        [routerLink]="tab.path"
+        routerLinkActive="co-tabbar-slot-active"
+        class="co-tabbar-slot"
+        [class.co-tabbar-slot-raised]="tab.action"
+        [attr.aria-label]="tab.label"
+      >
+        @if (tab.action) {
+          <span class="co-tabbar-action" aria-hidden="true">
+            <!-- Solar "Library" bold: the lidded box, with the label slot punched out. -->
+            <svg viewBox="0 0 24 24" class="size-[30px]" fill="currentColor">
+              <path d="M8.8 3.1h6.4a.95.95 0 0 1 0 1.9H8.8a.95.95 0 0 1 0-1.9Z" />
+              <path d="M7.2 5.6h9.6a1.05 1.05 0 0 1 0 2.1H7.2a1.05 1.05 0 0 1 0-2.1Z" />
+              <path
+                fill-rule="evenodd"
+                d="M6 11a2.7 2.7 0 0 1 2.7-2.7h6.6A2.7 2.7 0 0 1 18 11v5.6a2.7 2.7 0 0 1-2.7 2.7H8.7A2.7 2.7 0 0 1 6 16.6V11Zm4.1 3.7a.8.8 0 0 0 0 1.6h3.8a.8.8 0 0 0 0-1.6h-3.8Z"
+              />
+            </svg>
+          </span>
+        } @else {
           <ng-container
             [ngTemplateOutlet]="tabGlyph"
             [ngTemplateOutletContext]="{ $implicit: tab.icon }"
           />
-        </a>
-      } @else {
-        <button
-          type="button"
-          class="co-tabbar-slot co-tabbar-slot-disabled {{ tab.left }}"
-          aria-disabled="true"
-          [attr.aria-label]="tab.label + ' — coming soon'"
-        >
-          <ng-container
-            [ngTemplateOutlet]="tabGlyph"
-            [ngTemplateOutletContext]="{ $implicit: tab.icon }"
-          />
-        </button>
-      }
+        }
+        <span class="co-tabbar-label">{{ tab.label }}</span>
+      </a>
     }
-
-    <a
-      routerLink="/creator/submissions"
-      class="co-tabbar-action left-[43.781%]"
-      aria-label="Library"
-    >
-      <!-- Solar "Library" bold: the lidded box, with the label slot punched out. -->
-      <svg viewBox="0 0 24 24" class="size-[30px]" fill="currentColor" aria-hidden="true">
-        <path d="M8.8 3.1h6.4a.95.95 0 0 1 0 1.9H8.8a.95.95 0 0 1 0-1.9Z" />
-        <path d="M7.2 5.6h9.6a1.05 1.05 0 0 1 0 2.1H7.2a1.05 1.05 0 0 1 0-2.1Z" />
-        <path
-          fill-rule="evenodd"
-          d="M6 11a2.7 2.7 0 0 1 2.7-2.7h6.6A2.7 2.7 0 0 1 18 11v5.6a2.7 2.7 0 0 1-2.7 2.7H8.7A2.7 2.7 0 0 1 6 16.6V11Zm4.1 3.7a.8.8 0 0 0 0 1.6h3.8a.8.8 0 0 0 0-1.6h-3.8Z"
-        />
-      </svg>
-    </a>
   </nav>
 }
 
@@ -269,40 +306,6 @@
           stroke-width="1.8"
           transform="rotate(-24 12 13)"
         />
-      </svg>
-    }
-
-    @case ('video-frame') {
-      <!-- Solar "Video Frame" bold: the sprocketed filmstrip. -->
-      <svg viewBox="0 0 24 24" class="size-[30px]" aria-hidden="true">
-        <rect x="2.5" y="3.5" width="19" height="17" rx="3.6" fill="currentColor" />
-        <g fill="#FFFFFF">
-          <rect x="2.5" y="7.6" width="19" height="1.5" />
-          <rect x="2.5" y="14.9" width="19" height="1.5" />
-          <rect x="6.7" y="3.5" width="1.5" height="4.1" />
-          <rect x="10.2" y="3.5" width="1.5" height="4.1" />
-          <rect x="13.7" y="3.5" width="1.5" height="4.1" />
-          <rect x="17.2" y="3.5" width="1.5" height="4.1" />
-          <rect x="6.7" y="16.4" width="1.5" height="4.1" />
-          <rect x="10.2" y="16.4" width="1.5" height="4.1" />
-          <rect x="13.7" y="16.4" width="1.5" height="4.1" />
-          <rect x="17.2" y="16.4" width="1.5" height="4.1" />
-          <rect x="6.7" y="9.1" width="1.5" height="5.8" />
-          <rect x="15.8" y="9.1" width="1.5" height="5.8" />
-          <path d="M10.7 10.1 15 12l-4.3 1.9z" />
-        </g>
-      </svg>
-    }
-
-    @case ('wallet') {
-      <!-- Solar "Wallet" bold. -->
-      <svg viewBox="0 0 24 24" fill="currentColor" class="size-[30px]" aria-hidden="true">
-        <path d="M5.2 3.4h6.9a1.9 1.9 0 0 1 1.9 1.9v1.2H5.2V3.4Z" />
-        <path
-          d="M2.5 10A3.5 3.5 0 0 1 6 6.5h12A3.5 3.5 0 0 1 21.5 10v7a3.5 3.5 0 0 1-3.5 3.5H6A3.5 3.5 0 0 1 2.5 17v-7Z"
-        />
-        <path d="M21.5 11.2v4.6h-3.1a2.3 2.3 0 1 1 0-4.6h3.1Z" fill="#FFFFFF" />
-        <circle cx="18.6" cy="13.5" r="1.1" />
       </svg>
     }
 

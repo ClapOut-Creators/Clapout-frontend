@@ -30,27 +30,23 @@ const CREATOR_LINKS: NavLink[] = [
   { label: 'Submissions', path: '/creator/submissions', exact: false, icon: 'video' },
 ];
 
-/**
- * One slot of the phone tab bar (Figma 366:376 "Frame 274"). `path: null`
- * marks a surface the platform has not built yet — the board still draws it,
- * so the slot is rendered and announced as unavailable rather than dropped.
- */
+/** One slot of the phone tab bar; `action` is the raised orange circle. */
 interface MobileTab {
   label: string;
-  path: string | null;
-  icon: 'home' | 'planet' | 'video-frame' | 'wallet';
-  /**
-   * Left offset as a percentage of the board's 402px width (x = 29 / 115 /
-   * 263 / 349), so the bar keeps the design's rhythm on any phone.
-   */
-  left: string;
+  path: string;
+  icon: 'home' | 'planet' | 'library';
+  action: boolean;
 }
 
+/**
+ * The three destinations a clipper has, left to right. Submissions sits in
+ * the middle as the action circle the Figma bar draws; the videos and wallet
+ * slots the board shows are not built and are not drawn.
+ */
 const CREATOR_MOBILE_TABS: MobileTab[] = [
-  { label: 'Dashboard', path: '/creator/dashboard', icon: 'home', left: 'left-[7.214%]' },
-  { label: 'Campaigns', path: '/campaigns', icon: 'planet', left: 'left-[28.607%]' },
-  { label: 'Videos', path: null, icon: 'video-frame', left: 'left-[65.423%]' },
-  { label: 'Wallet', path: null, icon: 'wallet', left: 'left-[86.816%]' },
+  { label: 'Dashboard', path: '/creator/dashboard', icon: 'home', action: false },
+  { label: 'Submissions', path: '/creator/submissions', icon: 'library', action: true },
+  { label: 'Campaigns', path: '/campaigns', icon: 'planet', action: false },
 ];
 
 // Order and glyphs follow the Figma rail: home → brands (shop) → campaigns
@@ -117,6 +113,12 @@ export class SideNav {
   protected toggleUserMenu(): void {
     this.userMenuOpen.update((open) => !open);
   }
+
+  /** The phone header chip: the name, or the email's local part for an account without one. */
+  protected readonly displayName = computed(() => {
+    const user = this.user();
+    return user?.fullName?.trim() || user?.email.split('@')[0] || 'Your account';
+  });
 
   protected initials(): string {
     const name = this.user()?.fullName.trim();

@@ -91,6 +91,30 @@ describe('SideNav', () => {
     ]);
   });
 
+  it('gives a clipper a labelled three-tab bar and a name chip with its own account menu', async () => {
+    const { auth, element, fixture } = await render(creatorUser);
+
+    const tabs = Array.from(element.querySelectorAll('.co-mobile-tabbar a')).map((a) =>
+      a.textContent?.trim(),
+    );
+    expect(tabs).toEqual(['Dashboard', 'Submissions', 'Campaigns']);
+    expect(element.querySelector('.co-mobile-tabbar .co-tabbar-action')).toBeTruthy();
+
+    // No drawer button for a clipper: the chip carries the account menu.
+    expect(element.querySelector('header button[aria-label="Open menu"]')).toBeNull();
+    const chip = element.querySelector<HTMLButtonElement>('header button[aria-haspopup="menu"]');
+    expect(chip?.textContent).toContain('Cara Creator');
+    expect(chip?.textContent).toContain('CC');
+
+    chip?.click();
+    fixture.detectChanges();
+    expect(element.querySelector('header [role="menu"]')?.textContent).toContain(
+      'creator@clapout.test',
+    );
+    element.querySelector<HTMLButtonElement>('header [role="menuitem"]')?.click();
+    expect(auth.signOut).toHaveBeenCalledOnce();
+  });
+
   it('exposes account actions from the avatar button', async () => {
     const { auth, element, fixture } = await render(adminUser);
 
