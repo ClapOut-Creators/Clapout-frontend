@@ -9,18 +9,18 @@
     <app-creator-page-header [crumbs]="crumbs()" />
 
     <section
-      class="flex flex-col gap-6 rounded-[10px] bg-white px-[18px] py-[23px] lg:gap-[23px] lg:rounded-[18.83px] lg:px-[22px] lg:py-5"
+      class="flex flex-col gap-6 rounded-[10px] bg-white dark:bg-[#161616] px-[18px] py-[23px] lg:gap-[23px] lg:rounded-[18.83px] lg:px-[22px] lg:py-5"
     >
       <div class="flex items-center justify-between gap-3">
         <button
           type="button"
-          class="inline-flex cursor-pointer items-center gap-2.5 rounded-full border border-[#CDCDCD] bg-transparent px-2 py-0.5 text-[16px] leading-[23.8px] text-[#212121] [font-family:var(--clapout-font-heading)] hover:bg-[#F6F6F6] max-sm:min-h-10"
+          class="inline-flex cursor-pointer items-center gap-2.5 rounded-full border border-[#CDCDCD] dark:border-white/15 bg-transparent px-2 py-0.5 text-[16px] leading-[23.8px] text-[#212121] dark:text-white [font-family:var(--clapout-font-heading)] hover:bg-[#F6F6F6] dark:hover:bg-white/10 max-sm:min-h-10"
           (click)="back()"
         >
           <svg
             data-p-icon="chevron-left"
             [size]="14"
-            class="text-[#2D2D2D]"
+            class="text-[#2D2D2D] dark:text-white"
             aria-hidden="true"
           ></svg>
           Back
@@ -93,7 +93,7 @@
 
             @case ('error') {
               <h2
-                class="m-0 text-[18px] leading-[27px] font-semibold text-[#171A1C] lg:text-[23px] lg:leading-[35px]"
+                class="m-0 text-[18px] leading-[27px] font-semibold text-[#171A1C] dark:text-white lg:text-[23px] lg:leading-[35px]"
               >
                 Top earners
               </h2>
@@ -110,7 +110,7 @@
 
             @default {
               <h2
-                class="m-0 text-[18px] leading-[27px] font-semibold text-[#171A1C] lg:text-[23px] lg:leading-[35px]"
+                class="m-0 text-[18px] leading-[27px] font-semibold text-[#171A1C] dark:text-white lg:text-[23px] lg:leading-[35px]"
               >
                 Top earners
               </h2>
@@ -162,12 +162,12 @@
       @if (cameFromLanding) {
         <a
           [href]="landingCampaignsUrl"
-          class="inline-flex items-center gap-2.5 rounded-full border border-[#CDCDCD] px-3 py-0.5 text-[16px] leading-6 text-[#212121] no-underline hover:bg-[#F6F6F6] max-sm:min-h-10"
+          class="inline-flex items-center gap-2.5 rounded-full border border-[#CDCDCD] dark:border-white/15 px-3 py-0.5 text-[16px] leading-6 text-[#212121] dark:text-white no-underline hover:bg-[#F6F6F6] dark:hover:bg-white/10 max-sm:min-h-10"
         >
           <svg
             data-p-icon="chevron-left"
             [size]="14"
-            class="text-[#2D2D2D]"
+            class="text-[#2D2D2D] dark:text-white"
             aria-hidden="true"
           ></svg>
           Back
@@ -175,12 +175,12 @@
       } @else {
         <a
           routerLink="/campaigns"
-          class="inline-flex items-center gap-2.5 rounded-full border border-[#CDCDCD] px-3 py-0.5 text-[16px] leading-6 text-[#212121] no-underline hover:bg-[#F6F6F6] max-sm:min-h-10"
+          class="inline-flex items-center gap-2.5 rounded-full border border-[#CDCDCD] dark:border-white/15 px-3 py-0.5 text-[16px] leading-6 text-[#212121] dark:text-white no-underline hover:bg-[#F6F6F6] dark:hover:bg-white/10 max-sm:min-h-10"
         >
           <svg
             data-p-icon="chevron-left"
             [size]="14"
-            class="text-[#2D2D2D]"
+            class="text-[#2D2D2D] dark:text-white"
             aria-hidden="true"
           ></svg>
           Back
@@ -234,11 +234,13 @@
 
     @case ('not-found') {
       <section
-        class="rounded-[20px] border border-[#DDDDDD] bg-[#F8F8F8] p-10 text-center"
+        class="rounded-[20px] border border-[#DDDDDD] dark:border-white/10 bg-[#F8F8F8] dark:bg-white/5 p-10 text-center"
         [class]="bodyTopAltClass()"
       >
-        <h1 class="text-[24px] font-medium text-black/80 lg:text-[30px]">Campaign not found</h1>
-        <p class="mx-auto mt-3 max-w-md text-[16px] leading-6 text-[#464646]">
+        <h1 class="text-[24px] font-medium text-black/80 dark:text-white lg:text-[30px]">
+          Campaign not found
+        </h1>
+        <p class="mx-auto mt-3 max-w-md text-[16px] leading-6 text-[#464646] dark:text-white/80">
           No campaign matches &ldquo;{{ slug() }}&rdquo;. It may have been unpublished or the link
           may be out of date.
         </p>
@@ -252,12 +254,12 @@
 
     @case ('error') {
       <section
-        class="rounded-[20px] border border-[#DDDDDD] bg-[#F8F8F8] p-6"
+        class="rounded-[20px] border border-[#DDDDDD] dark:border-white/10 bg-[#F8F8F8] dark:bg-white/5 p-6"
         [class]="bodyTopAltClass()"
         aria-live="polite"
       >
         <p-message severity="error" [closable]="false">{{ errorMessage() }}</p-message>
-        <p class="mt-3 text-[16px] leading-6 text-[#464646]">
+        <p class="mt-3 text-[16px] leading-6 text-[#464646] dark:text-white/80">
           The campaigns service did not respond. You can retry without losing your place.
         </p>
         <p-button label="Try again" size="small" styleClass="mt-4" (onClick)="reload()" />
@@ -281,7 +283,7 @@
                 sizeClass="h-[42px] w-[42px] lg:h-[37px] lg:w-[37px]"
               />
               <span
-                class="co-user-text min-w-0 text-[20px] font-medium leading-6 text-[#5C5C61] lg:text-[18px]"
+                class="co-user-text min-w-0 text-[20px] font-medium leading-6 text-[#5C5C61] dark:text-white/80 lg:text-[18px]"
                 >{{ campaign.brand.name }}</span
               >
               <p-tag
@@ -292,14 +294,14 @@
             </div>
 
             <h1
-              class="co-user-text mt-[15px] text-[30px] font-medium leading-[41px] text-black/80 lg:mt-[7px] lg:text-[38px] lg:leading-[1.5]"
+              class="co-user-text mt-[15px] text-[30px] font-medium leading-[41px] text-black/80 dark:text-white lg:mt-[7px] lg:text-[38px] lg:leading-[1.5]"
             >
               {{ campaign.title || campaign.brand.name }}
             </h1>
 
             <p
               id="campaign-brief"
-              class="co-user-text mt-[15px] whitespace-pre-line text-[16px] leading-[23px] text-[#464646] lg:mt-[7px] lg:text-[18px] lg:leading-[26px]"
+              class="co-user-text mt-[15px] whitespace-pre-line text-[16px] leading-[23px] text-[#464646] dark:text-white/80 lg:mt-[7px] lg:text-[18px] lg:leading-[26px]"
               [class]="descriptionClampClass()"
             >
               {{ campaign.description }}
@@ -307,7 +309,7 @@
 
             <button
               type="button"
-              class="mt-[15px] inline-flex cursor-pointer items-center gap-2.5 rounded-full border-0 bg-[#F6F6F6] px-3 py-1 text-[16px] font-medium leading-6 text-[#383838] hover:bg-[#EFEFEF] max-sm:min-h-10 lg:mt-2.5 lg:text-[18px]"
+              class="mt-[15px] inline-flex cursor-pointer items-center gap-2.5 rounded-full border-0 bg-[#F6F6F6] dark:bg-white/5 px-3 py-1 text-[16px] font-medium leading-6 text-[#383838] dark:text-white/80 hover:bg-[#EFEFEF] dark:hover:bg-white/10 max-sm:min-h-10 lg:mt-2.5 lg:text-[18px]"
               aria-controls="campaign-brief"
               [attr.aria-expanded]="descriptionExpanded()"
               (click)="toggleDescription()"
@@ -327,16 +329,16 @@
                 <span class="flex flex-wrap items-center gap-3">
                   @for (tag of campaign.tags; track tag) {
                     <span
-                      class="co-user-text inline-flex items-center rounded-full bg-[#FFC93C] px-2.5 py-0.5 text-[16px] leading-6 text-[#383838] lg:text-[18px] lg:leading-[27px]"
+                      class="co-user-text inline-flex items-center rounded-full bg-[#FFC93C] px-2.5 py-0.5 text-[16px] leading-6 text-[#383838] dark:text-white/80 lg:text-[18px] lg:leading-[27px]"
                       >{{ tag }}</span
                     >
                   }
                 </span>
-                <span class="h-5 w-px bg-[#DCDCDC]" aria-hidden="true"></span>
+                <span class="h-5 w-px bg-[#DCDCDC] dark:bg-white/10" aria-hidden="true"></span>
               }
 
               <span
-                class="inline-flex items-center gap-1.5 rounded-full border border-[#E5E5E8] bg-white px-2 py-[3px] text-[16px] font-medium leading-[22px] text-[#EC612C]"
+                class="inline-flex items-center gap-1.5 rounded-full border border-[#E5E5E8] dark:border-white/10 bg-white dark:bg-[#161616] px-2 py-[3px] text-[16px] font-medium leading-[22px] text-[#EC612C]"
               >
                 <!-- The coin carries the campaign's own symbol; a "$" glyph beside a
                      cedi amount reads as a second, wrong currency. -->
@@ -351,8 +353,11 @@
 
               @if (campaign.platforms.length) {
                 <!-- The icons take their own row on the 380 board, where a rule would dangle. -->
-                <span class="hidden h-5 w-px bg-[#DCDCDC] lg:block" aria-hidden="true"></span>
-                <span class="flex items-center gap-3 text-[#151515]">
+                <span
+                  class="hidden h-5 w-px bg-[#DCDCDC] dark:bg-white/10 lg:block"
+                  aria-hidden="true"
+                ></span>
+                <span class="flex items-center gap-3 text-[#151515] dark:text-white">
                   @for (platform of campaign.platforms; track platform) {
                     <span class="inline-flex items-center">
                       @switch (platform) {
@@ -386,7 +391,7 @@
             </div>
 
             <div
-              class="mt-[15px] flex flex-wrap items-center gap-x-2.5 gap-y-2 text-[14px] leading-6 text-[#686868] lg:mt-[11px]"
+              class="mt-[15px] flex flex-wrap items-center gap-x-2.5 gap-y-2 text-[14px] leading-6 text-[#686868] dark:text-[#A3A3A3] lg:mt-[11px]"
             >
               <span
                 >Avg review time:
@@ -395,23 +400,28 @@
                 }}</span></span
               >
               @if (campaign.autoApproveRegistrations) {
-                <span class="h-5 w-px bg-[#DCDCDC]" aria-hidden="true"></span>
-                <span class="text-[#0C0C0C]">Instant approval</span>
+                <span class="h-5 w-px bg-[#DCDCDC] dark:bg-white/10" aria-hidden="true"></span>
+                <span class="text-[#0C0C0C] dark:text-white">Instant approval</span>
               }
-              <span class="h-5 w-px bg-[#DCDCDC]" aria-hidden="true"></span>
+              <span class="h-5 w-px bg-[#DCDCDC] dark:bg-white/10" aria-hidden="true"></span>
               <span
                 >Start date:
-                <span class="text-[#0C0C0C]">{{ formatDate(campaign.startDate) }}</span></span
+                <span class="text-[#0C0C0C] dark:text-white">{{
+                  formatDate(campaign.startDate)
+                }}</span></span
               >
-              <span class="h-5 w-px bg-[#DCDCDC]" aria-hidden="true"></span>
+              <span class="h-5 w-px bg-[#DCDCDC] dark:bg-white/10" aria-hidden="true"></span>
               <span
                 >End date:
-                <span class="text-[#0C0C0C]">{{ formatDate(campaign.endDate) }}</span></span
+                <span class="text-[#0C0C0C] dark:text-white">{{
+                  formatDate(campaign.endDate)
+                }}</span></span
               >
               @if (openCountdown(); as countdown) {
-                <span class="h-5 w-px bg-[#DCDCDC]" aria-hidden="true"></span>
+                <span class="h-5 w-px bg-[#DCDCDC] dark:bg-white/10" aria-hidden="true"></span>
                 <span
-                  >Opens in: <span class="text-[#0C0C0C]">{{ countdown }}</span></span
+                  >Opens in:
+                  <span class="text-[#0C0C0C] dark:text-white">{{ countdown }}</span></span
                 >
               }
             </div>
@@ -434,7 +444,7 @@
           </div>
         </div>
 
-        <hr class="mt-[51px] hidden border-t border-[#E2E2E2] lg:block" />
+        <hr class="mt-[51px] hidden border-t border-[#E2E2E2] dark:border-white/10 lg:block" />
 
         <!-- Money panel + long-form sections (Figma "Frame 142") -->
         <div
@@ -443,26 +453,28 @@
         >
           <div class="flex min-w-0 flex-col gap-2.5 lg:col-start-2 lg:row-start-1">
             <section
-              class="rounded-[20px] border border-[#DDDDDD] bg-[#F8F8F8] px-[21px] py-[22px]"
+              class="rounded-[20px] border border-[#DDDDDD] dark:border-white/10 bg-[#F8F8F8] dark:bg-white/5 px-[21px] py-[22px]"
               aria-labelledby="campaign-budget-heading"
             >
               <h2
                 id="campaign-budget-heading"
-                class="m-0 text-[18px] font-semibold leading-[27px] text-[#151515] lg:text-[22px] lg:leading-[33px]"
+                class="m-0 text-[18px] font-semibold leading-[27px] text-[#151515] dark:text-white lg:text-[22px] lg:leading-[33px]"
               >
                 {{ formatMoneyExact(campaign.currency, campaign.budgetTotal) }}
-                <span class="text-[#868686]">budget</span>
+                <span class="text-[#868686] dark:text-[#A3A3A3]">budget</span>
               </h2>
 
               @if (hasBudget(campaign.budgetTotal)) {
-                <div class="mt-[13px] h-[9px] w-full overflow-hidden rounded-full bg-white">
+                <div
+                  class="mt-[13px] h-[9px] w-full overflow-hidden rounded-full bg-white dark:bg-[#161616]"
+                >
                   <div
                     class="h-full rounded-full bg-gradient-to-r from-[#EC612C] to-[#FFC93C]"
                     [style.width.%]="budgetPercent(campaign.budgetSpent, campaign.budgetTotal)"
                   ></div>
                 </div>
                 <div
-                  class="mt-[18px] flex items-center justify-between gap-3 text-[16px] font-medium leading-5 text-[#585858] lg:text-[18px]"
+                  class="mt-[18px] flex items-center justify-between gap-3 text-[16px] font-medium leading-5 text-[#585858] dark:text-white/80 lg:text-[18px]"
                 >
                   <span
                     >{{ formatMoneyExact(campaign.currency, campaign.budgetSpent)
@@ -471,32 +483,44 @@
                   <span>{{ formatMoneyExact(campaign.currency, campaign.budgetTotal) }}</span>
                 </div>
               } @else {
-                <p class="m-0 mt-[13px] text-[14px] leading-6 text-[#7B7B7B]">
+                <p class="m-0 mt-[13px] text-[14px] leading-6 text-[#7B7B7B] dark:text-[#A3A3A3]">
                   The brand has not announced the budget for this campaign yet.
                 </p>
               }
             </section>
 
             <dl
-              class="m-0 divide-y divide-[#DDDDDD] overflow-hidden rounded-[20px] border border-[#DDDDDD] bg-[#F8F8F8]"
+              class="m-0 divide-y divide-[#DDDDDD] dark:divide-white/10 overflow-hidden rounded-[20px] border border-[#DDDDDD] dark:border-white/10 bg-[#F8F8F8] dark:bg-white/5"
             >
               <div class="flex min-h-[56px] items-center justify-between gap-4 px-[17px] py-[14px]">
-                <dt class="text-[15.8px] leading-7 whitespace-nowrap text-[#7F7F7F]">Category</dt>
-                <dd class="co-user-text m-0 text-right text-[15.8px] leading-7 text-[#272727]">
+                <dt
+                  class="text-[15.8px] leading-7 whitespace-nowrap text-[#7F7F7F] dark:text-[#A3A3A3]"
+                >
+                  Category
+                </dt>
+                <dd
+                  class="co-user-text m-0 text-right text-[15.8px] leading-7 text-[#272727] dark:text-white"
+                >
                   {{ campaign.category || notAnnounced }}
                 </dd>
               </div>
               <div class="flex min-h-[56px] items-center justify-between gap-4 px-[17px] py-[14px]">
-                <dt class="text-[15.8px] leading-7 whitespace-nowrap text-[#7F7F7F]">
+                <dt
+                  class="text-[15.8px] leading-7 whitespace-nowrap text-[#7F7F7F] dark:text-[#A3A3A3]"
+                >
                   Start - End date
                 </dt>
-                <dd class="m-0 text-right text-[15.8px] leading-7 text-[#272727]">
+                <dd class="m-0 text-right text-[15.8px] leading-7 text-[#272727] dark:text-white">
                   {{ dateRangeLabel(campaign) }}
                 </dd>
               </div>
               <div class="flex min-h-[56px] items-center justify-between gap-4 px-[17px] py-[14px]">
-                <dt class="text-[15.8px] leading-7 whitespace-nowrap text-[#7F7F7F]">Platforms</dt>
-                <dd class="m-0 flex items-center gap-3 text-[#151515]">
+                <dt
+                  class="text-[15.8px] leading-7 whitespace-nowrap text-[#7F7F7F] dark:text-[#A3A3A3]"
+                >
+                  Platforms
+                </dt>
+                <dd class="m-0 flex items-center gap-3 text-[#151515] dark:text-white">
                   @if (campaign.platforms.length) {
                     @for (platform of campaign.platforms; track platform) {
                       @switch (platform) {
@@ -525,17 +549,20 @@
                     }
                     <span class="sr-only">{{ platformSummary(campaign) }}</span>
                   } @else {
-                    <span class="text-right text-[15.8px] leading-7 text-[#272727]">{{
-                      platformSummary(campaign)
-                    }}</span>
+                    <span
+                      class="text-right text-[15.8px] leading-7 text-[#272727] dark:text-white"
+                      >{{ platformSummary(campaign) }}</span
+                    >
                   }
                 </dd>
               </div>
               <div class="flex min-h-[56px] items-center justify-between gap-4 px-[17px] py-[14px]">
-                <dt class="text-[15.8px] leading-7 whitespace-nowrap text-[#7F7F7F]">
+                <dt
+                  class="text-[15.8px] leading-7 whitespace-nowrap text-[#7F7F7F] dark:text-[#A3A3A3]"
+                >
                   Last updated
                 </dt>
-                <dd class="m-0 text-right text-[15.8px] leading-7 text-[#272727]">
+                <dd class="m-0 text-right text-[15.8px] leading-7 text-[#272727] dark:text-white">
                   {{ formatDate(campaign.updatedAt) }}
                 </dd>
               </div>
@@ -548,7 +575,7 @@
                 [fluid]="true"
                 [styleClass]="ctaClass"
               />
-              <p class="m-0 text-center text-[14px] leading-6 text-[#7B7B7B]">
+              <p class="m-0 text-center text-[14px] leading-6 text-[#7B7B7B] dark:text-[#A3A3A3]">
                 Registration opens {{ formatDateTime(campaign.startDate) }}.
               </p>
             } @else if (canSubmitContent()) {
@@ -569,16 +596,20 @@
                   class="flex h-10 w-full items-center justify-center rounded-xl bg-[#EC612C] text-[18px] font-medium text-white no-underline"
                   >Submit content</a
                 >
-                <p class="m-0 text-center text-[14px] leading-6 text-[#7B7B7B]">
+                <p class="m-0 text-center text-[14px] leading-6 text-[#7B7B7B] dark:text-[#A3A3A3]">
                   You are accepted on this campaign — paste the link to a clip you posted.
                 </p>
               }
             } @else if (existingRegistration(); as registration) {
-              <div class="rounded-[20px] border border-[#DDDDDD] bg-[#F8F8F8] p-5 text-center">
-                <p class="m-0 text-[18px] font-medium text-[#151515]">Already applied</p>
-                <p class="m-0 mt-1 text-[14px] leading-6 text-[#585858]">
+              <div
+                class="rounded-[20px] border border-[#DDDDDD] dark:border-white/10 bg-[#F8F8F8] dark:bg-white/5 p-5 text-center"
+              >
+                <p class="m-0 text-[18px] font-medium text-[#151515] dark:text-white">
+                  Already applied
+                </p>
+                <p class="m-0 mt-1 text-[14px] leading-6 text-[#585858] dark:text-white/80">
                   Your application is
-                  <span class="font-medium text-[#272727]">{{
+                  <span class="font-medium text-[#272727] dark:text-white">{{
                     registrationStatusLabel(registration.status)
                   }}</span
                   >.
@@ -596,7 +627,7 @@
                 [fluid]="true"
                 [styleClass]="ctaClass"
               />
-              <p class="m-0 text-center text-[14px] leading-6 text-[#7B7B7B]">
+              <p class="m-0 text-center text-[14px] leading-6 text-[#7B7B7B] dark:text-[#A3A3A3]">
                 This campaign is no longer accepting new creators.
               </p>
             } @else {
@@ -607,7 +638,7 @@
                 (onClick)="register()"
               />
               @if (!isSignedIn()) {
-                <p class="m-0 text-center text-[14px] leading-6 text-[#7B7B7B]">
+                <p class="m-0 text-center text-[14px] leading-6 text-[#7B7B7B] dark:text-[#A3A3A3]">
                   You will create a free creator account first - it takes under a minute.
                 </p>
               }
@@ -618,12 +649,14 @@
             <section aria-labelledby="campaign-requirements-heading">
               <h2
                 id="campaign-requirements-heading"
-                class="m-0 text-[18px] font-medium leading-6 text-[#383838]"
+                class="m-0 text-[18px] font-medium leading-6 text-[#383838] dark:text-white/80"
               >
                 Requirements
               </h2>
-              <p class="m-0 mt-2.5 text-[14px] leading-6 text-[#7A7A7A]">Content Requirements</p>
-              <p class="m-0 mt-0.5 text-[16px] leading-6 text-[#464646]">
+              <p class="m-0 mt-2.5 text-[14px] leading-6 text-[#7A7A7A] dark:text-[#A3A3A3]">
+                Content Requirements
+              </p>
+              <p class="m-0 mt-0.5 text-[16px] leading-6 text-[#464646] dark:text-white/80">
                 <!-- Brands paste WhatsApp invites and Drive links into this note, so the
                      bare URLs are rendered as real links rather than dead text. -->
                 <app-linkified-text
@@ -637,7 +670,7 @@
                 <!-- The materials stay sealed until the countdown ends; the API
                      withholds the URL too, so this is the honest state. -->
                 <p
-                  class="m-0 mt-2 inline-flex items-center gap-2 text-[16px] leading-6 text-[#909090]"
+                  class="m-0 mt-2 inline-flex items-center gap-2 text-[16px] leading-6 text-[#909090] dark:text-[#A3A3A3]"
                 >
                   <svg data-p-icon="lock" [size]="14" aria-hidden="true"></svg>
                   The campaign brief unlocks when the campaign opens.
@@ -658,21 +691,23 @@
             <section class="mt-[34px]" aria-labelledby="campaign-resources-heading">
               <h2
                 id="campaign-resources-heading"
-                class="m-0 text-[18px] font-medium leading-6 text-[#383838]"
+                class="m-0 text-[18px] font-medium leading-6 text-[#383838] dark:text-white/80"
               >
                 Resources
               </h2>
               @if (isUpcoming()) {
                 <div
-                  class="mt-2.5 w-full max-w-[254px] rounded-[10px] border border-[#DDDDDD] bg-[#F8F8F8] px-[15px] py-[9px]"
+                  class="mt-2.5 w-full max-w-[254px] rounded-[10px] border border-[#DDDDDD] dark:border-white/10 bg-[#F8F8F8] dark:bg-white/5 px-[15px] py-[9px]"
                 >
                   <p
-                    class="co-user-text m-0 flex items-center gap-2 text-[16px] leading-6 text-[#464646]"
+                    class="co-user-text m-0 flex items-center gap-2 text-[16px] leading-6 text-[#464646] dark:text-white/80"
                   >
                     <svg data-p-icon="lock" [size]="14" aria-hidden="true"></svg>
                     {{ campaign.resourceLabel || 'Campaign resource' }}
                   </p>
-                  <p class="m-0 mt-[11px] text-[14px] leading-[17px] text-[#909090]">
+                  <p
+                    class="m-0 mt-[11px] text-[14px] leading-[17px] text-[#909090] dark:text-[#A3A3A3]"
+                  >
                     Unlocks when the campaign opens
                   </p>
                 </div>
@@ -681,11 +716,11 @@
                   [href]="campaign.resourceUrl"
                   target="_blank"
                   rel="noopener noreferrer"
-                  class="mt-2.5 block w-full max-w-[254px] rounded-[10px] border border-[#DDDDDD] bg-[#F8F8F8] px-[15px] py-[9px] no-underline hover:bg-[#F2F2F2]"
+                  class="mt-2.5 block w-full max-w-[254px] rounded-[10px] border border-[#DDDDDD] dark:border-white/10 bg-[#F8F8F8] dark:bg-white/5 px-[15px] py-[9px] no-underline hover:bg-[#F2F2F2] dark:hover:bg-white/10"
                 >
                   <span class="flex items-center justify-between gap-3">
                     <span
-                      class="co-user-text flex min-w-0 items-center gap-2 text-[16px] leading-6 text-[#464646]"
+                      class="co-user-text flex min-w-0 items-center gap-2 text-[16px] leading-6 text-[#464646] dark:text-white/80"
                     >
                       <svg data-p-icon="link" [size]="14" aria-hidden="true"></svg>
                       {{ campaign.resourceLabel || 'Campaign resource' }}
@@ -693,27 +728,32 @@
                     <svg
                       data-p-icon="external-link"
                       [size]="14"
-                      class="shrink-0 text-[#464646]"
+                      class="shrink-0 text-[#464646] dark:text-white/80"
                       aria-hidden="true"
                     ></svg>
                   </span>
-                  <span class="mt-[11px] block text-[14px] leading-[17px] text-[#909090]"
+                  <span
+                    class="mt-[11px] block text-[14px] leading-[17px] text-[#909090] dark:text-[#A3A3A3]"
                     >Resource</span
                   >
                 </a>
               } @else if (campaign.resourceLabel) {
                 <div
-                  class="mt-2.5 w-full max-w-[254px] rounded-[10px] border border-[#DDDDDD] bg-[#F8F8F8] px-[15px] py-[9px]"
+                  class="mt-2.5 w-full max-w-[254px] rounded-[10px] border border-[#DDDDDD] dark:border-white/10 bg-[#F8F8F8] dark:bg-white/5 px-[15px] py-[9px]"
                 >
-                  <p class="co-user-text m-0 text-[16px] leading-6 text-[#464646]">
+                  <p
+                    class="co-user-text m-0 text-[16px] leading-6 text-[#464646] dark:text-white/80"
+                  >
                     {{ campaign.resourceLabel }}
                   </p>
-                  <p class="m-0 mt-[11px] text-[14px] leading-[17px] text-[#909090]">
+                  <p
+                    class="m-0 mt-[11px] text-[14px] leading-[17px] text-[#909090] dark:text-[#A3A3A3]"
+                  >
                     Link coming soon
                   </p>
                 </div>
               } @else {
-                <p class="m-0 mt-2.5 text-[16px] leading-6 text-[#909090]">
+                <p class="m-0 mt-2.5 text-[16px] leading-6 text-[#909090] dark:text-[#A3A3A3]">
                   No resources shared for this campaign.
                 </p>
               }

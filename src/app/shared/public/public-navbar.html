@@ -13,7 +13,7 @@
   <div class="relative w-full md:w-[calc(100%-190px)] md:max-w-[1537px]">
     <nav
       aria-label="Primary"
-      class="flex items-center justify-between gap-4 rounded-full border border-black/5 bg-white/95 px-5 py-2.5 shadow-sm backdrop-blur md:px-6 md:py-3"
+      class="flex items-center justify-between gap-4 rounded-full border border-black/5 dark:border-white/10 bg-white/95 dark:bg-[#161616]/95 px-5 py-2.5 shadow-sm backdrop-blur md:px-6 md:py-3"
     >
       <!-- The logo always goes home — the marketing site's home. -->
       <a [href]="landingUrl" class="flex shrink-0 items-center gap-2" aria-label="ClapOut home">
@@ -30,7 +30,7 @@
         <div class="group relative">
           <a
             [href]="landingUrl + '/#how-it-works'"
-            class="-mx-3 -my-1.5 flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm text-[#111111]/80 no-underline transition-colors group-hover:bg-black/5 group-hover:text-[#111111] group-focus-within:bg-black/5 group-focus-within:text-[#111111]"
+            class="-mx-3 -my-1.5 flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm text-[#111111]/80 dark:text-white/80 no-underline transition-colors group-hover:bg-black/5 group-hover:text-[#111111] group-focus-within:bg-black/5 group-focus-within:text-[#111111]"
           >
             Product
             <svg
@@ -44,20 +44,20 @@
             class="invisible absolute top-full left-1/2 w-72 -translate-x-1/2 pt-3 opacity-0 transition-opacity duration-200 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100"
           >
             <div
-              class="flex flex-col gap-1 rounded-2xl border border-black/5 bg-white p-2 shadow-lg"
+              class="flex flex-col gap-1 rounded-2xl border border-black/5 dark:border-white/10 bg-white dark:bg-[#161616] p-2 shadow-lg"
             >
               @for (link of productLinks; track link.href) {
                 @if (isInternal(link.href)) {
                   <a
                     [routerLink]="link.href"
-                    class="flex items-start gap-3 rounded-xl p-2.5 no-underline transition-colors hover:bg-black/5"
+                    class="flex items-start gap-3 rounded-xl p-2.5 no-underline transition-colors hover:bg-black/5 dark:hover:bg-white/10"
                   >
                     <ng-container *ngTemplateOutlet="productCard; context: { $implicit: link }" />
                   </a>
                 } @else {
                   <a
                     [href]="link.href"
-                    class="flex items-start gap-3 rounded-xl p-2.5 no-underline transition-colors hover:bg-black/5"
+                    class="flex items-start gap-3 rounded-xl p-2.5 no-underline transition-colors hover:bg-black/5 dark:hover:bg-white/10"
                   >
                     <ng-container *ngTemplateOutlet="productCard; context: { $implicit: link }" />
                   </a>
@@ -70,17 +70,17 @@
         <a
           routerLink="/campaigns"
           routerLinkActive="!text-[#EC612C]"
-          class="flex items-center gap-1 text-sm text-[#111111]/80 no-underline transition-colors hover:text-[#111111]"
+          class="flex items-center gap-1 text-sm text-[#111111]/80 dark:text-white/80 no-underline transition-colors hover:text-[#111111] dark:hover:text-white"
           >Campaigns</a
         >
         <a
           [href]="contactUrl"
-          class="flex items-center gap-1 text-sm text-[#111111]/80 no-underline transition-colors hover:text-[#111111]"
+          class="flex items-center gap-1 text-sm text-[#111111]/80 dark:text-white/80 no-underline transition-colors hover:text-[#111111] dark:hover:text-white"
           >Contact</a
         >
         <button
           type="button"
-          class="flex cursor-pointer items-center gap-1.5 border-0 bg-transparent p-0 text-sm text-[#111111]/80 transition-colors hover:text-[#111111] [font-family:inherit]"
+          class="flex cursor-pointer items-center gap-1.5 border-0 bg-transparent p-0 text-sm text-[#111111]/80 dark:text-white/80 transition-colors hover:text-[#111111] dark:hover:text-white [font-family:inherit]"
           (click)="communityOpen.set(true)"
         >
           Join our Community
@@ -118,13 +118,13 @@
     <!-- The phone panel drops out of the pill, exactly as on the landing site. -->
     @if (mobileOpen()) {
       <div
-        class="absolute inset-x-0 top-[calc(100%+8px)] z-50 rounded-3xl border border-black/5 bg-white p-4 shadow-sm md:hidden"
+        class="absolute inset-x-0 top-[calc(100%+8px)] z-50 rounded-3xl border border-black/5 dark:border-white/10 bg-white dark:bg-[#161616] p-4 shadow-sm md:hidden"
       >
         <nav aria-label="Primary" class="flex flex-col gap-4">
           <div>
             <button
               type="button"
-              class="flex w-full cursor-pointer items-center justify-between border-0 bg-transparent p-0 text-sm text-[#111111] [font-family:inherit]"
+              class="flex w-full cursor-pointer items-center justify-between border-0 bg-transparent p-0 text-sm text-[#111111] dark:text-white [font-family:inherit]"
               [attr.aria-expanded]="mobileProductOpen()"
               (click)="mobileProductOpen.set(!mobileProductOpen())"
             >
@@ -143,7 +143,7 @@
                   @if (isInternal(link.href)) {
                     <a
                       [routerLink]="link.href"
-                      class="flex items-center gap-3 rounded-xl p-2 no-underline transition-colors hover:bg-black/5"
+                      class="flex items-center gap-3 rounded-xl p-2 no-underline transition-colors hover:bg-black/5 dark:hover:bg-white/10"
                       (click)="closeMobile()"
                     >
                       <ng-container
@@ -153,7 +153,7 @@
                   } @else {
                     <a
                       [href]="link.href"
-                      class="flex items-center gap-3 rounded-xl p-2 no-underline transition-colors hover:bg-black/5"
+                      class="flex items-center gap-3 rounded-xl p-2 no-underline transition-colors hover:bg-black/5 dark:hover:bg-white/10"
                       (click)="closeMobile()"
                     >
                       <ng-container
@@ -168,19 +168,19 @@
           <a
             routerLink="/campaigns"
             routerLinkActive="!text-[#EC612C]"
-            class="flex items-center justify-between text-sm text-[#111111] no-underline"
+            class="flex items-center justify-between text-sm text-[#111111] dark:text-white no-underline"
             (click)="closeMobile()"
             >Campaigns</a
           >
           <a
             [href]="contactUrl"
-            class="flex items-center justify-between text-sm text-[#111111] no-underline"
+            class="flex items-center justify-between text-sm text-[#111111] dark:text-white no-underline"
             (click)="closeMobile()"
             >Contact</a
           >
           <button
             type="button"
-            class="flex cursor-pointer items-center gap-2 border-0 bg-transparent p-0 text-sm text-[#111111] [font-family:inherit]"
+            class="flex cursor-pointer items-center gap-2 border-0 bg-transparent p-0 text-sm text-[#111111] dark:text-white [font-family:inherit]"
             (click)="closeMobile(); communityOpen.set(true)"
           >
             <svg data-p-icon="whatsapp" [size]="16" class="text-[#25D366]" aria-hidden="true"></svg>
@@ -209,7 +209,7 @@
 <!-- One Product entry: icon tile, label, one-line description. -->
 <ng-template #productCard let-link let-compact="compact">
   <span
-    class="flex shrink-0 items-center justify-center rounded-xl border border-[#DDDDDD] bg-white text-[#111111]"
+    class="flex shrink-0 items-center justify-center rounded-xl border border-[#DDDDDD] dark:border-white/10 bg-white dark:bg-[#161616] text-[#111111] dark:text-white"
     [class]="compact ? 'h-9 w-9' : 'h-10 w-10'"
     aria-hidden="true"
   >
@@ -250,10 +250,11 @@
     }
   </span>
   <span>
-    <span class="block text-sm font-medium text-black/80">{{ link.label }}</span>
-    <span class="block text-xs text-[#464646] [font-family:var(--clapout-font-body)]">{{
-      link.description
-    }}</span>
+    <span class="block text-sm font-medium text-black/80 dark:text-white">{{ link.label }}</span>
+    <span
+      class="block text-xs text-[#464646] dark:text-white/80 [font-family:var(--clapout-font-body)]"
+      >{{ link.description }}</span
+    >
   </span>
 </ng-template>
 
@@ -271,12 +272,12 @@
       role="dialog"
       aria-modal="true"
       aria-label="Join the Clapout WhatsApp community"
-      class="relative w-full max-w-md rounded-3xl bg-white p-6 text-center shadow-2xl sm:p-8"
+      class="relative w-full max-w-md rounded-3xl bg-white dark:bg-[#161616] p-6 text-center shadow-2xl sm:p-8"
     >
       <button
         type="button"
         aria-label="Close"
-        class="absolute top-4 right-4 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border-0 bg-transparent text-[#111111] transition-colors hover:bg-black/5"
+        class="absolute top-4 right-4 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border-0 bg-transparent text-[#111111] dark:text-white transition-colors hover:bg-black/5 dark:hover:bg-white/10"
         (click)="communityOpen.set(false)"
       >
         <svg data-p-icon="times" [size]="18" aria-hidden="true"></svg>
@@ -298,20 +299,24 @@
         </svg>
       </div>
 
-      <h2 class="mt-5 mb-0 text-xl font-semibold text-black/80">
+      <h2 class="mt-5 mb-0 text-xl font-semibold text-black/80 dark:text-white">
         Join the Clapout Creators Community
       </h2>
-      <p class="mt-1 mb-0 text-sm text-[#464646] [font-family:var(--clapout-font-body)]">
+      <p
+        class="mt-1 mb-0 text-sm text-[#464646] dark:text-white/80 [font-family:var(--clapout-font-body)]"
+      >
         Connect with paid brand campaigns, grow your reach, and earn from your content.
       </p>
-      <p class="mt-4 mb-0 text-sm font-medium text-black/80">
+      <p class="mt-4 mb-0 text-sm font-medium text-black/80 dark:text-white">
         Become a Clapout creator and start earning from the content you post.
       </p>
 
-      <div class="mt-4 rounded-2xl border border-[#DDDDDD] bg-black/[0.03] p-4 text-left">
+      <div
+        class="mt-4 rounded-2xl border border-[#DDDDDD] dark:border-white/10 bg-black/[0.03] dark:bg-white/5 p-4 text-left"
+      >
         @for (item of communityPoints; track item) {
           <p
-            class="m-0 flex items-start gap-2 py-1 text-sm text-black/80 [font-family:var(--clapout-font-body)]"
+            class="m-0 flex items-start gap-2 py-1 text-sm text-black/80 dark:text-white [font-family:var(--clapout-font-body)]"
           >
             <span
               class="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-[#1F7A1F]"
@@ -347,3 +352,50 @@
     </div>
   </div>
 }
+
+<!-- The landing site's floating theme toggle, bottom-right on every public page. -->
+<button
+  type="button"
+  class="fixed z-[60] flex h-11 w-11 cursor-pointer items-center justify-center rounded-full border border-[#DDDDDD] bg-white text-[#111111] shadow-lg shadow-black/10 transition-colors hover:bg-black/5 dark:border-white/10 dark:bg-[#161616] dark:text-white dark:shadow-black/40 dark:hover:bg-white/10"
+  style="
+    bottom: max(1.25rem, env(safe-area-inset-bottom));
+    right: max(1.25rem, env(safe-area-inset-right));
+  "
+  [attr.aria-label]="theme.isDark() ? 'Switch to light mode' : 'Switch to dark mode'"
+  (click)="theme.toggle()"
+>
+  @if (theme.isDark()) {
+    <!-- lucide "sun" -->
+    <svg
+      viewBox="0 0 24 24"
+      width="18"
+      height="18"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="12" r="4" />
+      <path
+        d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"
+      />
+    </svg>
+  } @else {
+    <!-- lucide "moon" -->
+    <svg
+      viewBox="0 0 24 24"
+      width="18"
+      height="18"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
+    </svg>
+  }
+</button>

@@ -1,10 +1,11 @@
 import { NgTemplateOutlet } from '@angular/common';
-import { Component, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { Bars } from '@primeicons/angular/bars';
 import { ChevronDown } from '@primeicons/angular/chevron-down';
 import { Times } from '@primeicons/angular/times';
 import { Whatsapp } from '@primeicons/angular/whatsapp';
+import { ThemeService } from '../../core/theme/theme-service';
 import { COMMUNITY_URL } from '../creator/onboarding-stepper';
 import { LANDING_CONTACT_URL, LANDING_SITE_URL, PRODUCT_LINKS } from './public-links';
 
@@ -37,8 +38,11 @@ export class PublicNavbar {
     'Earn money from your content',
   ];
 
-  protected readonly outlineButtonClass = `${BUTTON_BASE} border-[#CFCFCF] bg-transparent text-[#111111] hover:bg-black/5 active:bg-black/10`;
-  protected readonly orangeButtonClass = `${BUTTON_BASE} border-[#CFCFCF] bg-[#EC612C] text-white hover:bg-[#d4551f] active:bg-[#bf4c1c]`;
+  protected readonly outlineButtonClass = `${BUTTON_BASE} border-[#CFCFCF] bg-transparent text-[#111111] hover:bg-black/5 active:bg-black/10 dark:border-white/20 dark:text-white dark:hover:bg-white/10 dark:active:bg-white/15`;
+  protected readonly orangeButtonClass = `${BUTTON_BASE} border-[#CFCFCF] bg-[#EC612C] text-white hover:bg-[#d4551f] active:bg-[#bf4c1c] dark:border-white/20`;
+
+  /** Light/dark, shared with clapoutcreators.com through a cookie. */
+  protected readonly theme = inject(ThemeService);
 
   protected readonly mobileOpen = signal(false);
   protected readonly mobileProductOpen = signal(false);

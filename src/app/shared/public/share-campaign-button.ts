@@ -13,14 +13,14 @@ import { DialogModule } from 'primeng/dialog';
 export type ShareVariant = 'pill' | 'dark' | 'text' | 'icon' | 'secondary' | 'block';
 
 const VARIANT_CLASSES: Record<ShareVariant, string> = {
-  pill: 'gap-2.5 rounded-full border border-[#D7D7D7] bg-white px-3 py-1 text-[16px] leading-6 text-[#212121] hover:bg-[#F6F6F6]',
+  pill: 'gap-2.5 rounded-full border border-[#D7D7D7] dark:border-white/15 bg-white dark:bg-[#161616] px-3 py-1 text-[16px] leading-6 text-[#212121] dark:text-white hover:bg-[#F6F6F6] dark:hover:bg-white/10',
   dark: 'gap-2.5 rounded-full bg-black px-2 py-0.5 text-[16px] leading-[23.8px] text-white [font-family:var(--clapout-font-heading)] hover:bg-[#242424] lg:px-3.5 lg:py-1',
-  text: 'gap-1.5 rounded-full border border-[#DDDDDD] bg-white px-2.5 py-1 text-[13.13px] leading-[17.07px] font-medium text-[#525252] hover:bg-[#F1F1F1]',
-  icon: 'h-9 w-9 justify-center rounded-full border border-[#D7D7D7] bg-white text-[#212121] hover:bg-[#F6F6F6]',
+  text: 'gap-1.5 rounded-full border border-[#DDDDDD] dark:border-white/10 bg-white dark:bg-[#161616] px-2.5 py-1 text-[13.13px] leading-[17.07px] font-medium text-[#525252] dark:text-white/80 hover:bg-[#F1F1F1] dark:hover:bg-white/10',
+  icon: 'h-9 w-9 justify-center rounded-full border border-[#D7D7D7] dark:border-white/15 bg-white dark:bg-[#161616] text-[#212121] dark:text-white hover:bg-[#F6F6F6] dark:hover:bg-white/10',
   secondary:
-    'gap-2 rounded-lg border border-[#ECECEC] bg-[#ECECEC] px-4 py-2.5 text-sm text-[#525252] hover:bg-[#E2E2E2]',
+    'gap-2 rounded-lg border border-[#ECECEC] dark:border-white/10 bg-[#ECECEC] dark:bg-white/5 px-4 py-2.5 text-sm text-[#525252] dark:text-white/80 hover:bg-[#E2E2E2] dark:hover:bg-white/10',
   block:
-    'h-[52px] w-full justify-center gap-2.5 rounded-xl border border-[#B4B4B4] bg-white text-[20px] text-[#151515] hover:bg-[#F6F6F6]',
+    'h-[52px] w-full justify-center gap-2.5 rounded-xl border border-[#B4B4B4] dark:border-white/20 bg-white dark:bg-[#161616] text-[20px] text-[#151515] dark:text-white hover:bg-[#F6F6F6] dark:hover:bg-white/10',
 };
 
 /** The public page a campaign is shared to, e.g. `https://host/campaigns/e-wale`. */
@@ -80,9 +80,9 @@ export function campaignShareUrlWithSuffix(origin: string, slug: string, suffix 
       [visible]="fallbackOpen()"
       (visibleChange)="fallbackOpen.set($event)"
     >
-      <p class="m-0 text-sm text-surface-600">{{ dialogDescription() }}</p>
+      <p class="m-0 text-sm text-surface-600 dark:text-[#A3A3A3]">{{ dialogDescription() }}</p>
       <input
-        class="co-user-text mt-3 w-full rounded-lg border border-surface-300 bg-surface-50 px-3 py-2 text-sm text-surface-800"
+        class="co-user-text mt-3 w-full rounded-lg border border-surface-300 bg-surface-50 px-3 py-2 text-sm text-surface-800 dark:text-white"
         readonly
         [value]="shareUrl()"
         aria-label="Campaign link"

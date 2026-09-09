@@ -6,16 +6,16 @@
   with the 56x46 filter button pinned right, and 358x361 cards on a 10/18px grid.
 -->
 <main
-  class="mx-auto w-full max-w-[1728px] bg-white px-4 pb-20 pt-6 sm:px-6 lg:px-10 xl:px-[120px] xl:pb-[140px] xl:pt-[50px]"
+  class="mx-auto w-full max-w-[1728px] bg-white dark:bg-[#0C0C0C] px-4 pb-20 pt-6 sm:px-6 lg:px-10 xl:px-[120px] xl:pb-[140px] xl:pt-[50px]"
 >
   <header class="text-center">
     <h1
-      class="m-0 text-[20px] font-medium leading-[30px] text-black/80 xl:text-[31px] xl:leading-[47px]"
+      class="m-0 text-[20px] font-medium leading-[30px] text-black/80 dark:text-white xl:text-[31px] xl:leading-[47px]"
     >
       Campaigns
     </h1>
     <p
-      class="mx-auto mb-0 mt-0.5 max-w-[331px] text-[16px] leading-[19px] text-[#464646] xl:mt-0 xl:max-w-none xl:text-[22px] xl:leading-[30px]"
+      class="mx-auto mb-0 mt-0.5 max-w-[331px] text-[16px] leading-[19px] text-[#464646] dark:text-white/80 xl:mt-0 xl:max-w-none xl:text-[22px] xl:leading-[30px]"
     >
       Discover active campaigns from this Content Rewards community
     </p>
@@ -24,12 +24,12 @@
   <div class="mt-[21px] flex items-center justify-between gap-[18px] xl:mt-[41px]">
     <label class="sr-only" for="campaign-search">Search campaigns</label>
     <div
-      class="flex h-[46px] min-w-0 flex-1 items-center gap-[10px] rounded-[10px] border border-[#DDDDDD] bg-[#F4F4F4] px-[15px] xl:max-w-[464px]"
+      class="flex h-[46px] min-w-0 flex-1 items-center gap-[10px] rounded-[10px] border border-[#DDDDDD] dark:border-white/10 bg-[#F4F4F4] dark:bg-white/5 px-[15px] xl:max-w-[464px]"
     >
       <svg
         data-p-icon="search"
         [size]="18"
-        class="shrink-0 text-[#525252]"
+        class="shrink-0 text-[#525252] dark:text-white/80"
         aria-hidden="true"
       ></svg>
       <input
@@ -37,7 +37,7 @@
         type="search"
         autocomplete="off"
         placeholder="Search campaign.."
-        class="h-full w-full min-w-0 border-0 bg-transparent p-0 text-[16px] text-[#383838] outline-none placeholder:text-[#919191] xl:text-[20px]"
+        class="h-full w-full min-w-0 border-0 bg-transparent p-0 text-[16px] text-[#383838] dark:text-white/80 outline-none placeholder:text-[#919191] xl:text-[20px]"
         [value]="searchTerm()"
         (input)="onSearch($any($event.target).value)"
       />
@@ -45,7 +45,7 @@
 
     <button
       type="button"
-      class="relative flex h-[46px] w-[56px] shrink-0 cursor-pointer items-center justify-center rounded-[10px] border border-[#DDDDDD] bg-[#F4F4F4] text-[#525252] transition-colors hover:bg-[#ECECEC]"
+      class="relative flex h-[46px] w-[56px] shrink-0 cursor-pointer items-center justify-center rounded-[10px] border border-[#DDDDDD] dark:border-white/10 bg-[#F4F4F4] dark:bg-white/5 text-[#525252] dark:text-white/80 transition-colors hover:bg-[#ECECEC] dark:hover:bg-white/10"
       [attr.aria-label]="filterButtonLabel()"
       aria-haspopup="dialog"
       [attr.aria-expanded]="filtersOpen()"
@@ -71,7 +71,9 @@
   <p-popover #filterPanel (onShow)="filtersOpen.set(true)" (onHide)="filtersOpen.set(false)">
     <div class="w-[248px]">
       <fieldset class="m-0 border-0 p-0">
-        <legend class="mb-2 p-0 text-xs font-semibold uppercase tracking-wide text-[#8C8C94]">
+        <legend
+          class="mb-2 p-0 text-xs font-semibold uppercase tracking-wide text-[#8C8C94] dark:text-[#A3A3A3]"
+        >
           Status
         </legend>
         <div class="flex flex-col gap-2">
@@ -84,16 +86,20 @@
                 [ngModel]="isStatusSelected(option.value)"
                 (ngModelChange)="toggleStatus(option.value, $event)"
               />
-              <label class="text-sm text-surface-700" [for]="'filter-status-' + option.value">{{
-                option.label
-              }}</label>
+              <label
+                class="text-sm text-surface-700 dark:text-white/80"
+                [for]="'filter-status-' + option.value"
+                >{{ option.label }}</label
+              >
             </div>
           }
         </div>
       </fieldset>
 
       <fieldset class="m-0 mt-4 border-0 p-0">
-        <legend class="mb-2 p-0 text-xs font-semibold uppercase tracking-wide text-[#8C8C94]">
+        <legend
+          class="mb-2 p-0 text-xs font-semibold uppercase tracking-wide text-[#8C8C94] dark:text-[#A3A3A3]"
+        >
           Platform
         </legend>
         <div class="flex flex-col gap-2">
@@ -106,9 +112,11 @@
                 [ngModel]="isPlatformSelected(option.value)"
                 (ngModelChange)="togglePlatform(option.value, $event)"
               />
-              <label class="text-sm text-surface-700" [for]="'filter-platform-' + option.value">{{
-                option.label
-              }}</label>
+              <label
+                class="text-sm text-surface-700 dark:text-white/80"
+                [for]="'filter-platform-' + option.value"
+                >{{ option.label }}</label
+              >
             </div>
           }
         </div>
@@ -127,7 +135,7 @@
 
   @if (state() !== 'error') {
     <h2
-      class="mb-0 mt-[26px] text-[18px] font-semibold text-black/80 xl:mt-[60px] xl:text-[24px]"
+      class="mb-0 mt-[26px] text-[18px] font-semibold text-black/80 dark:text-white xl:mt-[60px] xl:text-[24px]"
       id="featured-campaigns"
     >
       Featured campaigns
@@ -144,7 +152,7 @@
         <span class="sr-only">Loading campaigns</span>
         @for (row of skeletonRows; track row) {
           <div
-            class="rounded-[15.5px] border border-[#E5E5E8] bg-white pb-[9.7px] pl-[3.9px] pr-[3.9px] pt-[3.2px]"
+            class="rounded-[15.5px] border border-[#E5E5E8] dark:border-white/10 bg-white dark:bg-[#161616] pb-[9.7px] pl-[3.9px] pr-[3.9px] pt-[3.2px]"
           >
             <div class="aspect-[350/192] w-full overflow-hidden rounded-[16.5px]">
               <p-skeleton width="100%" height="100%" borderRadius="16.5px" />
@@ -162,9 +170,11 @@
     }
 
     @case ('error') {
-      <div class="mt-8 rounded-xl border border-[#E5E5E8] bg-white p-6">
+      <div
+        class="mt-8 rounded-xl border border-[#E5E5E8] dark:border-white/10 bg-white dark:bg-[#161616] p-6"
+      >
         <p-message severity="error" [closable]="false">{{ errorMessage() }}</p-message>
-        <p class="mt-3 text-sm text-surface-600">
+        <p class="mt-3 text-sm text-surface-600 dark:text-[#A3A3A3]">
           The campaigns service did not respond. You can retry without losing your place.
         </p>
         <p-button label="Try again" size="small" styleClass="mt-4" (onClick)="load()" />
@@ -174,10 +184,12 @@
     @default {
       @if (campaigns().length === 0) {
         <div
-          class="mt-[29px] rounded-xl border border-dashed border-[#DDDDDD] bg-white p-10 text-center xl:mt-[25px]"
+          class="mt-[29px] rounded-xl border border-dashed border-[#DDDDDD] dark:border-white/10 bg-white dark:bg-[#161616] p-10 text-center xl:mt-[25px]"
         >
-          <h3 class="m-0 text-lg font-semibold text-[#0F0F12]">No campaigns are live yet</h3>
-          <p class="mx-auto mt-2 max-w-md text-surface-600">
+          <h3 class="m-0 text-lg font-semibold text-[#0F0F12] dark:text-white">
+            No campaigns are live yet
+          </h3>
+          <p class="mx-auto mt-2 max-w-md text-surface-600 dark:text-[#A3A3A3]">
             New brand campaigns are published regularly. Check back soon, or create an account so
             you are ready to apply the moment one opens.
           </p>
@@ -191,10 +203,12 @@
         </div>
       } @else if (visibleCampaigns().length === 0) {
         <div
-          class="mt-[29px] rounded-xl border border-dashed border-[#DDDDDD] bg-white p-10 text-center xl:mt-[25px]"
+          class="mt-[29px] rounded-xl border border-dashed border-[#DDDDDD] dark:border-white/10 bg-white dark:bg-[#161616] p-10 text-center xl:mt-[25px]"
         >
-          <h3 class="m-0 text-lg font-semibold text-[#0F0F12]">No campaigns match your filters</h3>
-          <p class="mx-auto mt-2 max-w-md text-surface-600">
+          <h3 class="m-0 text-lg font-semibold text-[#0F0F12] dark:text-white">
+            No campaigns match your filters
+          </h3>
+          <p class="mx-auto mt-2 max-w-md text-surface-600 dark:text-[#A3A3A3]">
             {{ liveCountLabel() }} — try a different search term, or clear the status and platform
             filters.
           </p>
