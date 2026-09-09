@@ -157,13 +157,35 @@
   <main class="mx-auto w-full max-w-[1249px] px-4 pb-16 pt-[18px] lg:px-6 lg:pb-24 lg:pt-8 xl:px-0">
     <!-- Back at the left of the content column, Share pinned to its right edge on the same row. -->
     <div class="flex items-center justify-between gap-3">
-      <a
-        routerLink="/campaigns"
-        class="inline-flex items-center gap-2.5 rounded-full border border-[#CDCDCD] px-3 py-0.5 text-[16px] leading-6 text-[#212121] no-underline hover:bg-[#F6F6F6] max-sm:min-h-10"
-      >
-        <svg data-p-icon="chevron-left" [size]="14" class="text-[#2D2D2D]" aria-hidden="true"></svg>
-        Back
-      </a>
+      <!-- A visitor who came from clapoutcreators.com's campaign list goes back
+           to it; anyone else goes to this app's list. -->
+      @if (cameFromLanding) {
+        <a
+          [href]="landingCampaignsUrl"
+          class="inline-flex items-center gap-2.5 rounded-full border border-[#CDCDCD] px-3 py-0.5 text-[16px] leading-6 text-[#212121] no-underline hover:bg-[#F6F6F6] max-sm:min-h-10"
+        >
+          <svg
+            data-p-icon="chevron-left"
+            [size]="14"
+            class="text-[#2D2D2D]"
+            aria-hidden="true"
+          ></svg>
+          Back
+        </a>
+      } @else {
+        <a
+          routerLink="/campaigns"
+          class="inline-flex items-center gap-2.5 rounded-full border border-[#CDCDCD] px-3 py-0.5 text-[16px] leading-6 text-[#212121] no-underline hover:bg-[#F6F6F6] max-sm:min-h-10"
+        >
+          <svg
+            data-p-icon="chevron-left"
+            [size]="14"
+            class="text-[#2D2D2D]"
+            aria-hidden="true"
+          ></svg>
+          Back
+        </a>
+      }
 
       @if (campaign(); as campaign) {
         <app-share-campaign-button

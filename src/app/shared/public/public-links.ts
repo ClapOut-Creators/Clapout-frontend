@@ -16,17 +16,45 @@ export interface FooterColumn {
 /** The marketing site's contact page; also where "Contact" in the navbar goes. */
 export const LANDING_CONTACT_URL = `${LANDING_SITE_URL}/contact`;
 
+/** One card in the Product menu: an icon tile, a label and a one-line description. */
+export interface ProductLink extends PublicLink {
+  href: string;
+  description: string;
+  icon: 'scissors' | 'briefcase';
+}
+
 /**
- * "Product" dropdown. The landing site's own Product menu has two entries —
- * Clippers (the campaign list, which this app owns) and Brand (the partnership
- * form) — and its home page carries `#how-it-works` and `#faq` sections.
+ * "Product" dropdown, exactly the landing site's (`src/data/nav.ts`): Clippers
+ * is the campaign list this app owns, Brand is the partnership form on the
+ * marketing site.
  */
-export const PRODUCT_LINKS: PublicLink[] = [
-  { label: 'For creators', href: '/campaigns' },
-  { label: 'For brands', href: `${LANDING_SITE_URL}/contact/partnership` },
-  { label: 'How it works', href: `${LANDING_SITE_URL}/#how-it-works` },
-  { label: 'FAQ', href: `${LANDING_SITE_URL}/#faq` },
+export const PRODUCT_LINKS: ProductLink[] = [
+  {
+    label: 'Clippers',
+    href: '/campaigns',
+    description: 'Get paid for clip videos',
+    icon: 'scissors',
+  },
+  {
+    label: 'Brand',
+    href: `${LANDING_SITE_URL}/contact/partnership`,
+    description: 'Run and manage a campaign',
+    icon: 'briefcase',
+  },
 ];
+
+/** The marketing site's campaign list — where Back goes for a visitor who came from it. */
+export const LANDING_CAMPAIGNS_URL = `${LANDING_SITE_URL}/campaigns`;
+
+/**
+ * True when the visitor reached this page from the marketing site, judged by
+ * the referrer's origin (the default referrer policy still sends the origin
+ * cross-site). Back and the logo then return them there, so the two sites
+ * feel like one.
+ */
+export function cameFromLandingSite(referrer: string = document.referrer): boolean {
+  return referrer.startsWith(`${LANDING_SITE_URL}/`) || referrer === LANDING_SITE_URL;
+}
 
 /**
  * The footer columns as clapoutcreators.com ships them

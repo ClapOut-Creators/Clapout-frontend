@@ -1,4 +1,5 @@
 import {
+  cameFromLandingSite,
   FOOTER_COLUMNS,
   LANDING_CONTACT_URL,
   LANDING_SITE_URL,
@@ -30,6 +31,14 @@ describe('public links to the landing site', () => {
       .map((href) => href.slice(`${LANDING_SITE_URL}/#`.length));
     expect(anchors.length).toBeGreaterThan(0);
     expect(anchors.every((anchor) => HOME_SECTIONS.includes(anchor))).toBe(true);
+  });
+
+  it('recognise a visitor who arrived from the marketing site by referrer origin', () => {
+    expect(cameFromLandingSite('https://clapoutcreators.com/')).toBe(true);
+    expect(cameFromLandingSite('https://clapoutcreators.com/campaigns')).toBe(true);
+    expect(cameFromLandingSite('https://app.clapoutcreators.com/campaigns')).toBe(false);
+    expect(cameFromLandingSite('https://clapoutcreators.com.evil.example/')).toBe(false);
+    expect(cameFromLandingSite('')).toBe(false);
   });
 
   it('send Contact to the landing contact page, not a dead anchor', () => {

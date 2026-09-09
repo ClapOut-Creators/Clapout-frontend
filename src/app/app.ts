@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { filter } from 'rxjs';
@@ -44,6 +44,13 @@ export class App {
   );
 
   constructor() {
+    // The public pages replicate clapoutcreators.com, which renders at 1:1; the
+    // studio's desktop scale (see `--ui-scale` in styles.css) would shrink them
+    // 20% below the site a visitor just left. `body.co-public` restores 1:1.
+    effect(() => {
+      document.body.classList.toggle('co-public', this.showPublicChrome());
+    });
+
     this.router.events
       .pipe(
         filter((event): event is NavigationEnd => event instanceof NavigationEnd),

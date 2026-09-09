@@ -222,6 +222,15 @@ label:has(+ textarea[pTextarea]) {
     zoom: var(--ui-scale);
   }
 
+  /* The signed-out public pages replicate clapoutcreators.com, which is
+     1:1, so they opt out of the scale (app.ts sets the class). Overriding the
+     variable on body keeps every rule below — the viewport-unit fixes and the
+     overlay cancellation — consistent at scale 1. */
+  body.co-public {
+    --ui-scale: 1;
+    zoom: 1;
+  }
+
   /* Viewport units are resolved against the real viewport and are NOT divided
      by `zoom`, so `100vh` inside the zoomed body renders 20% short. Grow the
      full-height utilities back by 1/scale. These sit outside `@layer` on
