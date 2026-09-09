@@ -177,8 +177,10 @@ describe('SubmitPostDialog', () => {
 
   it('opens on the post-link step, with the platform row and the terms links', () => {
     expect(title()).toContain('Post link');
-    expect(document.querySelectorAll('.co-sheet-root app-platform-glyph').length).toBeGreaterThan(
-      3,
+    // One tile per campaign platform in the header; the field glyph is empty
+    // until a link is pasted.
+    expect(document.querySelectorAll('.co-sheet-root header app-platform-glyph').length).toBe(
+      CAMPAIGN.platforms.length,
     );
     expect(document.querySelector('.co-sheet-root a[href="/terms"]')).toBeTruthy();
     expect(document.querySelector('.co-sheet-root a[href="/privacy"]')).toBeTruthy();
@@ -192,13 +194,34 @@ describe('SubmitPostDialog', () => {
     expect(sheetText()).toContain('Paste the link to the clip you posted');
   });
 
-  it('refuses a link that is not on the registered platform', async () => {
+  it('refuses a link that is on none of the campaign platforms', async () => {
     await setInput('#submit-post-url', 'https://www.instagram.com/reel/AbC/');
     button('Continue')?.click();
     await fixture.whenStable();
 
     expect(title()).toContain('Post link');
     expect(sheetText()).toContain('TikTok');
+  });
+
+  it('takes a clip on any platform the campaign runs on, and draws that platform in the field', async () => {
+    fixture.componentRef.setInput('campaign', {
+      ...CAMPAIGN,
+      platforms: ['tiktok', 'instagram', 'youtube'],
+    });
+    await fixture.whenStable();
+
+    // Three tiles in the header, one per campaign platform.
+    expect(document.querySelectorAll('.co-sheet-root header app-platform-glyph').length).toBe(3);
+
+    await setInput('#submit-post-url', 'https://youtube.com/shorts/GijTZSGTMDk?si=abc');
+    fixture.detectChanges();
+    const glyph = document.querySelector('.co-sheet-root .relative app-platform-glyph');
+    expect(glyph?.innerHTML).toContain('svg');
+    expect(sheetText()).not.toContain('doesn’t look like');
+
+    button('Continue')?.click();
+    await fixture.whenStable();
+    expect(title()).toBe('Upload Screenshot');
   });
 
   it('moves to the screenshot step once the link is on the right platform', async () => {

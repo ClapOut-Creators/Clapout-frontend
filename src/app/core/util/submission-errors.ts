@@ -25,9 +25,14 @@ export function submissionErrorMessage(error: unknown, platform: CampaignPlatfor
     case 'SUBMISSIONS_CLOSED':
       return 'This campaign is no longer running, so it is not accepting clips.';
     case 'POST_URL_PLATFORM_MISMATCH':
-      return platform
-        ? platformMismatchMessage(platform)
-        : 'That link is not on the platform you registered with.';
+      // The server names the platforms the campaign accepts, which is the
+      // whole answer; the per-platform wording is only a fallback.
+      return (
+        error.message ||
+        (platform
+          ? platformMismatchMessage(platform)
+          : 'That link is not on a platform this campaign accepts.')
+      );
     case 'DUPLICATE_SUBMISSION':
       return 'This clip has already been submitted.';
     case 'REGISTRATION_NOT_FOUND':

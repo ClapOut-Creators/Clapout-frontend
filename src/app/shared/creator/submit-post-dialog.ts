@@ -18,6 +18,7 @@ import {
   ValidationErrors,
   Validators,
 } from '@angular/forms';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { InputNumberModule } from 'primeng/inputnumber';
@@ -32,8 +33,9 @@ import { Registration } from '../../core/models/registration';
 import { Submission } from '../../core/models/submission';
 import { Me, PayoutDetails, PayoutMethod } from '../../core/models/user';
 import {
+  campaignPlatformsMismatchMessage,
   isPlatformPostUrl,
-  platformMismatchMessage,
+  platformFromUrl,
   platformPostPlaceholder,
 } from '../../core/util/platform-url';
 import {
@@ -63,7 +65,15 @@ import {
 export type SubmitStep = 'link' | 'screenshot' | 'payout' | 'success';
 
 /** The tiles the boards draw under every subtitle. */
-const SHEET_PLATFORMS: readonly CampaignPlatform[] = ['tiktok', 'instagram', 'youtube'];
+/** The platforms the sheet header can draw a tile for (X has no tile yet). */
+const TILE_PLATFORMS: readonly CampaignPlatform[] = [
+  'tiktok',
+  'instagram',
+  'youtube',
+  'facebook',
+  'snapchat',
+  'whatsapp',
+];
 
 export const PAYOUT_METHOD_LABELS: Record<PayoutMethod, string> = {
   MTN_MOMO: 'MTN MoMo',
@@ -80,7 +90,7 @@ const NETWORK_OPTIONS: { label: string; value: PayoutMethod }[] = [
 const LINK_MESSAGES: Record<string, string> = {
   required: 'Paste the link to the clip you posted.',
   url: 'Enter a full URL, starting with https://',
-  platform: 'That link is not on the platform you registered with.',
+  platform: 'That link is not on a platform this campaign accepts.',
 };
 
 const VIEWS_MESSAGES: Record<string, string> = {
@@ -671,9 +681,26 @@ export class SubmitPostDialog {
   protected readonly termsLinkClass = SHEET_TERMS_LINK_CLASS;
   protected readonly errorClass = SHEET_ERROR_CLASS;
 
-  /** Declared before the form: its post-link validator reads this. */
-  protected readonly platform = computed<CampaignPlatform | null>(
-    () => this.registration()?.platform ?? null,
+  /**
+   * The platforms a clip may be on: every platform the campaign runs on, so a
+   * TikTok registration can still hand in the Instagram or YouTube cut. The
+   * registration's own platform is the fallback for a campaign with none.
+   * Declared before the form: its post-link validator reads this.
+   */
+  protected readonly allowedPlatforms = computed<readonly CampaignPlatform[]>(() => {
+    const listed = this.campaign()?.platforms ?? [];
+    if (listed.length > 0) {
+      return listed;
+    }
+    const registered = this.registration()?.platform;
+    return registered ? [registered] : [];
+  });
+
+  /** What the clipper has pasted so far; drives the glyph in the field. */
+  private readonly typedUrl = signal('');
+  /** The platform the pasted link is on — the glyph follows the link, not the registration. */
+  protected readonly platform = computed<CampaignPlatform | null>(() =>
+    platformFromUrl(this.typedUrl()),
   );
 
   protected readonly form = this.formBuilder.group({
@@ -706,14 +733,19 @@ export class SubmitPostDialog {
     accountName: ['', [Validators.required, Validators.maxLength(100)]],
   });
 
+  /** Shaped like a link on the platform they registered with, when the campaign takes it. */
   protected readonly postUrlPlaceholder = computed(() => {
-    const platform = this.platform();
+    const allowed = this.allowedPlatforms();
+    const registered = this.registration()?.platform;
+    const platform = registered && allowed.includes(registered) ? registered : allowed[0];
     return platform ? platformPostPlaceholder(platform) : 'https://';
   });
 
-  /** Only the first board carries the platform row; the later ones do not. */
+  /** Only the first board carries the platform row: the campaign's platforms, as tiles. */
   protected readonly sheetPlatforms = computed<readonly CampaignPlatform[]>(() =>
-    this.step() === 'link' ? SHEET_PLATFORMS : [],
+    this.step() === 'link'
+      ? this.allowedPlatforms().filter((platform) => TILE_PLATFORMS.includes(platform))
+      : [],
   );
 
   protected readonly sheetTitle = computed(() => {
@@ -761,6 +793,9 @@ export class SubmitPostDialog {
         untracked(() => this.reset());
       }
     });
+    this.form.controls.postUrl.valueChanges
+      .pipe(takeUntilDestroyed())
+      .subscribe((value) => this.typedUrl.set(value ?? ''));
   }
 
   // ----------------------------------------------------------------- steps
@@ -843,8 +878,10 @@ export class SubmitPostDialog {
   protected postUrlError(): string | null {
     const control = this.form.controls.postUrl;
     if (control.hasError('platform') && (control.touched || this.linkSubmitted())) {
-      const platform = this.platform();
-      return platform ? platformMismatchMessage(platform) : LINK_MESSAGES['platform'];
+      const allowed = this.allowedPlatforms();
+      return allowed.length > 0
+        ? campaignPlatformsMismatchMessage(allowed)
+        : LINK_MESSAGES['platform'];
     }
     return firstErrorMessage(control, LINK_MESSAGES, this.linkSubmitted());
   }
@@ -1006,8 +1043,11 @@ export class SubmitPostDialog {
     if (typeof control.value !== 'string' || !control.value.trim()) {
       return null;
     }
-    const platform = this.platform();
-    return !platform || isPlatformPostUrl(platform, control.value) ? null : { platform: true };
+    const allowed = this.allowedPlatforms();
+    const value = control.value;
+    return allowed.length === 0 || allowed.some((platform) => isPlatformPostUrl(platform, value))
+      ? null
+      : { platform: true };
   }
 
   private reset(): void {

@@ -131,6 +131,27 @@ export function platformMismatchMessage(platform: CampaignPlatform): string {
   return `That doesn’t look like a ${label} link — paste the link to the clip you posted on ${label}.`;
 }
 
+/** "TikTok, Instagram or YouTube" — the campaign's platforms, as a list. */
+export function platformsList(platforms: readonly CampaignPlatform[]): string {
+  const labels = platforms.map((platform) => PLATFORM_LABELS[platform] ?? platformLabel(platform));
+  if (labels.length <= 1) {
+    return labels[0] ?? '';
+  }
+  return `${labels.slice(0, -1).join(', ')} or ${labels.at(-1)}`;
+}
+
+/**
+ * "That doesn't look like a TikTok, Instagram or YouTube link — this campaign
+ * only takes clips posted on those." One platform reads like the single-platform
+ * message.
+ */
+export function campaignPlatformsMismatchMessage(platforms: readonly CampaignPlatform[]): string {
+  if (platforms.length === 1) {
+    return platformMismatchMessage(platforms[0]);
+  }
+  return `That doesn’t look like a ${platformsList(platforms)} link — this campaign only takes clips posted on those.`;
+}
+
 /**
  * 'tiktok.com' / 'youtube.com or youtu.be' — the hint under the post link field.
  * A platform with no hosts gets its own sentence instead of an empty line,

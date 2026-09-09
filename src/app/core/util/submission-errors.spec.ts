@@ -18,15 +18,21 @@ describe('submissionErrorMessage', () => {
     );
   });
 
-  it('names the registered platform on a host mismatch', () => {
-    expect(submissionErrorMessage(apiError('POST_URL_PLATFORM_MISMATCH'), 'youtube')).toContain(
-      'YouTube',
-    );
+  it('passes the server wording through on a host mismatch, which names the accepted platforms', () => {
+    expect(
+      submissionErrorMessage(
+        apiError('POST_URL_PLATFORM_MISMATCH', 'This campaign takes tiktok or youtube links.'),
+        'youtube',
+      ),
+    ).toBe('This campaign takes tiktok or youtube links.');
   });
 
-  it('falls back to generic wording when the platform is unknown', () => {
-    expect(submissionErrorMessage(apiError('POST_URL_PLATFORM_MISMATCH'), null)).toBe(
-      'That link is not on the platform you registered with.',
+  it('names the registered platform when the server sent no wording', () => {
+    expect(submissionErrorMessage(apiError('POST_URL_PLATFORM_MISMATCH', ''), 'youtube')).toContain(
+      'YouTube',
+    );
+    expect(submissionErrorMessage(apiError('POST_URL_PLATFORM_MISMATCH', ''), null)).toBe(
+      'That link is not on a platform this campaign accepts.',
     );
   });
 
