@@ -446,9 +446,16 @@
     </section>
   </div>
 
-  <app-socials-dialog
-    [(visible)]="socialsDialogOpen"
-    [socials]="socials()"
-    (saved)="onSocialsSaved($event)"
-  />
+  <app-socials-dialog [(visible)]="socialsDialogOpen" [socials]="socials()" />
+
+  <!-- Raised for creators who signed up before onboarding existed. No way out
+       but through: the sheet closes itself once the steps are done. -->
+  <app-overlay-sheet
+    [visible]="onboardingOpen()"
+    [dismissable]="false"
+    title="Finish setting up"
+    subtitle="Two quick steps and you are ready to clip."
+  >
+    <app-onboarding-stepper finishLabel="Go to your dashboard" (finished)="finishOnboarding()" />
+  </app-overlay-sheet>
 </main>

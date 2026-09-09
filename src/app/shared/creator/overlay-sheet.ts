@@ -306,19 +306,21 @@ export const SHEET_ERROR_CLASS = 'm-0 text-[14px] leading-[19px] text-[#D00000] 
            element it finds on show, and the close button is a kinder landing
            place than a required field that would flag itself the moment focus
            moved on. It is position:fixed, so it still paints top-right. -->
-      <button type="button" class="co-sheet-close" aria-label="Close" (click)="requestClose()">
-        <svg
-          viewBox="0 0 12 12"
-          class="relative block size-[11px] lg:size-[12px]"
-          fill="none"
-          stroke="#393939"
-          stroke-width="2.2"
-          stroke-linecap="round"
-          aria-hidden="true"
-        >
-          <path d="M1.4 1.4 10.6 10.6M10.6 1.4 1.4 10.6" />
-        </svg>
-      </button>
+      @if (dismissable()) {
+        <button type="button" class="co-sheet-close" aria-label="Close" (click)="requestClose()">
+          <svg
+            viewBox="0 0 12 12"
+            class="relative block size-[11px] lg:size-[12px]"
+            fill="none"
+            stroke="#393939"
+            stroke-width="2.2"
+            stroke-linecap="round"
+            aria-hidden="true"
+          >
+            <path d="M1.4 1.4 10.6 10.6M10.6 1.4 1.4 10.6" />
+          </svg>
+        </button>
+      }
 
       <!-- The backdrop hit area: a mousedown that lands on this element rather
            than on the column inside it is a click beside the sheet. -->
@@ -364,6 +366,12 @@ export class OverlaySheet {
    * keeps it open — used for "Discard this submission?".
    */
   readonly closeGuard = input<(() => boolean | Promise<boolean>) | null>(null);
+  /**
+   * False removes every way out — the ×, Escape and the backdrop — so the sheet
+   * only closes when the host sets `visible` to false itself. Used by the
+   * onboarding sheet, which must be completed rather than dismissed.
+   */
+  readonly dismissable = input(true);
 
   protected readonly titleClass = SHEET_TITLE_CLASS;
   protected readonly subtitleClass = SHEET_SUBTITLE_CLASS;
@@ -405,7 +413,7 @@ export class OverlaySheet {
 
   /** Runs {@link closeGuard} (once at a time) and closes when it agrees. */
   async requestClose(): Promise<void> {
-    if (this.guardRunning) {
+    if (this.guardRunning || !this.dismissable()) {
       return;
     }
     const guard = this.closeGuard();

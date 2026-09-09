@@ -27,6 +27,7 @@ const adminUser: Me = {
   whatsapp: null,
   socials: [],
   payout: null,
+  communityJoinedAt: '2026-08-02T00:00:00.000Z',
   createdAt: '2026-08-01T00:00:00.000Z',
 };
 

@@ -1,4 +1,3 @@
-import { HttpClient } from '@angular/common/http';
 import { Component, effect, inject, input, model, output, signal, untracked } from '@angular/core';
 import {
   FormArray,
@@ -9,11 +8,10 @@ import {
 } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { MessageService } from 'primeng/api';
-import { firstValueFrom } from 'rxjs';
 import { toApiError } from '../../core/api/api-error';
-import { APP_ENVIRONMENT } from '../../core/config/app-environment';
+import { AuthService } from '../../core/auth/auth-service';
 import { CampaignPlatform } from '../../core/models/campaign';
-import { Me, SocialAccount } from '../../core/models/user';
+import { SocialAccount } from '../../core/models/user';
 import { platformFromUrl } from '../../core/util/platform-url';
 import {
   OverlaySheet,
@@ -55,10 +53,9 @@ const SHEET_PLATFORMS: readonly CampaignPlatform[] = ['tiktok', 'instagram', 'yo
  * small `p-dialog` this used to be, but the component's API did not change —
  * the creator dashboard still binds `visible`, `socials` and `saved`.
  *
- * Saves through `PATCH /me` directly rather than `AuthService`, which exposes no
- * profile mutation and holds `user` as a read-only signal. The saved list is
- * emitted back to the parent so the checklist can flip to done without waiting
- * for the next `GET /me`.
+ * Saves through `AuthService.updateProfile`, so the session copy of `user`
+ * carries the new list at once; the saved list is also emitted back to the
+ * parent for hosts that keep their own copy.
  *
  * Escape, the × and a backdrop click close it without a confirmation: nothing
  * here is lost that is not one paste away, and the sheet reseeds from the saved
@@ -175,8 +172,7 @@ export class SocialsDialog {
   /** The list `PATCH /me` echoed back, so the caller can drop its stale copy. */
   readonly saved = output<SocialAccount[]>();
 
-  private readonly http = inject(HttpClient);
-  private readonly baseUrl = inject(APP_ENVIRONMENT).apiBaseUrl;
+  private readonly auth = inject(AuthService);
   private readonly formBuilder = inject(NonNullableFormBuilder);
   private readonly messages = inject(MessageService);
 
@@ -239,10 +235,8 @@ export class SocialsDialog {
 
     this.saving.set(true);
     try {
-      const response = await firstValueFrom(
-        this.http.patch<{ user: Me }>(`${this.baseUrl}/me`, { socials }),
-      );
-      this.saved.emit(response.user?.socials ?? socials);
+      const user = await this.auth.updateProfile({ socials });
+      this.saved.emit(user.socials ?? socials);
       this.messages.add({
         severity: 'success',
         summary: 'Social accounts saved',

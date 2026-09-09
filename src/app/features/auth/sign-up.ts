@@ -1,6 +1,7 @@
 import { Component, inject, input, signal } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { ONBOARDING_PATH } from '../../core/auth/onboarding-guard';
 import { Lock } from '@primeicons/angular/lock';
 import { ButtonModule } from 'primeng/button';
 import { CheckboxModule } from 'primeng/checkbox';
@@ -128,8 +129,12 @@ export class SignUp {
     }
 
     // The account exists and the session is live; a failure from here on is
-    // the next page not loading, not the sign-up.
-    const target = this.returnUrl() || '/creator/dashboard';
+    // the next page not loading, not the sign-up. Every new creator goes
+    // through onboarding first; the page they asked for waits in `returnUrl`.
+    const returnUrl = this.returnUrl();
+    const target = returnUrl
+      ? `${ONBOARDING_PATH}?returnUrl=${encodeURIComponent(returnUrl)}`
+      : ONBOARDING_PATH;
     try {
       await this.router.navigateByUrl(target);
     } catch (error) {

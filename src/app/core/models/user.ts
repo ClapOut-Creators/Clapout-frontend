@@ -24,7 +24,23 @@ export interface Me {
   phone: string | null;
   socials: SocialAccount[];
   payout: PayoutDetails | null;
+  /**
+   * When the creator confirmed joining the WhatsApp community. Null gates a
+   * creator into onboarding (see `onboardingGuard`) until they do.
+   */
+  communityJoinedAt: string | null;
   createdAt: string;
+}
+
+/** The partial body `PATCH /me` accepts. */
+export interface ProfilePatch {
+  fullName?: string;
+  whatsapp?: string | null;
+  phone?: string | null;
+  socials?: SocialAccount[];
+  payout?: PayoutDetails | null;
+  /** `true` stamps `communityJoinedAt` (first confirmation wins); `false` clears it. */
+  communityJoined?: boolean;
 }
 
 export interface SignUpPayload {

@@ -1,6 +1,7 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router, Routes } from '@angular/router';
 import { creatorGuard } from '../../core/auth/creator-guard';
+import { onboardingGuard } from '../../core/auth/onboarding-guard';
 
 /**
  * `/creator/campaigns/:slug/submit` → `/campaigns/:slug?submit=1`.
@@ -15,9 +16,21 @@ const submitRedirect: CanActivateFn = (route) =>
     `/campaigns/${encodeURIComponent(String(route.params['slug'] ?? ''))}?submit=1`,
   );
 
-/** Everything below `/creator` needs a signed-in creator. */
+/**
+ * Everything below `/creator` needs a signed-in creator. Applying and the
+ * submissions page also need a finished onboarding ({@link onboardingGuard});
+ * the dashboard does not, because it raises the onboarding sheet itself.
+ */
 export const CREATOR_ROUTES: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
+  {
+    // Where sign-up lands: socials, then the WhatsApp community. No
+    // onboardingGuard here, obviously; the page itself bounces anyone done.
+    path: 'onboarding',
+    canActivate: [creatorGuard],
+    loadComponent: () => import('./creator-onboarding').then((module) => module.CreatorOnboarding),
+    title: 'Finish setting up - ClapOut Studio',
+  },
   {
     path: 'dashboard',
     canActivate: [creatorGuard],
@@ -26,14 +39,14 @@ export const CREATOR_ROUTES: Routes = [
   },
   {
     path: 'submissions',
-    canActivate: [creatorGuard],
+    canActivate: [creatorGuard, onboardingGuard],
     loadComponent: () =>
       import('./creator-submissions').then((module) => module.CreatorSubmissions),
     title: 'Your submissions - ClapOut Studio',
   },
   {
     path: 'campaigns/:slug/apply',
-    canActivate: [creatorGuard],
+    canActivate: [creatorGuard, onboardingGuard],
     loadComponent: () => import('./campaign-apply').then((module) => module.CampaignApply),
     title: 'Apply to campaign - ClapOut Studio',
   },

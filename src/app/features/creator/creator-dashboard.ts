@@ -32,17 +32,10 @@ import {
 import { StatCard } from '../../shared/admin/stat-card';
 import { PublicCampaignCard } from '../../shared/public/public-campaign-card';
 import { SocialsDialog } from './socials-dialog';
+import { COMMUNITY_URL, OnboardingStepper } from '../../shared/creator/onboarding-stepper';
+import { OverlaySheet } from '../../shared/creator/overlay-sheet';
 
 type DashboardState = 'loading' | 'ready' | 'error';
-
-/** Invite link for the creator community, opened in a new tab. */
-const COMMUNITY_URL = 'https://chat.whatsapp.com/L9d71dKBrFy7QonMQJ73da';
-
-/**
- * There is no "joined the community" flag on `Me` and no endpoint to set one, so
- * the checklist remembers the click per browser instead of inventing a contract.
- */
-const COMMUNITY_STORAGE_KEY = 'clapout.joinedCommunity';
 
 function greetingFor(hour: number): string {
   if (hour < 12) {
@@ -54,15 +47,6 @@ function greetingFor(hour: number): string {
 /** 'ama@clapout.com' -> 'ama'. Used wherever a display name is missing. */
 function emailLocalPart(email: string | undefined): string {
   return email ? email.split('@')[0] : '';
-}
-
-function readJoinedCommunity(): boolean {
-  try {
-    return localStorage.getItem(COMMUNITY_STORAGE_KEY) === 'true';
-  } catch {
-    /* Private mode and blocked storage both throw; the step just stays open. */
-    return false;
-  }
 }
 
 /**
@@ -82,6 +66,8 @@ function readJoinedCommunity(): boolean {
     RouterLink,
     Search,
     SkeletonModule,
+    OnboardingStepper,
+    OverlaySheet,
     SocialsDialog,
     StatCard,
     TagModule,
@@ -98,18 +84,19 @@ export class CreatorDashboard {
   private readonly auth = inject(AuthService);
 
   private readonly user = this.auth.user;
-  /**
-   * `AuthService.user` is read-only, so a successful `PATCH /me` cannot be
-   * written back into it. This holds the list the save returned and takes
-   * precedence over the session copy until the next `GET /me` rehydrates it.
-   */
-  private readonly savedSocials = signal<SocialAccount[] | null>(null);
 
   protected readonly state = signal<DashboardState>('loading');
   protected readonly applications = signal<Registration[]>([]);
   protected readonly errorMessage = signal('');
-  protected readonly joinedCommunity = signal(readJoinedCommunity());
+  /** Stamped by the onboarding steps; `PATCH /me` writes it back into `user`. */
+  protected readonly joinedCommunity = computed(() => !!this.user()?.communityJoinedAt);
   protected readonly socialsDialogOpen = signal(false);
+  /**
+   * Sign-ups from before onboarding existed arrive here with the flag unset.
+   * The sheet raises the same steps as the onboarding page, and cannot be
+   * dismissed: it closes when the steps are done and not before.
+   */
+  protected readonly onboardingOpen = signal(this.auth.needsOnboarding());
   protected readonly skeletonCards = [0, 1, 2];
 
   protected readonly communityUrl = COMMUNITY_URL;
@@ -167,9 +154,7 @@ export class CreatorDashboard {
     return count === 1 ? '1 clip submitted.' : `${count} clips submitted.`;
   });
 
-  protected readonly socials = computed(
-    () => this.savedSocials() ?? this.user()?.socials ?? ([] as SocialAccount[]),
-  );
+  protected readonly socials = computed(() => this.user()?.socials ?? ([] as SocialAccount[]));
   protected readonly socialsDone = computed(() => this.socials().length > 0);
   protected readonly joinedCount = computed(() => this.applications().length);
   protected readonly campaignsDone = computed(
@@ -264,17 +249,18 @@ export class CreatorDashboard {
     this.socialsDialogOpen.set(true);
   }
 
-  protected onSocialsSaved(socials: SocialAccount[]): void {
-    this.savedSocials.set(socials);
+  /** The link opened in a new tab; record the join, the checklist ticks itself. */
+  protected markCommunityJoined(): void {
+    if (this.joinedCommunity()) {
+      return;
+    }
+    void this.auth.updateProfile({ communityJoined: true }).catch(() => {
+      /* The invite still opened; the tick waits for the next visit. */
+    });
   }
 
-  protected markCommunityJoined(): void {
-    this.joinedCommunity.set(true);
-    try {
-      localStorage.setItem(COMMUNITY_STORAGE_KEY, 'true');
-    } catch {
-      /* The link still opened; only the checklist memory is lost. */
-    }
+  protected finishOnboarding(): void {
+    this.onboardingOpen.set(false);
   }
 
   protected async load(): Promise<void> {
