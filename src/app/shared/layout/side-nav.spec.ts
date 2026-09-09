@@ -1,6 +1,6 @@
 import { Component, computed, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 import { AuthService } from '../../core/auth/auth-service';
 import { Me } from '../../core/models/user';
 import { SideNav } from './side-nav';
@@ -45,7 +45,10 @@ describe('SideNav', () => {
     await TestBed.configureTestingModule({
       imports: [SideNav],
       providers: [
-        provideRouter([{ path: 'campaigns', component: EmptyRoute }]),
+        provideRouter([
+          { path: 'campaigns', component: EmptyRoute },
+          { path: 'auth/sign-in', component: EmptyRoute },
+        ]),
         { provide: AuthService, useValue: auth },
       ],
     }).compileComponents();
@@ -99,5 +102,9 @@ describe('SideNav', () => {
 
     element.querySelector<HTMLButtonElement>('[role="menuitem"]')?.click();
     expect(auth.signOut).toHaveBeenCalledOnce();
+
+    // Signing out lands on the sign-in screen, not the public campaign list.
+    await fixture.whenStable();
+    expect(TestBed.inject(Router).url).toBe('/auth/sign-in');
   });
 });

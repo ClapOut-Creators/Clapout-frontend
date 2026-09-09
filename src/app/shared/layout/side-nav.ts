@@ -130,10 +130,11 @@ export class SideNav {
       .join('');
   }
 
+  /** Signing out lands on the sign-in screen, so signing back in is one step away. */
   protected signOut(): void {
     this.drawerOpen.set(false);
     this.userMenuOpen.set(false);
     this.auth.signOut();
-    void this.router.navigate(['/campaigns']);
+    void this.router.navigate(['/auth/sign-in']);
   }
 }
