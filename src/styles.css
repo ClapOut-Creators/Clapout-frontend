@@ -33,6 +33,10 @@
   --clapout-font-body:
     -apple-system, 'SF Pro Text', 'Helvetica Neue', 'Segoe UI', ui-sans-serif, system-ui, sans-serif;
   --clapout-font-heading: Poppins, var(--clapout-font-body);
+  --clapout-control-font-size: 1rem;
+  --clapout-control-label-size: 1.0625rem;
+  --clapout-control-overlay-font-size: 1rem;
+  --clapout-control-min-height: 2.875rem;
   font-family: var(--clapout-font-body);
 }
 
@@ -56,9 +60,31 @@ body {
   background: var(--clapout-surface-canvas);
   color: var(--clapout-text-default);
   font-family: inherit;
+  /* Brands paste raw links into campaign copy. One unbreakable 50-character
+     URL is wider than a phone's viewport, and iOS answers by zooming the whole
+     page out. Breaking long tokens is the app-wide default. */
+  overflow-wrap: break-word;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Belt and braces for the above: nothing may create a horizontal scrollbar.
+   `clip` rather than `hidden` so it does not turn the page into a scroll
+   container and break `position: sticky`. */
+html,
+body {
+  overflow-x: clip;
+}
+
+/*
+ * Blocks whose text comes from brands and creators rather than from us:
+ * campaign titles and briefs, requirement notes, resource labels. `anywhere`
+ * (not just `break-word`) also keeps a long token out of the block's
+ * min-content width, so a flex or grid parent cannot stretch to fit it.
+ */
+.co-user-text {
+  overflow-wrap: anywhere;
 }
 
 * {
@@ -68,6 +94,95 @@ body {
 :focus-visible {
   outline: 2px solid var(--clapout-border-focus);
   outline-offset: 3px;
+}
+
+/* PrimeNG's default form text reads too small once the Studio desktop scale is
+   applied. Keep the bump central so new PrimeNG inputs inherit it by default. */
+.p-inputtext,
+.p-textarea,
+.p-password-input,
+.p-inputnumber-input,
+.p-select,
+.p-select-label,
+.p-multiselect,
+.p-multiselect-label,
+.p-datepicker-input,
+.p-datepicker table,
+.p-datepicker-header,
+.p-datepicker-title,
+.p-datepicker-month,
+.p-datepicker-year,
+.p-datepicker-time-picker,
+.p-datepicker-buttonbar,
+.p-button,
+.p-menu,
+.p-popover,
+.p-tooltip,
+.p-message,
+.p-tag {
+  font-size: var(--clapout-control-font-size);
+}
+
+.p-inputtext,
+.p-textarea,
+.p-password-input,
+.p-inputnumber-input,
+.p-select,
+.p-multiselect,
+.p-datepicker-input {
+  min-height: var(--clapout-control-min-height);
+}
+
+.p-floatlabel label,
+.p-iftalabel label,
+label:has(+ .p-inputtext),
+label:has(+ p-datepicker),
+label:has(+ p-select),
+label:has(+ p-inputnumber),
+label:has(+ textarea[pTextarea]) {
+  font-size: var(--clapout-control-label-size);
+}
+
+.p-select-option,
+.p-multiselect-option,
+.p-menuitem-link,
+.p-datepicker-calendar td > span,
+.p-datepicker-weekday,
+.p-datepicker-time-picker span {
+  font-size: var(--clapout-control-overlay-font-size);
+}
+
+.p-button-label {
+  font-size: inherit;
+}
+
+.p-datepicker-calendar td > span {
+  min-width: 2.5rem;
+  min-height: 2.5rem;
+}
+
+/*
+ * Mobile gutters and tap targets.
+ *
+ * The signed-in shell pads its content column by 34px (`src/app/app.html`).
+ * That is nearly a fifth of a 390px phone, so below Tailwind's `sm` it drops to
+ * the standard 16px gutter. The utility class is the hook because that element
+ * has no other, and it appears exactly once in the app.
+ */
+@media (max-width: 639px) {
+  .px-\[34px\] {
+    padding-inline: 1rem;
+  }
+}
+
+/* Touch devices get a finger-sized minimum on the shared button primitives.
+   Keyed off the pointer, so the desktop designs keep their exact heights. */
+@media (pointer: coarse) {
+  .p-button,
+  .p-paginator button,
+  .p-datepicker button {
+    min-height: 2.5rem;
+  }
 }
 
 /* Slim budget/progress meter used by campaign cards and the budget panel. */
@@ -85,4 +200,209 @@ body {
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* --------------------------------------------------------------------------
+   Desktop scale
+   --------------------------------------------------------------------------
+   Every screen was built at the 1728px Figma width with the design's literal
+   pixel values (18-20px body copy, 47px h1, 358px cards). At a normal desktop
+   window that reads ~25% larger than clapoutcreators.com, which the studio is
+   supposed to feel continuous with. `zoom` is the right knob: unlike
+   `transform: scale` it reflows layout (so nothing overflows or gets clipped),
+   it keeps text crisp at any size, and applied to `body` it also covers the
+   PrimeNG overlays that get appended to the document body.
+   -------------------------------------------------------------------------- */
+@media (min-width: 1024px) {
+  :root {
+    --ui-scale: 0.8;
+  }
+
+  body {
+    zoom: var(--ui-scale);
+  }
+
+  /* Viewport units are resolved against the real viewport and are NOT divided
+     by `zoom`, so `100vh` inside the zoomed body renders 20% short. Grow the
+     full-height utilities back by 1/scale. These sit outside `@layer` on
+     purpose: unlayered rules beat Tailwind's layered utilities. */
+  .h-screen {
+    height: calc(100vh / var(--ui-scale));
+  }
+
+  .min-h-screen {
+    min-height: calc(100vh / var(--ui-scale));
+  }
+
+  .min-h-svh {
+    min-height: calc(100svh / var(--ui-scale));
+  }
+
+  /* PrimeNG positions the overlays it appends to <body> from
+     `getBoundingClientRect()`, which reports *visual* pixels, and writes the
+     result straight back as an inline `px` offset — which body's zoom then
+     scales a second time, landing every panel 20% short of its trigger.
+     Cancelling the zoom on the positioned box restores an effective zoom of 1,
+     so those coordinates mean what PrimeNG thinks they mean; re-applying it to
+     the box's own content keeps the panel itself at page scale. Only overlays
+     that were appended to the body are affected — `appendTo="self"` overlays
+     are positioned relatively and are already correct. */
+  body > .p-popover,
+  body > .p-overlay,
+  body > .p-tooltip,
+  body > .p-datepicker-panel,
+  body > .p-confirmpopup,
+  body > .p-menu,
+  body > .p-tieredmenu,
+  body > .p-contextmenu {
+    zoom: calc(1 / var(--ui-scale));
+  }
+
+  body > .p-popover > *,
+  body > .p-overlay > *,
+  body > .p-tooltip > *,
+  body > .p-datepicker-panel > *,
+  body > .p-confirmpopup > *,
+  body > .p-menu > *,
+  body > .p-tieredmenu > *,
+  body > .p-contextmenu > * {
+    zoom: var(--ui-scale);
+  }
+
+  /* Overlays that stay inside their component (`appendTo="self"`, the default
+     for p-select and friends) are positioned relatively and need no zoom
+     compensation — except for PrimeNG's viewport-overflow check, which adds the
+     panel's *layout* width (in zoomed px) to the trigger's *visual* left edge.
+     Under a 0.8 zoom that sum is 25% too large, so a select near the right edge
+     (every field in a right-hand drawer) is judged to overflow and gets shoved
+     left, out of its container. The panel is exactly as wide as its trigger, so
+     if the trigger fits, the panel fits: keep it flush with the trigger. */
+  p-overlay > .p-overlay {
+    inset-inline-start: 0 !important;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Clipper overlay sheet — APPEND-ONLY block for `shared/creator/overlay-sheet.ts`
+   --------------------------------------------------------------------------
+   The submit-post and add-social boards (Figma 398:5569 / 397:1535) are not
+   panels floating over a dimmed page: the page itself is the backdrop, blurred
+   hard and washed out with white, with a 506px column and a grey circular ×
+   pinned to the viewport's top-right corner.
+
+   `p-dialog` still does the modal work (focus trap, aria-modal, scroll block,
+   z-index stack); only its chrome is replaced, which is why these selectors
+   pair the PrimeNG class with the sheet's own. They sit outside `@layer` on
+   purpose — unlayered rules beat the layered PrimeNG theme, the same trick the
+   "Desktop scale" block above relies on.
+   -------------------------------------------------------------------------- */
+.p-dialog-mask.co-sheet-mask {
+  padding: 0;
+  background: rgba(255, 255, 255, 0.72);
+  -webkit-backdrop-filter: blur(40px);
+  backdrop-filter: blur(40px);
+}
+
+.p-dialog.co-sheet {
+  width: 100%;
+  max-width: 100%;
+  height: 100%;
+  max-height: 100%;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+/* The scroll container: a tall sheet on a short window scrolls inside the
+   overlay rather than growing the page behind it (which `blockScroll` froze). */
+.p-dialog.co-sheet > .p-dialog-content.co-sheet-content {
+  height: 100%;
+  padding: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+}
+
+/* Also the backdrop hit area: a click that lands here, and not on the column,
+   is a click beside the sheet. */
+.co-sheet-root {
+  min-height: 100%;
+  /* 140px is where the 402 boards put the title (a 120px frame with 20px of
+     padding). The 1728 boards put it at 174. */
+  padding: 140px 20px 60px;
+}
+
+/* The × is `fixed`, not `absolute`, so it stays in the viewport corner while a
+   long step scrolls under it. The mask's own `backdrop-filter` makes the mask
+   the containing block, so "fixed" means "the mask", which fills the viewport. */
+.co-sheet-close {
+  position: fixed;
+  top: 57px;
+  right: 31px;
+  display: flex;
+  width: 40px;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.co-sheet-close::before {
+  content: '';
+  position: absolute;
+  width: 33px;
+  height: 33px;
+  border-radius: 50%;
+  /* #CDCDCD at 50%, exactly as the boards draw it over the washed-out page. */
+  background: rgba(205, 205, 205, 0.5);
+}
+
+.co-sheet-close:hover::before {
+  background: rgba(190, 190, 190, 0.62);
+}
+
+@media (min-width: 1024px) {
+  .co-sheet-root {
+    padding: 174px 20px 80px;
+  }
+
+  .co-sheet-close {
+    top: 60px;
+    right: 64px;
+    width: 44px;
+    height: 44px;
+  }
+
+  .co-sheet-close::before {
+    width: 37px;
+    height: 37px;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Phone tab bar clearance (Figma 366:376 "Frame 274")
+   --------------------------------------------------------------------------
+   The clipper tab bar (`.co-mobile-tabbar`, drawn by the side nav below 1024px)
+   is `position: fixed`, so it sits over the end of the content column. Give the
+   column enough bottom padding that the bar never covers the last row. Keyed off
+   the bar's own presence, so admins — who get the drawer and no bar — keep the
+   layout they have. Same `.px-\[34px\]` hook as the gutter rule above: that
+   element is `src/app/app.html`'s content column and has no other handle.
+   -------------------------------------------------------------------------- */
+@media (max-width: 1023px) {
+  body:has(.co-mobile-tabbar) .px-\[34px\] {
+    padding-bottom: 7rem;
+  }
+}
+
+p-select .p-select-label {
+  display: flex;
+  align-items: center;
 }

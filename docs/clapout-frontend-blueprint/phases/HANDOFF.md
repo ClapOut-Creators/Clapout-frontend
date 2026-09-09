@@ -367,3 +367,293 @@ campaign cards. The dashboard canvas now uses the requested exact `#F9F9F9` back
 Reason: Phase 04 code and static/browser smoke gates are complete, but the admin-only dashboard still
 needs a manual signed-in admin browser pass for desktop/tablet/mobile framing and AXE before moving to
 Phase 05.
+
+## Brands section + brand-first campaign flow (2026-09-02)
+
+Adds the Brands section, moves campaign creation to start from a brand, and takes a
+1:1 pass over the admin screens against the Figma exports in
+`scratchpad/figma` (design width 1728, 80px rail, 1648 content column).
+
+### Contract
+
+`Brand` / `BrandDetail` / `BrandInput` land in `core/models/brand.ts` exactly as specified.
+`PublicCampaign` gains `brandId`, and `CampaignDraftInput` drops its inline `brand` block for
+`brandId` — campaign identity now comes from the Brand relation. `AdminRepository` gains
+`brands(search?)`, `brand(id)`, `createBrand`, `updateBrand`, `deleteBrand`.
+
+### Shared kit (so every admin page shares one set of styles)
+
+- `shared/admin/wizard-shell.ts` — the full-viewport modal chrome both wizards use, built
+  from the 172:823 node spec: `#FFFFFF`/90 overlay, round `#CDCDCD` close button at
+  top-right, 53px orange app-icon tile inside a 326x125 header block, a 236x10 `#E0E0E0`
+  progress track with an `#F26522` fill, Poppins SemiBold 40 title over SF Pro 22 subtitle,
+  and a **546px** centred content column.
+- `shared/admin/page-header.ts` — breadcrumb pill (`#F1F1F1`, home glyph) + title + subtitle
+  with the page CTA projected on the right, matching the dashboard header exactly.
+- `shared/admin/stat-card.ts`, `shared/admin/brand-logo-tile.ts`.
+- `core/util/admin-options.ts` — countries (Ghana first), cities per country, industries,
+  campaign tags, currencies, and `estimatedViews(budget, cpm)`.
+
+### Sign-in aligned to 147:3105
+
+66px/`r-20` orange logo tile with a 50px mark, Poppins SemiBold 32 "Welcome back",
+SF Pro 18 `#464646` subtitle, a 423px form column, 50px/`r-12` fields with `#D7D7D7`
+borders and `#DFDFDF` placeholders, an 18px remember-me / forgot row, and a 50px orange
+submit.
+
+### Deviations from the design, and why
+
+- **"Views" (budget step)** is not in the API contract. Rendered as a read-only
+  "Estimated views" = budget / CPM x 1000 rather than a free input that could not be saved.
+- **"Product" (details step)** is not a contract field; it maps onto the campaign's `tags`.
+- **Registrations have no brand filter.** `GET /admin/registrations` takes
+  `campaignSlug|status|search` only, so a brand's clippers table is scoped by offering the
+  brand's campaigns as filter options. Adding `?brandId=` to that endpoint would fix it
+  properly.
+- **Revenue formatting** (`GHS ₵ 40,000.00`) derives its currency from the brand's first
+  campaign, since `BrandDetail.stats.revenue` is a bare number with no currency.
+
+### Bundle budgets raised
+
+`angular.json` initial-bundle budgets go from 700 kB / 850 kB to **850 kB / 1 MB**.
+The admin section legitimately grew (brands, two wizards, the shared kit) and the
+initial bundle sits at ~835 kB with every admin route already lazy, leaving no
+headroom under the old error budget. No further code splitting was done.
+
+### Round-1 design review fixes
+
+- `campaignTimeLabel()` replaces a bare days-left everywhere a campaign card renders
+  a countdown: DRAFT reads "Not scheduled", CLOSED "Ended", UPCOMING "Opens in N
+  days", ACTIVE keeps the existing countdown. A draft with no `endDate` no longer
+  claims "30 Days left".
+- `formatMoneyExact()` renders the design's two-decimal money with a thin space
+  ("₵ 2,000.00"). The public landing-mirror pages keep the looser `formatMoney`.
+- Brand revenue renders a currency code OR a symbol, never both.
+- The wizard overlay was `bg-[#FFFFFF]/90`, which let the rail bleed through at a
+  different shade; it is now solid white at `z-50` with the close button at the
+  spec's position.
+- Admin page headers are 32px titles over 20px subtitles; campaign status pills are
+  44px tall with 18px labels; compact-card headings are 24px.
+- A signed-in visitor hitting `/auth/sign-in` is redirected to their dashboard
+  instead of `/`.
+
+### Round-2 design review fixes
+
+- **Clippers table fits without scrolling at 1728.** Column widths now follow the
+  Figma table's proportions and sum to the 1400px min-width; with
+  `table-layout: fixed` they scale up to fill the panel at the design width and
+  only scroll below ~1400px. Our two extra columns (Status tag + review select)
+  are merged into one trailing "Review" column, so eight columns occupy the space
+  the design gives seven. Both embeds (campaign detail, brand detail) inherit this
+  from the shared component.
+- **Brands list**: taller stat cards with 28px numbers, "Needs attention" in orange
+  via a new `tone` input on `app-stat-card`, the design's left-aligned pagination
+  with a page picker, and the search moved into the header row.
+- **Brand detail**: the page title is "Brand detail" (the name lives in the header
+  card only), buttons read "Pause Campaign" / "Edit", the campaign grid uses the
+  shared `app-campaign-compact-card`, and the clippers embed is toolbar-less with
+  Export driven from the panel header.
+
+### Known failing test (not ours)
+
+`admin-dashboard.spec.ts` asserts `<main>` carries an inline
+`background-color: #f9f9f9`, but `admin-dashboard.html` sets no inline style — the
+canvas colour comes from `app.html`. Both files are outside this workstream's
+boundary, so the assertion is left failing: 9/10 unit tests pass. It needs either
+the assertion dropped or the inline style added by the dashboard's owner.
+
+## Clipper surfaces (2026-09-02) — Figma page "Web App - clippers"
+
+Four surfaces rebuilt against `docs/design/figma-clippers/` (design width 1728,
+mobile 402/380): the creator dashboard, sign-in, create-account, and the two
+public campaign pages.
+
+### Public chrome replaces the anonymous top nav
+
+Anonymous visitors on public pages now get the landing site's chrome instead of
+the studio top bar, so `/campaigns` reads as part of clapoutcreators.com:
+
+- `shared/public/public-navbar.*` — the floating pill from 344:1182 (1537x96 at
+  1728, 79.3px radius, 5% grey over a 17% white hairline), with Product ▾
+  (marketing-site sections), Campaigns, Contact, Sign in and the orange
+  "Get Started" pill. Below `lg` it collapses to logo + an orange round
+  hamburger opening a drawer.
+- `shared/public/public-footer.*` — the dark `#0C0C0C` footer: logo, blurb,
+  Explore / Legal / Contact columns, the copyright rule, and the oversized
+  "CLAPOUT" watermark bleeding off the bottom.
+- `shared/public/public-links.ts` holds both components' link sets.
+- `App` switches on three cases now: auth routes are chromeless, signed-in users
+  keep the rail, anonymous visitors get the public chrome. The design has no
+  signed-in variant of the public pages, so signed-in users keep the rail there.
+- The old `shared/layout/top-nav.*` is deleted — nothing referenced it any more.
+- `/terms` and `/privacy` are new placeholder pages, because the footer and the
+  sign-up consent checkbox link to them and the routes had to resolve.
+
+### Copy defects corrected from the design
+
+"socias" → "socials", "whatsapp" → "WhatsApp", "No campaigns joied" →
+"No campaigns joined", "Get Stared" → "Get Started", and the create-account
+submit button reads "Create account" rather than the design's "Sign in".
+
+### Design elements with no data behind them
+
+- Dashboard stat trend pills: no API returns prior-period figures, so the pills
+  are omitted rather than faked. Earned/Views/Submissions are zero placeholders;
+  only Campaigns (registration count) is real.
+- "Submit your first video" is rendered disabled with a "Coming soon" tooltip —
+  content submission does not exist in the product and no endpoint was invented.
+- The card's verified glyph shows for every brand; `PublicCampaign` has no
+  verified flag.
+
+## Desktop scale, mobile overflow, landing chrome and Share (2026-09-02)
+
+- **`src/styles.css` is now the platform's scale knob.** `--ui-scale` is `0.8`
+  from 1024px and `body` takes it as `zoom`, matching clapoutcreators.com. Two
+  compensations live beside it and must move together with the scale: viewport
+  units (`h-screen`, `min-h-screen`, `min-h-svh`) are divided by the scale
+  because `zoom` does not divide them, and body-appended PrimeNG overlays get
+  the zoom cancelled on the positioned box and re-applied to its content —
+  without that, every panel lands `20%` of its trigger's height too low. A
+  residual of `triggerSize x (1 - scale)` remains (~9px under a 46px button)
+  because PrimeNG mixes `offsetHeight` (layout px) with rect coordinates
+  (visual px); it reads as a slightly larger anchor gutter.
+- **User-authored copy must carry `co-user-text`.** Brands paste raw links into
+  campaign briefs and requirement notes; one unbroken URL is wider than a phone
+  viewport and iOS answers by zooming the page out. `body` breaks long words by
+  default, `co-user-text` adds `overflow-wrap: anywhere` so the token also stays
+  out of the block's min-content width.
+- **`shared/text/linkified-text`** turns bare `https://` and `www.` runs into
+  new-tab anchors without touching the text, and `splitLinks()` is unit-tested.
+  Use it for any field a brand types into.
+- **`shared/public/share-campaign-button`** is the one Share control:
+  `pill | text | icon | secondary | block` variants, `navigator.share` first,
+  clipboard + toast second, dialog last. Its click stops propagation because two
+  of its placements sit inside a card link.
+- **`shared/admin/campaign-compact-card` no longer wraps the card in an `<a>`** —
+  a button may not live inside an anchor, so the link is a transparent overlay
+  stretched across the card and the Share control lifts above it.
+- **`Registration.campaign` is in transition.** It is typed as a partial
+  `PublicCampaign` plus the legacy flat fields; always render it through
+  `registrationCampaign()`, which fills the gaps with the card's
+  "not announced" states rather than zeros.
+- The public navbar collapses at `md`, not `lg`, matching the landing site.
+- **`/campaigns/:slug` has two variants over one content body.** Anonymous
+  visitors and admins keep the public page (Figma 344:2763 / 344:2929); a
+  signed-in clipper gets the studio card (397:3135 / 398:4552, leaderboard
+  398:6785 / 398:6940). The body lives in one `<ng-template #contentBody>` and
+  the two variants only differ in the column gaps, which come from
+  `heroGapClass()` / `lowerColumnsClass()` / `bodyTopClass()` — put new geometry
+  there rather than forking the markup. Both tabs and the submit overlay are URL
+  state (`?tab=leaderboard`, `?submit=1`); tab switches use `replaceUrl` so the
+  "‹ Back" pill still means "the page before this campaign".
+- **`shared/creator/creator-page-header`** is the header row every signed-in
+  creator screen starts with: the breadcrumb pill (every crumb but the last is
+  muted) and the account chip. `creator-dashboard.html` still draws its own copy
+  of the same markup; fold it into this component when that file is next touched.
+- **`shared/creator/leaderboard-list`** owns "Top earners" — rank pill, the
+  deterministic `avatarGradient(creatorId)` (clippers have no photo), the name
+  and the verified-view count — plus the empty copy. Loading and error belong to
+  the host, which is why the campaign page repeats the heading in those two
+  states. `GET /public/campaigns/:slug/leaderboard` is public; the session token
+  the interceptor attaches is only what fills `isMe` / `me`.
+- **The phone tab bar lives in the side nav** (`.co-mobile-tabbar`, additive at
+  the end of `side-nav.html`), shown only to signed-in creators. Its slots are
+  positioned by percentage of the board's 402px width, and `src/styles.css` ends
+  with the matching `body:has(.co-mobile-tabbar)` clearance rule for the content
+  column — the bar is `position: fixed`, so the two must move together.
+
+## The clipper overlay sheet: submit post link and add social (2026-09-03)
+
+- **`shared/creator/overlay-sheet`** is the full-screen sheet both clipper
+  overlays are built on (Figma 398:5569 → 398:6048 and 397:1535 / 378:640): the
+  page behind under `backdrop-filter: blur(40px)` plus a white wash, a 506px
+  centred column (`max-w-[506px]` inside 20px gutters), and a grey circular ×
+  fixed to the viewport's top-right corner. Inputs: `visible` (model), `title`,
+  `subtitle`, `platforms`, `closeGuard`. Content is projected; a board whose
+  subtitle carries a bold word projects its own `<p [sheetSubtitle]>` styled
+  with `SHEET_SUBTITLE_CLASS`, and the success badge goes in `[sheetBadge]`.
+  Use `ngProjectAs` on an `<ng-container>` for those slots — a wrapper element
+  would still take the header's flex gap on the steps that project nothing.
+- **It is a `p-dialog` on purpose.** The focus trap, `aria-modal`, the scroll
+  block and the shared z-index stack are all things a hand-rolled fixed div
+  would have to re-earn; only the chrome is replaced, through
+  `styleClass` / `maskStyleClass` / `contentStyleClass` and the append-only
+  "Clipper overlay sheet" block at the end of `src/styles.css`.
+- **Escape and the backdrop are handled on the document, not in the template.**
+  `closeOnEscape` / `dismissableMask` would close the dialog from inside PrimeNG
+  before `closeGuard` could ask "Discard this submission?", and after the
+  confirm closes focus can land on `<body>`, where a listener bound inside the
+  sheet never sees the next key. The close button is deliberately first in the
+  DOM so `p-dialog`'s "focus the first focusable" lands there rather than in a
+  required field.
+- **`SHEET_*_CLASS` constants in `overlay-sheet.ts` are the sheet's vocabulary**
+  (title, subtitle, label, 50px field, primary/secondary/chip buttons, hairline,
+  terms line, inline error). Both dialogs pull from them; change a board value
+  once, there.
+- **`shared/creator/submit-post-dialog`** is the four-step flow —
+  `link → screenshot → payout → success`. Boards 3 and 4 are one step in two
+  states (the dashed "+ Add payment method" expands in place). API failures land
+  on the step that caused them: a payout `PATCH /me` failure stays on the payout
+  step, and only `POST_URL_PLATFORM_MISMATCH` / `DUPLICATE_SUBMISSION` walk back
+  to step 1 (`isPostUrlSubmissionError`). `payoutPatch()` returns null when the
+  saved details already say the same thing, so a second clip in one session is
+  one round trip. The account-name field is one more than the board draws — the
+  contract requires it — and is prefilled from the session.
+- **`submissionErrorMessage` and `toIsoDate` moved to `core/util/submission-errors`**
+  when the standalone `/creator/campaigns/:slug/submit` page was deleted. That
+  URL now redirects to `/campaigns/:slug?submit=1` through a `CanActivateFn`
+  that returns a `UrlTree`: Angular refuses `redirectTo` on a route that also
+  has `canActivate` (`NG04014`), and the guard has to stay so an anonymous
+  visitor still signs in with the old URL as their returnUrl.
+- **`platformFromUrl()` (in `core/util/platform-url`)** picks the brand glyph a
+  link field draws from what the clipper has typed; it must never throw, because
+  it runs on every keystroke.
+- **Where the boards disagree with each other, one value won.** The column is
+  506px on every step (the frames range 483–546); the mobile column starts at
+  140px on every step (the frames say 140 on steps 1–2 and add-social, 120 on
+  steps 3–4); the success panel keeps the same top offset as the rest rather
+  than dropping 59px (desktop) / 140px (mobile) as its frame does — a modal that
+  jumps on its last step reads as a bug.
+
+## Campaign timeline datetime + PrimeNG control scale (2026-09-03)
+
+### Outcome
+
+Campaign creation/editing now captures exact start and end times in the timeline step. The wizard
+still sends the existing `startDate` and `endDate` campaign fields, but now serializes them as
+browser-local ISO datetimes (`YYYY-MM-DDTHH:mm:ss`) instead of date-only strings.
+
+### Files and routes changed
+
+- `/admin/campaigns/new` and `/admin/campaigns/:slug/edit`: timeline step now requires a complete
+  date range plus required start/end time-only PrimeNG pickers.
+- Admin campaign preview, admin campaign detail, and dashboard campaign summaries render schedule
+  values through `formatDateTime`.
+- `src/styles.css`: shared PrimeNG/input font-size and minimum-height rules were added for form
+  fields, selects, date pickers, buttons, menus, messages, and tags.
+
+### Validation and contract notes
+
+- Start date, end date, start time, and end time are all required before the wizard can continue
+  past the timeline step.
+- End datetime must be strictly after start datetime; equal moments are rejected.
+- Existing campaign datetimes are parsed back into editable date-range and time controls.
+- API readiness remains `INTEGRATED`: no new endpoint or field was invented.
+
+### Verification
+
+| Check                    | Result                                                                                                                                 |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run format:check`   | PASS                                                                                                                                   |
+| `npm run lint`           | PASS                                                                                                                                   |
+| `npm run test:unit`      | PASS with Node `v24.18.0`: 19 files, 168 tests.                                                                                        |
+| `npm run build`          | PASS unsandboxed. Initial total `900.11 kB`, over the `850 kB` warning budget and below the configured error budget.                   |
+| `npm run test:e2e`       | PASS unsandboxed: 2 foundation Playwright tests, including responsive widths and critical AXE check. Sandboxed run hit `listen EPERM`. |
+| Signed-in admin UI smoke | NOT RUN. The current Playwright suite does not authenticate into `/admin/campaigns/new`; manual admin-session visual/AXE pass remains. |
+
+### Next phase recommendation
+
+`HOLD`
+
+Reason: Code and automated gates passed, but the signed-in campaign wizard still needs a manual
+desktop/tablet/mobile and AXE pass against an admin session.

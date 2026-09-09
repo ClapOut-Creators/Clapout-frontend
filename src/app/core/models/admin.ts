@@ -1,6 +1,7 @@
 import { CampaignPlatform } from './campaign';
 import { PayoutDetails, SocialAccount } from './user';
 import { RegistrationStatus } from './registration';
+import { Submission, SubmissionStatus } from './submission';
 
 /** Admin-only contracts (`/admin/*`, Bearer + role ADMIN, else 403 FORBIDDEN). */
 
@@ -16,8 +17,25 @@ export interface AdminStats {
   totalCreators: number;
   totalBrands: number;
   newRegistrations7d: number;
+  /**
+   * All-time registration count. Optional while the backend rolls the field
+   * out; the dashboard shows an em dash rather than a misleading zero.
+   */
+  totalRegistrations?: number;
   awaitingReview: number;
   registrationActivity: RegistrationActivityPoint[];
+  /**
+   * SUBMITTED | UNDER_REVIEW submissions. Optional while the backend rolls the
+   * field out, so an older API never renders a misleading zero.
+   */
+  pendingSubmissions?: number;
+  /** Partnership inquiries still at status NEW. Optional for the same reason. */
+  newInquiries?: number;
+  /**
+   * Brand invites that are PENDING and not yet expired. Optional for the same
+   * reason — an older API must not render a misleading zero.
+   */
+  pendingBrandInvites?: number;
 }
 
 /** The creator behind a registration, with the contact + payout details admins need. */
@@ -49,18 +67,35 @@ export interface AdminRegistration {
   campaign: AdminRegistrationCampaign;
 }
 
+/**
+ * One creator account for the admin "All clippers" list — including clippers
+ * who signed up but never applied to a campaign, whom no registration row
+ * can represent. `GET /admin/creators`.
+ */
+export interface AdminCreator extends AdminRegistrationCreator {
+  /** Null until the clipper confirms the WhatsApp community in onboarding. */
+  communityJoinedAt: string | null;
+  /** Sign-up time. */
+  createdAt: string;
+  /** Campaign registrations in any status. */
+  registrationCount: number;
+}
+
+export type AdminCreatorFilter = 'unregistered' | 'registered';
+
+export interface AdminCreatorQuery {
+  /** Name or email, case-insensitive substring. */
+  search?: string;
+  /** `unregistered` = signed up, never applied; `registered` = applied at least once. */
+  filter?: AdminCreatorFilter;
+}
+
 export interface AdminRegistrationQuery {
+  /** Scopes to every campaign owned by one brand; composes with the others. */
+  brandId?: string;
   campaignSlug?: string;
   status?: RegistrationStatus;
   search?: string;
-}
-
-/** Brand fields carried inline on a campaign row. */
-export interface CampaignBrandInput {
-  name: string;
-  logoUrl?: string | null;
-  logoBg?: string;
-  logoFit?: 'cover' | 'contain';
 }
 
 /**
@@ -72,7 +107,10 @@ export interface CampaignDraftInput {
   title: string;
   slug?: string;
   demo?: boolean;
-  brand: CampaignBrandInput;
+  /** Accept every registration on creation instead of queueing it for review. */
+  autoApproveRegistrations?: boolean;
+  /** Campaigns are owned by a Brand; identity comes from the brand record. */
+  brandId: string;
   description: string;
   category: string;
   currency: string;
@@ -95,4 +133,106 @@ export interface CampaignDraftInput {
  */
 export interface PublishIncompleteDetails {
   missing: string[];
+}
+
+// --------------------------------------------------------------- submissions
+
+/** The creator behind a submission, with the contact + payout details admins need. */
+export interface AdminSubmissionCreator {
+  id: string;
+  fullName: string;
+  email: string;
+  whatsapp: string | null;
+  phone: string | null;
+  payout: PayoutDetails | null;
+}
+
+/** The registration a submission was posted under. */
+export interface AdminSubmissionRegistration {
+  id: string;
+  platform: CampaignPlatform;
+  accountUrl: string;
+}
+
+/** Row in the admin review table (`GET /admin/submissions`). */
+export interface AdminSubmission extends Submission {
+  creator: AdminSubmissionCreator;
+  registration: AdminSubmissionRegistration;
+  /** History rows on this clip, the approval's own check included. */
+  viewCheckCount: number;
+}
+
+export interface AdminSubmissionQuery {
+  campaignSlug?: string;
+  /** Scopes to every campaign owned by one brand; composes with the others. */
+  brandId?: string;
+  registrationId?: string;
+  status?: SubmissionStatus;
+  /** Matches creator name / email and the post URL, case-insensitive contains. */
+  search?: string;
+  /**
+   * Narrows to APPROVED clips on live campaigns whose views were last confirmed
+   * more than N days ago — the queue of boards that have gone stale.
+   */
+  staleViewsDays?: number;
+}
+
+/** Body for `PATCH /admin/submissions/:id`. */
+export interface AdminSubmissionUpdate {
+  status: SubmissionStatus;
+  /** Required by APPROVED unless the row already carries a value. */
+  verifiedViews?: number | null;
+  /** Empty string clears the note server side. */
+  reviewNote?: string;
+}
+
+// ------------------------------------------------------- partnership inquiries
+
+export type InquiryStatus = 'NEW' | 'CONTACTED' | 'CONVERTED' | 'CLOSED';
+
+/** A brand's "Partnership Inquiry" from the landing page. */
+export interface PartnershipInquiry {
+  id: string;
+  name: string;
+  email: string;
+  company: string | null;
+  /** International, e.g. '+233201234567'. */
+  phone: string;
+  /** "What are you promoting". */
+  promoting: string;
+  /** Website / socials / app link — free text, not validated as a URL. */
+  link: string;
+  /** 'TikTok' | 'Instagram Reels' | 'YouTube Shorts' | 'Mixed' (free text). */
+  contentType: string;
+  /** 'ASAP' | 'Within 2 weeks' | … (free text). */
+  timeline: string;
+  /** 'GH₵2,000 – 5,000' … (free text). */
+  budget: string;
+  notes: string | null;
+  source: 'landing';
+  /** Web3Forms accepted the notification email. */
+  emailDelivered: boolean;
+  status: InquiryStatus;
+  adminNote: string | null;
+  /** Set once the inquiry has been converted into a Brand. */
+  brandId: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AdminInquiryQuery {
+  status?: InquiryStatus;
+  /** Matches name / email / company / promoting, case-insensitive contains. */
+  search?: string;
+}
+
+/**
+ * Body for `PATCH /admin/partnership-inquiries/:id`. A `brandId` sent without a
+ * `status` moves NEW/CONTACTED to CONVERTED server side.
+ */
+export interface AdminInquiryUpdate {
+  status?: InquiryStatus;
+  /** Empty string clears the note server side. */
+  adminNote?: string;
+  brandId?: string;
 }

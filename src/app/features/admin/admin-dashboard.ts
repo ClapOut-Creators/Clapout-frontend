@@ -1,5 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Params, Router, RouterLink } from '@angular/router';
 import { ArrowDown } from '@primeicons/angular/arrow-down';
 import { ArrowUp } from '@primeicons/angular/arrow-up';
 import { ChevronRight } from '@primeicons/angular/chevron-right';
@@ -21,7 +21,7 @@ import {
   budgetPercent,
   campaignStatusLabel,
   campaignStatusTone,
-  formatDate,
+  formatDateTime,
   formatMoney,
   hasBudget,
 } from '../../core/util/campaign-format';
@@ -47,6 +47,8 @@ interface AttentionItem {
   readonly detail: string;
   readonly count: number;
   readonly href: string;
+  /** Deep-links the campaigns list into the matching filter (`?show=`). */
+  readonly query?: Params;
   readonly tone: 'warning' | 'primary' | 'success' | 'neutral';
 }
 
@@ -168,7 +170,17 @@ export class AdminDashboard {
    * Mock "before this window" registration total — AdminStats has no all-time
    * or previous-period count yet. Placeholder pending backend support.
    */
-  protected readonly oldRegistrationTotal = formatCount(7260);
+  /**
+   * Registrations that predate the activity window: the all-time total minus
+   * the 21 days the chart covers. An older API without the total shows '—'.
+   */
+  protected readonly oldRegistrationTotal = computed(() => {
+    const total = this.stats()?.totalRegistrations;
+    if (total === undefined) {
+      return '—';
+    }
+    return formatCount(Math.max(0, total - this.activityTotal()));
+  });
 
   private readonly activity = computed(() => this.stats()?.registrationActivity ?? []);
   protected readonly hasActivity = computed(() => this.activity().length > 0);
@@ -223,6 +235,7 @@ export class AdminDashboard {
         detail: 'Ending soon',
         count: endingSoon,
         href: '/admin/campaigns',
+        query: { show: 'ending-soon' },
         tone: 'primary',
       },
       {
@@ -231,6 +244,7 @@ export class AdminDashboard {
         detail: 'Pending budget',
         count: pendingBudget,
         href: '/admin/campaigns',
+        query: { show: 'pending-budget' },
         tone: 'success',
       },
       {
@@ -247,7 +261,7 @@ export class AdminDashboard {
   protected readonly budgetPercent = budgetPercent;
   protected readonly campaignStatusLabel = campaignStatusLabel;
   protected readonly campaignStatusTone = campaignStatusTone;
-  protected readonly formatDate = formatDate;
+  protected readonly formatDateTime = formatDateTime;
   protected readonly formatMoney = formatMoney;
   protected readonly hasBudget = hasBudget;
 

@@ -6,7 +6,8 @@
  * these types without a matching backend change.
  */
 
-export type CampaignPlatform = 'tiktok' | 'x' | 'facebook' | 'instagram' | 'youtube';
+export type CampaignPlatform =
+  'tiktok' | 'x' | 'facebook' | 'instagram' | 'youtube' | 'snapchat' | 'whatsapp';
 
 /**
  * `DRAFT` campaigns exist only in the admin section — the public endpoints never
@@ -31,8 +32,13 @@ export interface PublicCampaign {
   title: string;
   /** Demo/dummy campaigns seeded for the landing page. */
   demo: boolean;
+  /** FK to the owning Brand. */
+  brandId: string;
+  /** Denormalised from the Brand relation for rendering. */
   brand: CampaignBrand;
   status: CampaignStatus;
+  /** Registrations are ACCEPTED on creation instead of queued for admin review. */
+  autoApproveRegistrations: boolean;
   /**
    * `status === 'ACTIVE' && startDate <= now && (endDate == null || now < endDate)`,
    * computed server side.
@@ -55,6 +61,12 @@ export interface PublicCampaign {
   endDate: string | null;
   /** Human readable review turnaround, e.g. '1d'. */
   avgReviewTime: string;
+  /**
+   * Registrations received so far — the participants pill on the public card.
+   * Optional while the backend rolls the field out; clients must render the
+   * unannounced em dash rather than 0 when it is absent.
+   */
+  registrationCount?: number;
   tags: string[];
   bannerUrl: string | null;
   requirementsNote: string | null;

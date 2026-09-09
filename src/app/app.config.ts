@@ -6,13 +6,18 @@ import {
 } from '@angular/core';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
-import { provideRouter, withComponentInputBinding } from '@angular/router';
+import {
+  provideRouter,
+  withComponentInputBinding,
+  withNavigationErrorHandler,
+} from '@angular/router';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { providePrimeNG } from 'primeng/config';
 import { authInterceptor } from './core/auth/auth-interceptor';
 import { AuthService } from './core/auth/auth-service';
 import { provideAppConfiguration } from './core/config/app-environment';
 import { RUNTIME_API_BASE_URL } from './core/config/runtime-env';
+import { reloadOnChunkLoadError } from './core/routing/chunk-reload';
 import { clapoutPreset } from './core/theme/clapout-preset';
 import { routes } from './app.routes';
 
@@ -21,7 +26,13 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     provideAnimationsAsync(),
     provideHttpClient(withInterceptors([authInterceptor])),
-    provideRouter(routes, withComponentInputBinding()),
+    // A navigation that fails because its lazy chunk is gone (stale tab after a
+    // deploy) reloads the page once instead of surfacing a misleading error.
+    provideRouter(
+      routes,
+      withComponentInputBinding(),
+      withNavigationErrorHandler(reloadOnChunkLoadError),
+    ),
     providePrimeNG({
       // PrimeUI Community license (free tier, renewable yearly). Ships in the
       // client bundle by design — not a secret.

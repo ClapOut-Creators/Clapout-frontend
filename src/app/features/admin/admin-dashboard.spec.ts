@@ -10,6 +10,7 @@ const stats: AdminStats = {
   totalCreators: 72,
   totalBrands: 2,
   newRegistrations7d: 9,
+  totalRegistrations: 1017,
   awaitingReview: 18,
   registrationActivity: [
     { date: '2026-08-11', count: 4 },
@@ -22,6 +23,7 @@ const activeCampaign: PublicCampaign = {
   slug: 'e-wale',
   title: 'E-wale tech',
   demo: false,
+  brandId: 'brand-1',
   brand: {
     name: 'E-wale',
     logoUrl: null,
@@ -30,6 +32,7 @@ const activeCampaign: PublicCampaign = {
   },
   status: 'ACTIVE',
   registrationOpen: true,
+  autoApproveRegistrations: false,
   platforms: ['tiktok'],
   currency: 'GHS ',
   cpm: 20,
@@ -105,12 +108,14 @@ describe('AdminDashboard', () => {
   it('renders metrics, activity summary, attention items, and recent campaigns', async () => {
     const { element } = await render();
 
-    expect(element.querySelector('main')?.getAttribute('style')).toContain(
-      'background-color: #f9f9f9',
-    );
+    // The #F9F9F9 canvas is painted by the app shell (app.html), not by this
+    // component, so only the landmark itself is asserted here.
+    expect(element.querySelector('main')).toBeTruthy();
     expect(element.textContent).toContain('Published campaigns');
     expect(element.textContent).toContain('Total creators');
     expect(element.textContent).toContain('17 new registrations from 11 Aug to 13 Aug.');
+    // Old = all-time total minus the 17 inside the activity window.
+    expect(element.textContent).toContain('1,000');
     expect(element.querySelector('[echarts][role="img"]')?.getAttribute('aria-label')).toContain(
       'Bar chart of new registrations',
     );

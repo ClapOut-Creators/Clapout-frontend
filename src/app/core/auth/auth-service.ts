@@ -3,7 +3,7 @@ import { computed, effect, inject, Injectable, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { toApiError } from '../api/api-error';
 import { APP_ENVIRONMENT } from '../config/app-environment';
-import { AuthSession, Me, SignInPayload, SignUpPayload } from '../models/user';
+import { AuthSession, Me, ProfilePatch, SignInPayload, SignUpPayload } from '../models/user';
 import { TokenStore } from './token-store';
 
 /**
@@ -29,6 +29,15 @@ export class AuthService {
   readonly isSignedIn = computed(() => this.tokens.token() !== null && this.currentUser() !== null);
   /** Drives the admin guard and the role-aware side nav. */
   readonly isAdmin = computed(() => this.isSignedIn() && this.currentUser()?.role === 'ADMIN');
+  /**
+   * A signed-in creator who has not yet confirmed joining the WhatsApp
+   * community. Drives the onboarding page after sign-up, the dashboard's
+   * onboarding sheet, and `onboardingGuard` on the apply route.
+   */
+  readonly needsOnboarding = computed(() => {
+    const user = this.currentUser();
+    return this.isSignedIn() && user?.role === 'CREATOR' && user.communityJoinedAt === null;
+  });
 
   constructor() {
     // A 401 anywhere in the app clears the token (see authInterceptor); drop the
@@ -66,6 +75,23 @@ export class AuthService {
     this.tokens.clear();
     this.currentUser.set(null);
     this.bootstrapTask = Promise.resolve();
+  }
+
+  /**
+   * `PATCH /me` — partial profile update. The session copy of `user` is
+   * replaced with what the API echoed back, so every `computed` reading it
+   * (the dashboard checklist, `needsOnboarding`) updates without a reload.
+   */
+  async updateProfile(patch: ProfilePatch): Promise<Me> {
+    try {
+      const response = await firstValueFrom(
+        this.http.patch<{ user: Me }>(`${this.baseUrl}/me`, patch),
+      );
+      this.currentUser.set(response.user);
+      return response.user;
+    } catch (error) {
+      throw toApiError(error);
+    }
   }
 
   /**

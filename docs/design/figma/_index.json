@@ -1,0 +1,260 @@
+[
+ {
+  "group": "Dashboard (175:719)",
+  "id": "160:4030",
+  "name": "Dashboard",
+  "w": 1728,
+  "h": 1483,
+  "x": 74,
+  "y": 105,
+  "file": "dashboard-dashboard-160-4030"
+ },
+ {
+  "group": "brand (189:6412)",
+  "id": "189:6413",
+  "name": "brand",
+  "w": 1728,
+  "h": 959,
+  "x": 74,
+  "y": 105,
+  "file": "brand-brand-189-6413"
+ },
+ {
+  "group": "brand (189:6412)",
+  "id": "198:7616",
+  "name": "brand",
+  "w": 1728,
+  "h": 959,
+  "x": 1842,
+  "y": 105,
+  "file": "brand-brand-198-7616"
+ },
+ {
+  "group": "brand (189:6412)",
+  "id": "198:7908",
+  "name": "Campaign details",
+  "w": 1728,
+  "h": 1547,
+  "x": 3594,
+  "y": 105,
+  "file": "brand-campaign-details-198-7908"
+ },
+ {
+  "group": "brand (189:6412)",
+  "id": "198:9032",
+  "name": "Campaign details",
+  "w": 1728,
+  "h": 1497,
+  "x": 3594,
+  "y": 1729,
+  "file": "brand-campaign-details-198-9032"
+ },
+ {
+  "group": "brand (189:6412)",
+  "id": "198:9402",
+  "name": "Create new campaign",
+  "w": 1728,
+  "h": 1048,
+  "x": 5362,
+  "y": 105,
+  "file": "brand-create-new-campaign-198-9402"
+ },
+ {
+  "group": "brand (189:6412)",
+  "id": "198:9485",
+  "name": "Campaign Details",
+  "w": 1728,
+  "h": 1048,
+  "x": 5362,
+  "y": 1191,
+  "file": "brand-campaign-details-198-9485"
+ },
+ {
+  "group": "brand (189:6412)",
+  "id": "198:9539",
+  "name": "Campaign Budget",
+  "w": 1728,
+  "h": 1048,
+  "x": 5362,
+  "y": 2277,
+  "file": "brand-campaign-budget-198-9539"
+ },
+ {
+  "group": "brand (189:6412)",
+  "id": "198:10001",
+  "name": "Complete",
+  "w": 1728,
+  "h": 1048,
+  "x": 5362,
+  "y": 3363,
+  "file": "brand-complete-198-10001"
+ },
+ {
+  "group": "Campaign and create (175:720)",
+  "id": "176:4073",
+  "name": "Campaign details",
+  "w": 1728,
+  "h": 1497,
+  "x": 5397,
+  "y": 104,
+  "file": "campaign-and-create-campaign-details-176-4073"
+ },
+ {
+  "group": "Campaign and create (175:720)",
+  "id": "181:5913",
+  "name": "Campaign details - no clippers",
+  "w": 1728,
+  "h": 1497,
+  "x": 7165,
+  "y": 104,
+  "file": "campaign-and-create-campaign-details-no-clippers-181-5913"
+ },
+ {
+  "group": "Campaign and create (175:720)",
+  "id": "176:4993",
+  "name": "Dashboard",
+  "w": 1728,
+  "h": 1456,
+  "x": 5397,
+  "y": 1654,
+  "file": "campaign-and-create-dashboard-176-4993"
+ },
+ {
+  "group": "Campaign and create (175:720)",
+  "id": "181:5508",
+  "name": "Campaign details",
+  "w": 1728,
+  "h": 1456,
+  "x": 5397,
+  "y": 3163,
+  "file": "campaign-and-create-campaign-details-181-5508"
+ },
+ {
+  "group": "Campaign and create (175:720)",
+  "id": "172:823",
+  "name": "Create new campaign",
+  "w": 1728,
+  "h": 1048,
+  "x": 3629,
+  "y": 104,
+  "file": "campaign-and-create-create-new-campaign-172-823"
+ },
+ {
+  "group": "Campaign and create (175:720)",
+  "id": "172:1211",
+  "name": "Campaign Details",
+  "w": 1728,
+  "h": 1048,
+  "x": 3629,
+  "y": 1190,
+  "file": "campaign-and-create-campaign-details-172-1211"
+ },
+ {
+  "group": "Campaign and create (175:720)",
+  "id": "172:1549",
+  "name": "Campaign Budget",
+  "w": 1728,
+  "h": 1048,
+  "x": 3629,
+  "y": 2276,
+  "file": "campaign-and-create-campaign-budget-172-1549"
+ },
+ {
+  "group": "Campaign and create (175:720)",
+  "id": "172:2146",
+  "name": "Campaign Timeline",
+  "w": 1728,
+  "h": 1048,
+  "x": 3629,
+  "y": 3362,
+  "file": "campaign-and-create-campaign-timeline-172-2146"
+ },
+ {
+  "group": "Campaign and create (175:720)",
+  "id": "172:3073",
+  "name": "Campaign Platforms",
+  "w": 1728,
+  "h": 1048,
+  "x": 3629,
+  "y": 4448,
+  "file": "campaign-and-create-campaign-platforms-172-3073"
+ },
+ {
+  "group": "Campaign and create (175:720)",
+  "id": "172:3572",
+  "name": "Requirement & Resources",
+  "w": 1728,
+  "h": 1048,
+  "x": 3629,
+  "y": 5534,
+  "file": "campaign-and-create-requirement-resources-172-3572"
+ },
+ {
+  "group": "Campaign and create (175:720)",
+  "id": "173:4482",
+  "name": "Campaign - Detail",
+  "w": 1728,
+  "h": 1048,
+  "x": 3629,
+  "y": 6675,
+  "file": "campaign-and-create-campaign-detail-173-4482"
+ },
+ {
+  "group": "Campaign and create (175:720)",
+  "id": "176:1056",
+  "name": "Complete",
+  "w": 1728,
+  "h": 1048,
+  "x": 3626,
+  "y": 7768,
+  "file": "campaign-and-create-complete-176-1056"
+ },
+ {
+  "group": "Campaign and create (175:720)",
+  "id": "179:362",
+  "name": "Empty State Dashboard",
+  "w": 1728,
+  "h": 1048,
+  "x": 87,
+  "y": 104,
+  "file": "campaign-and-create-empty-state-dashboard-179-362"
+ },
+ {
+  "group": "Campaign and create (175:720)",
+  "id": "176:3357",
+  "name": "Campaigns",
+  "w": 1728,
+  "h": 1048,
+  "x": 1855,
+  "y": 104,
+  "file": "campaign-and-create-campaigns-176-3357"
+ },
+ {
+  "group": "Campaign and create (175:720)",
+  "id": "176:1195",
+  "name": "Campaigns - Awaiting",
+  "w": 1728,
+  "h": 1048,
+  "x": 1858,
+  "y": 1190,
+  "file": "campaign-and-create-campaigns-awaiting-176-1195"
+ },
+ {
+  "group": "Login (175:721)",
+  "id": "147:3105",
+  "name": "Sign",
+  "w": 1728,
+  "h": 1117,
+  "x": 81,
+  "y": 104,
+  "file": "login-sign-147-3105"
+ },
+ {
+  "group": null,
+  "id": "338:955",
+  "name": "Campaign Card — Compact",
+  "w": 586,
+  "h": 639,
+  "file": "campaign-card-compact-338-955"
+ }
+]

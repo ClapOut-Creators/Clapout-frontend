@@ -24,6 +24,19 @@ function barColor(): string {
   );
 }
 
+/**
+ * The page's `body { zoom }` (styles.css `--ui-scale`), or 1 where it does not
+ * apply. Chart sizes are multiplied by it so the un-zoomed chart still draws at
+ * page scale.
+ */
+function uiScale(): number {
+  if (typeof document === 'undefined') {
+    return 1;
+  }
+  const raw = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--ui-scale'));
+  return Number.isFinite(raw) && raw > 0 ? raw : 1;
+}
+
 function barColorLight(): string {
   if (typeof document === 'undefined') {
     return FALLBACK_BAR_COLOR_LIGHT;
@@ -38,6 +51,14 @@ function barColorLight(): string {
  * Minimal Apache ECharts bar chart. The parent owns the size — give the host a
  * height (e.g. `<div class="h-52"><app-bar-chart …/></div>`) or the chart has
  * no drawing area.
+ *
+ * The host cancels the page zoom (see styles.css). Under `body { zoom: 0.8 }`
+ * the canvas is laid out at 1.25× its visual size while mouse events arrive in
+ * visual pixels, so ECharts read every hover ~25% too far left and the tooltip
+ * named a day several columns before the bar under the cursor. With an
+ * effective zoom of 1 the two coordinate spaces agree; the option sizes are
+ * multiplied by the scale so the drawing itself still matches the page, and
+ * the tooltip stays inside the host so it shares that coordinate space.
  */
 @Component({
   imports: [NgxEchartsDirective],
@@ -57,6 +78,7 @@ function barColorLight(): string {
     :host {
       display: block;
       height: 100%;
+      zoom: calc(1 / var(--ui-scale, 1));
     }
   `,
 })
@@ -76,55 +98,64 @@ export class BarChart {
     return values.reduce((total, value) => total + value, 0) / values.length;
   });
 
-  protected readonly chartOptions = computed<EChartsCoreOption>(() => ({
-    animation: false,
-    color: [barColor()],
-    grid: {
-      bottom: 28,
-      containLabel: true,
-      left: 8,
-      right: 8,
-      top: 16,
-    },
-    tooltip: {
-      appendToBody: true,
-      trigger: 'axis',
-      valueFormatter: (value: unknown) => `${value}`,
-    },
-    xAxis: {
-      axisLine: { show: false },
-      axisTick: { show: false },
-      axisLabel: {
-        color: '#777777',
-        fontSize: 11,
-        hideOverlap: true,
+  protected readonly chartOptions = computed<EChartsCoreOption>(() => {
+    const scale = uiScale();
+    return {
+      animation: false,
+      color: [barColor()],
+      grid: {
+        bottom: 28 * scale,
+        containLabel: true,
+        left: 8 * scale,
+        right: 8 * scale,
+        top: 16 * scale,
       },
-      data: this.labels(),
-      type: 'category',
-    },
-    yAxis: {
-      axisLine: { show: false },
-      axisLabel: { show: false },
-      axisTick: { show: false },
-      splitLine: {
-        lineStyle: {
-          color: '#ECECEC',
-          type: 'dashed',
+      tooltip: {
+        confine: true,
+        padding: 10 * scale,
+        // Drawn on the canvas rather than as a transformed <div>: Chrome
+        // scales a composited translate() under nested zoom by the outer
+        // zoom only, which parked the HTML tooltip ~20% left of the pointer.
+        renderMode: 'richText',
+        textStyle: { fontSize: 14 * scale },
+        trigger: 'axis',
+        valueFormatter: (value: unknown) => `${value}`,
+      },
+      xAxis: {
+        axisLine: { show: false },
+        axisTick: { show: false },
+        axisLabel: {
+          color: '#777777',
+          fontSize: 11 * scale,
+          hideOverlap: true,
         },
+        data: this.labels(),
+        type: 'category',
       },
-      type: 'value',
-    },
-    series: [
-      {
-        barMaxWidth: 8,
-        data: this.values(),
-        itemStyle: {
-          borderRadius: [4, 4, 4, 4],
-          color: (params: CallbackDataParams) =>
-            Number(params.value) >= this.average() ? barColor() : barColorLight(),
+      yAxis: {
+        axisLine: { show: false },
+        axisLabel: { show: false },
+        axisTick: { show: false },
+        splitLine: {
+          lineStyle: {
+            color: '#ECECEC',
+            type: 'dashed',
+          },
         },
-        type: 'bar',
+        type: 'value',
       },
-    ],
-  }));
+      series: [
+        {
+          barMaxWidth: 8 * scale,
+          data: this.values(),
+          itemStyle: {
+            borderRadius: 4 * scale,
+            color: (params: CallbackDataParams) =>
+              Number(params.value) >= this.average() ? barColor() : barColorLight(),
+          },
+          type: 'bar',
+        },
+      ],
+    };
+  });
 }

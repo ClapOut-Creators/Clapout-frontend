@@ -1,6 +1,6 @@
 import { Component, computed, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 import { AuthService } from '../../core/auth/auth-service';
 import { Me } from '../../core/models/user';
 import { SideNav } from './side-nav';
@@ -27,6 +27,7 @@ const adminUser: Me = {
   whatsapp: null,
   socials: [],
   payout: null,
+  communityJoinedAt: '2026-08-02T00:00:00.000Z',
   createdAt: '2026-08-01T00:00:00.000Z',
 };
 
@@ -44,7 +45,10 @@ describe('SideNav', () => {
     await TestBed.configureTestingModule({
       imports: [SideNav],
       providers: [
-        provideRouter([{ path: 'campaigns', component: EmptyRoute }]),
+        provideRouter([
+          { path: 'campaigns', component: EmptyRoute },
+          { path: 'auth/sign-in', component: EmptyRoute },
+        ]),
         { provide: AuthService, useValue: auth },
       ],
     }).compileComponents();
@@ -64,6 +68,8 @@ describe('SideNav', () => {
     expect(element.querySelector('a[aria-label="Dashboard"]')).toBeTruthy();
     expect(element.querySelector('a[aria-label="Campaigns"]')).toBeTruthy();
     expect(element.querySelector('a[aria-label="Registrations"]')).toBeTruthy();
+    expect(element.querySelector('a[aria-label="Submissions"]')).toBeTruthy();
+    expect(element.querySelector('a[aria-label="Inquiries"]')).toBeTruthy();
     expect(element.querySelector('button[aria-label="Settings coming soon"]')).toBeTruthy();
     expect(element.querySelector('button[aria-haspopup="menu"]')).toBeTruthy();
   });
@@ -72,14 +78,16 @@ describe('SideNav', () => {
     const { element } = await render(creatorUser);
 
     const links = Array.from(element.querySelectorAll('.co-shell-rail nav a'));
-    expect(links).toHaveLength(2);
+    expect(links).toHaveLength(3);
     expect(links.map((link) => link.getAttribute('aria-label'))).toEqual([
-      'Campaigns',
       'Dashboard',
+      'Campaigns',
+      'Submissions',
     ]);
     expect(links.map((link) => link.getAttribute('href'))).toEqual([
-      '/campaigns',
       '/creator/dashboard',
+      '/campaigns',
+      '/creator/submissions',
     ]);
   });
 
@@ -90,9 +98,13 @@ describe('SideNav', () => {
     accountButton?.click();
     fixture.detectChanges();
 
-    expect(element.querySelector('[role="menu"]')?.textContent).toContain('Ada Admin');
+    expect(element.querySelector('[role="menu"]')?.textContent).toContain('admin@clapout.test');
 
     element.querySelector<HTMLButtonElement>('[role="menuitem"]')?.click();
     expect(auth.signOut).toHaveBeenCalledOnce();
+
+    // Signing out lands on the sign-in screen, not the public campaign list.
+    await fixture.whenStable();
+    expect(TestBed.inject(Router).url).toBe('/auth/sign-in');
   });
 });

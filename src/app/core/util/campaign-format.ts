@@ -1,5 +1,8 @@
+import { InquiryStatus } from '../models/admin';
+import { BrandInviteStatus } from '../models/brand-invite';
 import { CampaignPlatform, CampaignStatus } from '../models/campaign';
 import { RegistrationStatus } from '../models/registration';
+import { CurrencyTotal, SubmissionStatus } from '../models/submission';
 
 /** Severities accepted by `p-tag` / `p-message`. */
 export type TagTone = 'success' | 'secondary' | 'info' | 'warn' | 'danger' | 'contrast';
@@ -13,6 +16,9 @@ export const PLATFORM_LABELS: Record<CampaignPlatform, string> = {
   facebook: 'Facebook',
   instagram: 'Instagram',
   youtube: 'YouTube',
+  snapchat: 'Snapchat',
+  /** A story, not a post — the label says so wherever a clipper picks a platform. */
+  whatsapp: 'WhatsApp Stories',
 };
 
 export function platformLabel(platform: CampaignPlatform): string {
@@ -47,6 +53,41 @@ export function formatDateTime(iso: string | null | undefined): string {
     hour: '2-digit',
     minute: '2-digit',
   });
+}
+
+/**
+ * 'just now' / '3 min ago' / '2 hours ago' / '4 days ago' — for a line that
+ * sits right beside the action that caused it, where "3 September 2026, 01:20"
+ * makes the reader do the arithmetic. Anything older than a week reads better
+ * as the date itself, so it falls back to {@link formatDate}; a clock that is
+ * slightly behind the server's is reported as 'just now' rather than a
+ * negative age.
+ */
+export function relativeTime(iso: string | null | undefined, now: number = Date.now()): string {
+  if (!iso) {
+    return NOT_ANNOUNCED;
+  }
+  const parsed = new Date(iso);
+  if (Number.isNaN(parsed.getTime())) {
+    return iso;
+  }
+  const elapsedMs = now - parsed.getTime();
+  if (elapsedMs < 60_000) {
+    return 'just now';
+  }
+  const minutes = Math.floor(elapsedMs / 60_000);
+  if (minutes < 60) {
+    return `${minutes} min ago`;
+  }
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) {
+    return `${hours} ${hours === 1 ? 'hour' : 'hours'} ago`;
+  }
+  const days = Math.floor(hours / 24);
+  if (days < 7) {
+    return `${days} ${days === 1 ? 'day' : 'days'} ago`;
+  }
+  return formatDate(iso);
 }
 
 /**
@@ -129,6 +170,50 @@ export function openCountdownLabel(
   return `${pad(Math.floor(totalSeconds / 3600))}:${pad(Math.floor((totalSeconds % 3600) / 60))}:${pad(totalSeconds % 60)}`;
 }
 
+/**
+ * Design-spec money: two decimals with a thin space after the symbol
+ * ("₵ 2,000.00"). Unannounced amounts render "₵ —".
+ */
+export function formatMoneyExact(currency: string, amount: number | null | undefined): string {
+  if (amount === null || amount === undefined || !Number.isFinite(amount)) {
+    return `${currency}\u2009${NOT_ANNOUNCED}`;
+  }
+  return `${currency}\u2009${amount.toLocaleString('en-GB', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+}
+
+/**
+ * The time label on a campaign card. Only ACTIVE and UPCOMING campaigns count
+ * down: a DRAFT has no schedule yet and a CLOSED one has ended, so neither may
+ * borrow the "N Days left" copy.
+ */
+export function campaignTimeLabel(
+  campaign: { status: CampaignStatus; startDate: string; endDate: string | null },
+  now: number = Date.now(),
+): string {
+  if (campaign.status === 'DRAFT') {
+    return 'Not scheduled';
+  }
+  if (campaign.status === 'CLOSED') {
+    return 'Ended';
+  }
+  if (campaign.status === 'UPCOMING') {
+    const start = new Date(campaign.startDate).getTime();
+    if (Number.isNaN(start)) {
+      return 'Not scheduled';
+    }
+    const remainingMs = start - now;
+    if (remainingMs <= 0) {
+      return 'Opening now';
+    }
+    const days = Math.floor(remainingMs / 86_400_000);
+    return days === 0 ? 'Opens today' : `Opens in ${days} days`;
+  }
+  return daysLeftLabel(campaign.endDate, now);
+}
+
 const CAMPAIGN_STATUS_LABELS: Record<CampaignStatus, string> = {
   DRAFT: 'Draft',
   UPCOMING: 'Upcoming',
@@ -171,4 +256,105 @@ export function registrationStatusLabel(status: RegistrationStatus): string {
 
 export function registrationStatusTone(status: RegistrationStatus): TagTone {
   return REGISTRATION_STATUS_TONES[status] ?? 'secondary';
+}
+
+const SUBMISSION_STATUS_LABELS: Record<SubmissionStatus, string> = {
+  SUBMITTED: 'Submitted',
+  UNDER_REVIEW: 'Under review',
+  APPROVED: 'Approved',
+  REJECTED: 'Rejected',
+  PAID: 'Paid',
+};
+
+/**
+ * APPROVED is the good-news green; PAID is the terminal state and takes the
+ * neutral near-black `contrast` chip so a wall of green does not hide the rows
+ * that still need a transfer.
+ */
+const SUBMISSION_STATUS_TONES: Record<SubmissionStatus, TagTone> = {
+  SUBMITTED: 'info',
+  UNDER_REVIEW: 'warn',
+  APPROVED: 'success',
+  REJECTED: 'danger',
+  PAID: 'contrast',
+};
+
+export function submissionStatusLabel(status: SubmissionStatus): string {
+  return SUBMISSION_STATUS_LABELS[status] ?? status;
+}
+
+export function submissionStatusTone(status: SubmissionStatus): TagTone {
+  return SUBMISSION_STATUS_TONES[status] ?? 'secondary';
+}
+
+const INQUIRY_STATUS_LABELS: Record<InquiryStatus, string> = {
+  NEW: 'New',
+  CONTACTED: 'Contacted',
+  CONVERTED: 'Converted',
+  CLOSED: 'Closed',
+};
+
+const INQUIRY_STATUS_TONES: Record<InquiryStatus, TagTone> = {
+  NEW: 'info',
+  CONTACTED: 'warn',
+  CONVERTED: 'success',
+  CLOSED: 'secondary',
+};
+
+export function inquiryStatusLabel(status: InquiryStatus): string {
+  return INQUIRY_STATUS_LABELS[status] ?? status;
+}
+
+export function inquiryStatusTone(status: InquiryStatus): TagTone {
+  return INQUIRY_STATUS_TONES[status] ?? 'secondary';
+}
+
+const BRAND_INVITE_STATUS_LABELS: Record<BrandInviteStatus, string> = {
+  PENDING: 'Pending',
+  COMPLETED: 'Completed',
+  REVOKED: 'Revoked',
+  EXPIRED: 'Expired',
+};
+
+/**
+ * PENDING is the live link and takes the informational blue; COMPLETED is the
+ * happy ending. REVOKED and EXPIRED are both dead links, but only one of them
+ * was a deliberate act, so the cancelled one keeps the danger red.
+ */
+const BRAND_INVITE_STATUS_TONES: Record<BrandInviteStatus, TagTone> = {
+  PENDING: 'info',
+  COMPLETED: 'success',
+  REVOKED: 'danger',
+  EXPIRED: 'secondary',
+};
+
+export function brandInviteStatusLabel(status: BrandInviteStatus): string {
+  return BRAND_INVITE_STATUS_LABELS[status] ?? status;
+}
+
+export function brandInviteStatusTone(status: BrandInviteStatus): TagTone {
+  return BRAND_INVITE_STATUS_TONES[status] ?? 'secondary';
+}
+
+/** '12,400' — view counts are always whole numbers, or the em dash when unknown. */
+export function formatViews(views: number | null | undefined): string {
+  if (views === null || views === undefined || !Number.isFinite(views)) {
+    return NOT_ANNOUNCED;
+  }
+  return Math.round(views).toLocaleString('en-GB');
+}
+
+/** The platform's home currency symbol. */
+export const HOME_CURRENCY = '₵';
+
+/**
+ * Earnings and payouts are reported per currency. Cedis win when present,
+ * otherwise the first currency the API reported: unlike currencies are never
+ * added together just to fill one tile.
+ */
+export function totalsLabel(totals: readonly CurrencyTotal[] | null | undefined): string {
+  const entry = totals?.find((total) => total.currency === HOME_CURRENCY) ?? totals?.[0] ?? null;
+  return entry
+    ? formatMoneyExact(entry.currency, entry.amount)
+    : formatMoneyExact(HOME_CURRENCY, 0);
 }

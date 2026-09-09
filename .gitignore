@@ -48,3 +48,9 @@ Thumbs.db
 # AGENTS.md
 # CLAUDE.md
 # docs/*
+
+# Agent screenshot scratch (Playwright runs)
+/.tmp-shots
+
+# Claude Code local preview config
+/.claude/launch.json

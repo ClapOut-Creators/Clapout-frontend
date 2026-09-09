@@ -4,7 +4,17 @@ import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
   {
-    ignores: ['dist/**', 'coverage/**', '.angular/**', 'node_modules/**'],
+    // `.remember/` and `.tmp-shots/` are agent scratch directories (git-ignored
+    // session state and Playwright screenshot runs); they hold generated files
+    // that are not project source.
+    ignores: [
+      'dist/**',
+      'coverage/**',
+      '.angular/**',
+      'node_modules/**',
+      '.remember/**',
+      '.tmp-shots/**',
+    ],
   },
   {
     files: ['**/*.ts'],

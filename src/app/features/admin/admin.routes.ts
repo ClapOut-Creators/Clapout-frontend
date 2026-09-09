@@ -18,6 +18,43 @@ export const ADMIN_ROUTES: Routes = [
     title: 'Registered clippers - ClapOut Studio',
   },
   {
+    path: 'submissions',
+    canActivate: [adminGuard],
+    loadComponent: () => import('./admin-submissions').then((module) => module.AdminSubmissions),
+    title: 'Content submissions - ClapOut Studio',
+  },
+  {
+    path: 'inquiries',
+    canActivate: [adminGuard],
+    loadComponent: () => import('./admin-inquiries').then((module) => module.AdminInquiries),
+    title: 'Partnership requests - ClapOut Studio',
+  },
+  {
+    path: 'brands',
+    pathMatch: 'full',
+    canActivate: [adminGuard],
+    loadComponent: () => import('./admin-brands').then((module) => module.AdminBrands),
+    title: 'Brands - ClapOut Studio',
+  },
+  {
+    path: 'brands/new',
+    canActivate: [adminGuard],
+    loadComponent: () => import('./brand-wizard').then((module) => module.BrandWizard),
+    title: 'Create brand - ClapOut Studio',
+  },
+  {
+    path: 'brands/:id/edit',
+    canActivate: [adminGuard],
+    loadComponent: () => import('./brand-wizard').then((module) => module.BrandWizard),
+    title: 'Edit brand - ClapOut Studio',
+  },
+  {
+    path: 'brands/:id',
+    canActivate: [adminGuard],
+    loadComponent: () => import('./admin-brand-detail').then((module) => module.AdminBrandDetail),
+    title: 'Brand - ClapOut Studio',
+  },
+  {
     path: 'campaigns',
     pathMatch: 'full',
     canActivate: [adminGuard],

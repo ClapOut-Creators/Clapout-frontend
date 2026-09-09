@@ -1,5 +1,11 @@
 import { Component, computed, DestroyRef, effect, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Facebook } from '@primeicons/angular/facebook';
+import { Instagram } from '@primeicons/angular/instagram';
+import { Tiktok } from '@primeicons/angular/tiktok';
+import { Twitter } from '@primeicons/angular/twitter';
+import { Whatsapp } from '@primeicons/angular/whatsapp';
+import { Youtube } from '@primeicons/angular/youtube';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
@@ -11,16 +17,21 @@ import { TagModule } from 'primeng/tag';
 import { ApiError } from '../../core/api/api-error';
 import { AdminRepository } from '../../core/data/admin-repository';
 import { AdminRegistration } from '../../core/models/admin';
-import { PayoutMethod } from '../../core/models/user';
 import { RegistrationStatus } from '../../core/models/registration';
 import {
-  formatDate,
   NOT_ANNOUNCED,
   platformLabel,
   registrationStatusLabel,
   registrationStatusTone,
 } from '../../core/util/campaign-format';
 import { downloadCsv, toCsv } from '../export/csv';
+import { SnapchatIcon } from '../icons/snapchat-icon';
+import {
+  initials as initialsOf,
+  PAYOUT_METHOD_LABELS,
+  socialHandle as handleOf,
+  whatsappLink as whatsappLinkFor,
+} from './clipper-format';
 
 type TableState = 'loading' | 'ready' | 'error';
 
@@ -28,12 +39,6 @@ interface SelectOption<T> {
   label: string;
   value: T;
 }
-
-const PAYOUT_METHOD_LABELS: Record<PayoutMethod, string> = {
-  MTN_MOMO: 'MTN MoMo',
-  TELECEL_CASH: 'Telecel Cash',
-  AT_MONEY: 'AT Money',
-};
 
 const STATUS_OPTIONS: SelectOption<RegistrationStatus>[] = [
   { label: 'Submitted', value: 'SUBMITTED' },
@@ -54,13 +59,20 @@ const STATUS_OPTIONS: SelectOption<RegistrationStatus>[] = [
 @Component({
   imports: [
     ButtonModule,
+    Facebook,
     FormsModule,
+    Instagram,
     InputTextModule,
     MessageModule,
     SelectModule,
     SkeletonModule,
+    SnapchatIcon,
     TableModule,
     TagModule,
+    Tiktok,
+    Twitter,
+    Whatsapp,
+    Youtube,
   ],
   selector: 'app-clippers-table',
   templateUrl: './clippers-table.html',
@@ -68,6 +80,8 @@ const STATUS_OPTIONS: SelectOption<RegistrationStatus>[] = [
 export class ClippersTable {
   /** Preset on a campaign page; when set the campaign filter is hidden. */
   readonly campaignSlug = input<string>();
+  /** Scopes every query to one brand's campaigns (server-side `?brandId=`). */
+  readonly brandId = input<string>();
   /** Options for the campaign filter, from `GET /admin/campaigns`. */
   readonly campaignOptions = input<SelectOption<string>[]>([]);
   /** Hides the toolbar entirely (embedded, space-constrained usage). */
@@ -92,8 +106,8 @@ export class ClippersTable {
 
   protected readonly statusOptions = STATUS_OPTIONS;
   protected readonly skeletonRows = [0, 1, 2, 3, 4];
+  protected readonly notAnnounced = NOT_ANNOUNCED;
 
-  protected readonly formatDate = formatDate;
   protected readonly platformLabel = platformLabel;
   protected readonly registrationStatusLabel = registrationStatusLabel;
   protected readonly registrationStatusTone = registrationStatusTone;
@@ -103,11 +117,15 @@ export class ClippersTable {
     () => !!this.search().trim() || this.statusFilter() !== null || this.campaignFilter() !== null,
   );
 
+  /** Public so a host page can render Export in its own section header. */
+  readonly canExport = computed(() => this.rows().length > 0);
+
   constructor() {
     effect(() => {
       // Re-query whenever the effective filter set changes. `campaignSlug` wins
       // over the dropdown so an embedded table can never widen its own scope.
       const query = {
+        brandId: this.brandId(),
         campaignSlug: this.campaignSlug() ?? this.campaignFilter() ?? undefined,
         status: this.statusFilter() ?? undefined,
         search: this.search().trim() || undefined,
@@ -133,6 +151,7 @@ export class ClippersTable {
 
   protected reload(): void {
     void this.load({
+      brandId: this.brandId(),
       campaignSlug: this.campaignSlug() ?? this.campaignFilter() ?? undefined,
       status: this.statusFilter() ?? undefined,
       search: this.search().trim() || undefined,
@@ -146,13 +165,24 @@ export class ClippersTable {
     this.campaignFilter.set(null);
   }
 
-  protected payoutSummary(row: AdminRegistration): string {
+  protected initials(name: string): string {
+    return initialsOf(name);
+  }
+
+  protected payoutMethodLabel(row: AdminRegistration): string {
     const payout = row.creator.payout;
     if (!payout) {
       return NOT_ANNOUNCED;
     }
-    const method = PAYOUT_METHOD_LABELS[payout.method] ?? payout.method;
-    return `${method} · ${payout.accountNumber} · ${payout.accountName}`;
+    return PAYOUT_METHOD_LABELS[payout.method] ?? payout.method;
+  }
+
+  protected whatsappLink(value: string | null | undefined): string | null {
+    return whatsappLinkFor(value);
+  }
+
+  protected socialHandle(row: AdminRegistration): string {
+    return handleOf(row.accountUrl) || NOT_ANNOUNCED;
   }
 
   protected isSaving(id: string): boolean {
@@ -189,8 +219,11 @@ export class ClippersTable {
     }
   }
 
-  /** Exports exactly the rows on screen, filters included. */
-  protected exportCsv(): void {
+  /**
+   * Exports exactly the rows on screen, filters included. Public so the campaign
+   * detail page can drive it from the Export button in its section header.
+   */
+  exportCsv(): void {
     const rows = this.rows();
     if (rows.length === 0) {
       return;
@@ -230,6 +263,7 @@ export class ClippersTable {
   }
 
   private async load(query: {
+    brandId?: string;
     campaignSlug?: string;
     status?: RegistrationStatus;
     search?: string;
