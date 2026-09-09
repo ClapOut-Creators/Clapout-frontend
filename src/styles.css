@@ -413,6 +413,13 @@ label:has(+ textarea[pTextarea]) {
   body:has(.co-mobile-tabbar) .px-\[34px\] {
     padding-bottom: 7rem;
   }
+
+  /* The phone top bar (`.co-mobile-topbar`, same side nav) is fixed too, so it
+     stays put while the page scrolls; clear its 67px plus the column's own
+     14px so the breadcrumb row starts where it did. */
+  body:has(.co-mobile-topbar) .px-\[34px\] {
+    padding-top: calc(67px + 14px);
+  }
 }
 
 p-select .p-select-label {

@@ -8,10 +8,11 @@
       <span>Dashboard</span>
     </p>
 
+    <!-- Below lg the phone top bar already shows this chip. -->
     <p
-      class="m-0 inline-flex items-center gap-2 rounded-[26px] bg-[#F1F1F1] py-1.5 pr-1.5 pl-3.5 text-[14px] leading-[17px] text-[#464646]"
+      class="m-0 inline-flex items-center gap-2 rounded-[26px] bg-[#F1F1F1] py-1.5 pr-1.5 pl-3.5 text-[14px] leading-[17px] text-[#464646] max-lg:hidden"
     >
-      <span class="max-w-[16rem] truncate max-sm:hidden">{{ displayName() }}</span>
+      <span class="max-w-[16rem] truncate">{{ displayName() }}</span>
       <span
         class="flex size-[30px] shrink-0 items-center justify-center rounded-full border border-[#EC612C] bg-[#BABABA] text-[12px] font-semibold text-white"
         aria-hidden="true"
@@ -139,7 +140,7 @@
               <span
                 class="flex size-14 shrink-0 items-center justify-center rounded-full bg-[#EEEEEE] max-sm:size-[46px]"
               >
-                <svg data-p-icon="link" [size]="24" class="text-[#787878]" aria-hidden="true"></svg>
+                <app-solar-icon name="link" [size]="24" class="text-[#787878]" aria-hidden="true" />
               </span>
             }
             <div class="min-w-0">
@@ -252,12 +253,12 @@
               <span
                 class="flex size-14 shrink-0 items-center justify-center rounded-full bg-[#EEEEEE] max-sm:size-[46px]"
               >
-                <svg
-                  data-p-icon="search"
+                <app-solar-icon
+                  name="campaign"
                   [size]="24"
                   class="text-[#787878]"
                   aria-hidden="true"
-                ></svg>
+                />
               </span>
             }
             <div class="min-w-0">
@@ -307,12 +308,12 @@
               <span
                 class="flex size-14 shrink-0 items-center justify-center rounded-full bg-[#EEEEEE] max-sm:size-[46px]"
               >
-                <svg
-                  data-p-icon="video"
+                <app-solar-icon
+                  name="video"
                   [size]="24"
                   class="text-[#787878]"
                   aria-hidden="true"
-                ></svg>
+                />
               </span>
             }
             <div class="min-w-0">

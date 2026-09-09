@@ -3,10 +3,7 @@ import { RouterLink } from '@angular/router';
 import { ArrowRight } from '@primeicons/angular/arrow-right';
 import { Check } from '@primeicons/angular/check';
 import { Home } from '@primeicons/angular/home';
-import { Link } from '@primeicons/angular/link';
 import { Megaphone } from '@primeicons/angular/megaphone';
-import { Search } from '@primeicons/angular/search';
-import { Video } from '@primeicons/angular/video';
 import { Whatsapp } from '@primeicons/angular/whatsapp';
 import { ButtonModule } from 'primeng/button';
 import { MessageModule } from 'primeng/message';
@@ -32,6 +29,7 @@ import {
 import { StatCard } from '../../shared/admin/stat-card';
 import { PublicCampaignCard } from '../../shared/public/public-campaign-card';
 import { SocialsDialog } from './socials-dialog';
+import { SolarIcon } from '../../shared/icons/solar-icon';
 import { COMMUNITY_URL, OnboardingStepper } from '../../shared/creator/onboarding-stepper';
 import { OverlaySheet } from '../../shared/creator/overlay-sheet';
 
@@ -59,20 +57,18 @@ function emailLocalPart(email: string | undefined): string {
     ButtonModule,
     Check,
     Home,
-    Link,
     Megaphone,
     MessageModule,
     PublicCampaignCard,
     RouterLink,
-    Search,
     SkeletonModule,
     OnboardingStepper,
     OverlaySheet,
     SocialsDialog,
+    SolarIcon,
     StatCard,
     TagModule,
     TooltipModule,
-    Video,
     Whatsapp,
   ],
   selector: 'app-creator-dashboard',
