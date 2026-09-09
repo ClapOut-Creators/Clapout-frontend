@@ -4,6 +4,8 @@ import { firstValueFrom } from 'rxjs';
 import { toApiError } from '../api/api-error';
 import { APP_ENVIRONMENT } from '../config/app-environment';
 import {
+  AdminCreator,
+  AdminCreatorQuery,
   AdminInquiryQuery,
   AdminInquiryUpdate,
   AdminRegistration,
@@ -43,6 +45,26 @@ export class AdminRepository {
         this.http.get<{ data: AdminStats }>(`${this.baseUrl}/stats`),
       );
       return response.data;
+    } catch (error) {
+      throw toApiError(error);
+    }
+  }
+
+  /** `GET /admin/creators` — every creator account, newest sign-up first. */
+  async creators(query: AdminCreatorQuery = {}): Promise<AdminCreator[]> {
+    let params = new HttpParams();
+    if (query.search) {
+      params = params.set('search', query.search);
+    }
+    if (query.filter) {
+      params = params.set('filter', query.filter);
+    }
+
+    try {
+      const response = await firstValueFrom(
+        this.http.get<{ data: AdminCreator[] }>(`${this.baseUrl}/creators`, { params }),
+      );
+      return response.data ?? [];
     } catch (error) {
       throw toApiError(error);
     }

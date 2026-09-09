@@ -3,10 +3,25 @@
     <app-page-header
       breadcrumb="Registrations"
       title="Registered clippers"
-      subtitle="Every creator application across all campaigns."
+      [subtitle]="subtitle()"
     />
 
-    @if (optionsError()) {
+    <div class="mt-4 flex flex-wrap gap-2" role="tablist" aria-label="Clipper views">
+      @for (item of views; track item.value) {
+        <button
+          type="button"
+          role="tab"
+          class="cursor-pointer rounded-full border-0 px-4 py-2 text-[15px] font-medium transition-colors"
+          [class]="tabClass(item.value)"
+          [attr.aria-selected]="activeView() === item.value"
+          (click)="setView(item.value)"
+        >
+          {{ item.label }}
+        </button>
+      }
+    </div>
+
+    @if (optionsError() && activeView() === 'registrations') {
       <div class="mt-4">
         <p-message severity="warn" [closable]="false">
           {{ optionsError() }} Filtering by campaign is unavailable, but the list below still loads.
@@ -20,8 +35,12 @@
     >
       <h2 id="admin-registrations-list-heading" class="sr-only">Clipper list</h2>
 
-      <!-- The table owns its own toolbar, so it sits at the top of this panel. -->
-      <app-clippers-table class="block" [campaignOptions]="campaignOptions()" />
+      <!-- Each table owns its own toolbar, so it sits at the top of this panel. -->
+      @if (activeView() === 'clippers') {
+        <app-creators-table class="block" />
+      } @else {
+        <app-clippers-table class="block" [campaignOptions]="campaignOptions()" />
+      }
     </section>
   </div>
 </main>

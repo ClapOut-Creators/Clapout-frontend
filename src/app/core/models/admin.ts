@@ -67,6 +67,29 @@ export interface AdminRegistration {
   campaign: AdminRegistrationCampaign;
 }
 
+/**
+ * One creator account for the admin "All clippers" list — including clippers
+ * who signed up but never applied to a campaign, whom no registration row
+ * can represent. `GET /admin/creators`.
+ */
+export interface AdminCreator extends AdminRegistrationCreator {
+  /** Null until the clipper confirms the WhatsApp community in onboarding. */
+  communityJoinedAt: string | null;
+  /** Sign-up time. */
+  createdAt: string;
+  /** Campaign registrations in any status. */
+  registrationCount: number;
+}
+
+export type AdminCreatorFilter = 'unregistered' | 'registered';
+
+export interface AdminCreatorQuery {
+  /** Name or email, case-insensitive substring. */
+  search?: string;
+  /** `unregistered` = signed up, never applied; `registered` = applied at least once. */
+  filter?: AdminCreatorFilter;
+}
+
 export interface AdminRegistrationQuery {
   /** Scopes to every campaign owned by one brand; composes with the others. */
   brandId?: string;

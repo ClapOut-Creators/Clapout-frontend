@@ -1,0 +1,266 @@
+<div class="flex flex-wrap items-center gap-3">
+  <input
+    pInputText
+    type="search"
+    class="!min-w-0 !flex-1 !rounded-[10px] !border-[#DDDDDD] !bg-[#F4F4F4] sm:!max-w-xs"
+    placeholder="Search name or email"
+    aria-label="Search clippers"
+    [ngModel]="searchInput()"
+    (ngModelChange)="onSearchInput($event)"
+  />
+
+  <p-select
+    class="w-full sm:w-64"
+    placeholder="All clippers"
+    optionLabel="label"
+    optionValue="value"
+    ariaLabel="Filter by campaign activity"
+    [options]="filterOptions"
+    [showClear]="true"
+    [ngModel]="filter()"
+    (ngModelChange)="filter.set($event)"
+  />
+
+  <p-button
+    label="Export CSV"
+    severity="secondary"
+    size="small"
+    [outlined]="true"
+    [disabled]="!canExport()"
+    (onClick)="exportCsv()"
+  />
+</div>
+
+@switch (state()) {
+  @case ('loading') {
+    <div class="mt-4 flex flex-col gap-2" aria-busy="true" aria-live="polite">
+      <span class="sr-only">Loading clippers</span>
+      @for (row of skeletonRows; track row) {
+        <p-skeleton width="100%" height="4rem" borderRadius="12.11px" />
+      }
+    </div>
+  }
+
+  @case ('error') {
+    <div class="mt-4 rounded-[12.11px] border border-[#ECECEC] bg-white p-6">
+      <p-message severity="error" [closable]="false">{{ errorMessage() }}</p-message>
+      <p-button label="Try again" size="small" styleClass="mt-4" (onClick)="reload()" />
+    </div>
+  }
+
+  @default {
+    @if (rows().length === 0) {
+      <div class="mt-4 flex flex-col items-center rounded-[12.11px] px-4 py-14 text-center">
+        <span
+          class="flex size-[200px] items-center justify-center rounded-full bg-[#F9F9F9]"
+          aria-hidden="true"
+        >
+          <span class="relative flex size-[120px] items-center justify-center">
+            <span class="absolute inset-0 rounded-full bg-[#EC612C]/10"></span>
+            <span class="absolute top-0 left-0 size-6 rounded-full bg-[#EC612C]/20"></span>
+            <span class="absolute right-0 bottom-0 size-4 rounded-full bg-[#FFC93C]/60"></span>
+          </span>
+        </span>
+
+        @if (hasActiveFilters()) {
+          <h3 class="mt-8 text-[26px] font-semibold text-[#171A1C]">
+            No clippers match these filters
+          </h3>
+          <p class="mt-3 max-w-xl text-[18px] text-[#464646]">
+            Try a different search term, or clear the filters to see every clipper.
+          </p>
+          <p-button
+            label="Clear filters"
+            size="small"
+            [outlined]="true"
+            styleClass="mt-6"
+            (onClick)="clearFilters()"
+          />
+        } @else {
+          <h3 class="mt-8 text-[26px] font-semibold text-[#171A1C]">No clippers yet</h3>
+          <p class="mt-3 max-w-xl text-[18px] text-[#464646]">
+            Every creator who signs up on the platform appears here, whether or not they have
+            applied to a campaign.
+          </p>
+        }
+      </div>
+    } @else {
+      <!--
+        Same proportions as the registrations table (1400px min-width, fixed
+        layout) so the two tabs line up; the review column becomes Campaigns,
+        and Community + Signed up take the space the campaign subtitle used.
+      -->
+      <div class="mt-4 overflow-x-auto rounded-[12.11px] bg-white">
+        <p-table [value]="rows()" [tableStyle]="{ 'min-width': '1400px', 'table-layout': 'fixed' }">
+          <ng-template #header>
+            <tr>
+              <th
+                scope="col"
+                class="!w-[190px] !rounded-l-[12.11px] !border-0 !bg-[#F9F9F9] !px-6 !py-[22px] !text-[17.49px] !font-medium !whitespace-nowrap !text-[#171A1C]"
+              >
+                Clippers
+              </th>
+              <th
+                scope="col"
+                class="!w-[200px] !border-0 !bg-[#F9F9F9] !px-6 !py-[22px] !text-[17.49px] !font-medium !whitespace-nowrap !text-[#171A1C]"
+              >
+                Email
+              </th>
+              <th
+                scope="col"
+                class="!w-[160px] !border-0 !bg-[#F9F9F9] !px-6 !py-[22px] !text-[17.49px] !font-medium !whitespace-nowrap !text-[#171A1C]"
+              >
+                WhatsApp
+              </th>
+              <th
+                scope="col"
+                class="!w-[150px] !border-0 !bg-[#F9F9F9] !px-6 !py-[22px] !text-[17.49px] !font-medium !whitespace-nowrap !text-[#171A1C]"
+              >
+                Phone number
+              </th>
+              <th
+                scope="col"
+                class="!w-[170px] !border-0 !bg-[#F9F9F9] !px-6 !py-[22px] !text-[17.49px] !font-medium !whitespace-nowrap !text-[#171A1C]"
+              >
+                Socials
+              </th>
+              <th
+                scope="col"
+                class="!w-[250px] !border-0 !bg-[#F9F9F9] !px-6 !py-[22px] !text-[17.49px] !font-medium !whitespace-nowrap !text-[#171A1C]"
+              >
+                Payment
+              </th>
+              <th
+                scope="col"
+                class="!w-[130px] !border-0 !bg-[#F9F9F9] !px-6 !py-[22px] !text-[17.49px] !font-medium !whitespace-nowrap !text-[#171A1C]"
+              >
+                Campaigns
+              </th>
+              <th
+                scope="col"
+                class="!w-[150px] !rounded-r-[12.11px] !border-0 !bg-[#F9F9F9] !px-6 !py-[22px] !text-[17.49px] !font-medium !whitespace-nowrap !text-[#171A1C]"
+              >
+                Signed up
+              </th>
+            </tr>
+          </ng-template>
+
+          <ng-template #body let-row>
+            <tr>
+              <td class="!border-0 !px-6 !py-3">
+                <span class="flex items-center gap-[9px]">
+                  <span
+                    class="flex size-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#FFC93C] to-[#EC612C] text-xs font-semibold text-white"
+                    aria-hidden="true"
+                    >{{ initials(row.fullName) }}</span
+                  >
+                  <span class="min-w-0">
+                    <span class="block truncate text-[16px] text-[#444444]">{{
+                      row.fullName
+                    }}</span>
+                    <span class="mt-0.5 block truncate text-xs">
+                      @if (row.communityJoinedAt) {
+                        <span class="text-[#1E8E3E]">In the WhatsApp community</span>
+                      } @else {
+                        <span class="text-[#B45309]">Not in the community yet</span>
+                      }
+                    </span>
+                  </span>
+                </span>
+              </td>
+
+              <td class="!border-0 !px-6 !py-5">
+                <a
+                  [href]="'mailto:' + row.email"
+                  class="block truncate text-[16px] text-[#444444] no-underline hover:underline"
+                  >{{ row.email }}</a
+                >
+              </td>
+
+              <td class="!border-0 !px-6 !py-5">
+                @if (whatsappLink(row.whatsapp); as chatUrl) {
+                  <a
+                    [href]="chatUrl"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    [attr.aria-label]="'Chat with ' + row.fullName + ' on WhatsApp'"
+                    class="inline-flex max-w-full items-center gap-2.5 text-[16px] text-[#1A1A1A] no-underline hover:underline"
+                  >
+                    <span class="truncate">{{ row.whatsapp }}</span>
+                    <svg
+                      data-p-icon="whatsapp"
+                      [size]="18"
+                      class="shrink-0 text-[#25D366]"
+                      aria-hidden="true"
+                    ></svg>
+                  </a>
+                } @else {
+                  <span class="text-[16px] text-[#7B7B7B]">{{ notAnnounced }}</span>
+                }
+              </td>
+
+              <td class="!border-0 !px-6 !py-5 !text-[16px] !text-[#444444]">
+                {{ row.phone || notAnnounced }}
+              </td>
+
+              <td class="!border-0 !px-6 !py-5">
+                @if (row.socials.length > 0) {
+                  <span class="flex flex-col gap-1">
+                    @for (account of row.socials; track account.url) {
+                      <a
+                        [href]="account.url"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="block truncate text-[16px] text-[#1A1A1A] no-underline hover:underline"
+                        >{{ handle(account.url) }}</a
+                      >
+                    }
+                  </span>
+                } @else {
+                  <span class="text-[16px] text-[#7B7B7B]">{{ notAnnounced }}</span>
+                }
+              </td>
+
+              <td class="!border-0 !px-6 !py-5">
+                @if (row.payout; as payout) {
+                  <span
+                    class="inline-flex max-w-full items-center gap-2.5 text-[16px] text-[#1A1A1A]"
+                  >
+                    <span class="shrink-0">{{ payoutMethodLabel(row) }}</span>
+                    <span class="shrink-0 rounded-lg bg-[#F7F7F7] px-1.5 py-1">{{
+                      payout.accountNumber
+                    }}</span>
+                    <span class="truncate">{{ payout.accountName }}</span>
+                  </span>
+                } @else {
+                  <span class="text-[16px] text-[#7B7B7B]">{{ notAnnounced }}</span>
+                }
+              </td>
+
+              <td class="!border-0 !px-6 !py-5">
+                @if (row.registrationCount === 0) {
+                  <p-tag value="None yet" severity="warn" [rounded]="true" />
+                } @else {
+                  <span class="text-[16px] text-[#444444]">{{
+                    campaignsLabel(row.registrationCount)
+                  }}</span>
+                }
+              </td>
+
+              <td class="!border-0 !px-6 !py-5 !text-[16px] !whitespace-nowrap !text-[#444444]">
+                {{ signedUpLabel(row.createdAt) }}
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+
+      <p class="mt-3 text-sm text-[#7B7B7B]">
+        {{ rows().length }} {{ rows().length === 1 ? 'clipper' : 'clippers' }}
+        @if (unregisteredCount() > 0 && filter() !== 'unregistered') {
+          · {{ unregisteredCount() }} not on any campaign yet
+        }
+      </p>
+    }
+  }
+}

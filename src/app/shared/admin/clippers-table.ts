@@ -17,7 +17,6 @@ import { TagModule } from 'primeng/tag';
 import { ApiError } from '../../core/api/api-error';
 import { AdminRepository } from '../../core/data/admin-repository';
 import { AdminRegistration } from '../../core/models/admin';
-import { PayoutMethod } from '../../core/models/user';
 import { RegistrationStatus } from '../../core/models/registration';
 import {
   NOT_ANNOUNCED,
@@ -27,6 +26,12 @@ import {
 } from '../../core/util/campaign-format';
 import { downloadCsv, toCsv } from '../export/csv';
 import { SnapchatIcon } from '../icons/snapchat-icon';
+import {
+  initials as initialsOf,
+  PAYOUT_METHOD_LABELS,
+  socialHandle as handleOf,
+  whatsappLink as whatsappLinkFor,
+} from './clipper-format';
 
 type TableState = 'loading' | 'ready' | 'error';
 
@@ -34,12 +39,6 @@ interface SelectOption<T> {
   label: string;
   value: T;
 }
-
-const PAYOUT_METHOD_LABELS: Record<PayoutMethod, string> = {
-  MTN_MOMO: 'MTN MoMo',
-  TELECEL_CASH: 'Telecel Cash',
-  AT_MONEY: 'AT Money',
-};
 
 const STATUS_OPTIONS: SelectOption<RegistrationStatus>[] = [
   { label: 'Submitted', value: 'SUBMITTED' },
@@ -166,16 +165,8 @@ export class ClippersTable {
     this.campaignFilter.set(null);
   }
 
-  /** Avatar fallback — the design shows a coloured chip, not a photo. */
   protected initials(name: string): string {
-    return (
-      (name ?? '')
-        .split(/\s+/)
-        .filter(Boolean)
-        .slice(0, 2)
-        .map((part) => part[0]?.toUpperCase() ?? '')
-        .join('') || '?'
-    );
+    return initialsOf(name);
   }
 
   protected payoutMethodLabel(row: AdminRegistration): string {
@@ -186,46 +177,12 @@ export class ClippersTable {
     return PAYOUT_METHOD_LABELS[payout.method] ?? payout.method;
   }
 
-  /**
-   * wa.me target for a creator's WhatsApp value. Steve stores either a username
-   * ("@theboywinner") or a phone number ("+233 20 123 4567"), and wa.me accepts
-   * both — but a number must be digits only, with no "+", spaces or dashes.
-   * A leading "@" is always dropped; anything that is not phone-shaped is passed
-   * through as a username.
-   */
   protected whatsappLink(value: string | null | undefined): string | null {
-    const raw = (value ?? '').trim().replace(/^@+/, '');
-    if (!raw) {
-      return null;
-    }
-    const isPhoneNumber = /^\+?[\d\s().-]+$/.test(raw);
-    const target = isPhoneNumber ? raw.replace(/\D/g, '') : raw;
-    return target ? `https://wa.me/${encodeURIComponent(target)}` : null;
+    return whatsappLinkFor(value);
   }
 
-  /**
-   * A display handle for the Social column. The contract only carries a profile
-   * URL, so the last path segment is the closest thing to a handle; a URL with
-   * no path (or an unparsable one) falls back to the host.
-   */
   protected socialHandle(row: AdminRegistration): string {
-    const raw = (row.accountUrl ?? '').trim();
-    if (!raw) {
-      return NOT_ANNOUNCED;
-    }
-    try {
-      const url = new URL(raw.includes('://') ? raw : `https://${raw}`);
-      const host = url.hostname.replace(/^www\./, '');
-      const segments = url.pathname.split('/').filter(Boolean);
-      const last = segments.length > 0 ? segments[segments.length - 1] : '';
-      if (!last) {
-        return host;
-      }
-      const handle = decodeURIComponent(last).replace(/^@+/, '');
-      return handle ? `@${handle}` : host;
-    } catch {
-      return raw;
-    }
+    return handleOf(row.accountUrl) || NOT_ANNOUNCED;
   }
 
   protected isSaving(id: string): boolean {
