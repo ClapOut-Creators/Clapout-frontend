@@ -1,19 +1,16 @@
 import { NgTemplateOutlet } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
-import { Clipboard } from '@primeicons/angular/clipboard';
-import { Cog } from '@primeicons/angular/cog';
 import { Compass } from '@primeicons/angular/compass';
 import { Home } from '@primeicons/angular/home';
 import { Inbox } from '@primeicons/angular/inbox';
-import { Shop } from '@primeicons/angular/shop';
 import { Sidebar } from '@primeicons/angular/sidebar';
 import { SignOut } from '@primeicons/angular/sign-out';
-import { Video } from '@primeicons/angular/video';
 import { ButtonModule } from 'primeng/button';
 import { DrawerModule } from 'primeng/drawer';
 import { TooltipModule } from 'primeng/tooltip';
 import { AuthService } from '../../core/auth/auth-service';
+import { SolarIcon } from '../icons/solar-icon';
 
 interface NavLink {
   label: string;
@@ -23,10 +20,10 @@ interface NavLink {
   icon: 'clipboard' | 'compass' | 'home' | 'inbox' | 'shop' | 'video';
 }
 
-// Figma (clipper dashboard rail): home first, then discovery.
+// Figma (clipper dashboard rail): home, then the Solar campaign and video glyphs.
 const CREATOR_LINKS: NavLink[] = [
   { label: 'Dashboard', path: '/creator/dashboard', exact: false, icon: 'home' },
-  { label: 'Campaigns', path: '/campaigns', exact: false, icon: 'compass' },
+  { label: 'Campaigns', path: '/campaigns', exact: false, icon: 'clipboard' },
   { label: 'Submissions', path: '/creator/submissions', exact: false, icon: 'video' },
 ];
 
@@ -68,8 +65,6 @@ const ADMIN_LINKS: NavLink[] = [
 @Component({
   imports: [
     ButtonModule,
-    Clipboard,
-    Cog,
     Compass,
     DrawerModule,
     Home,
@@ -77,11 +72,10 @@ const ADMIN_LINKS: NavLink[] = [
     NgTemplateOutlet,
     RouterLink,
     RouterLinkActive,
-    Shop,
     Sidebar,
     SignOut,
+    SolarIcon,
     TooltipModule,
-    Video,
   ],
   selector: 'app-side-nav',
   styleUrl: './side-nav.css',
