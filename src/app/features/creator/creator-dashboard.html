@@ -29,20 +29,68 @@
     </header>
 
     <section
-      class="rounded-[18.8px] border border-[#ECECEC] bg-white px-[30px] py-[39px]"
+      class="rounded-[18.8px] border border-[#ECECEC] bg-white px-[30px]"
+      [class]="showChecklist() ? 'py-[39px]' : 'py-[22px]'"
       aria-labelledby="creator-setup-heading"
     >
-      <h2
-        id="creator-setup-heading"
-        class="m-0 text-[20px] leading-6 font-medium text-[#2B2B2B] [font-family:var(--clapout-font-body)]"
-      >
-        Finish setting up
-      </h2>
-      <p class="mt-[9px] mb-0 text-[20px] leading-6 text-[#808080]">
-        A few steps to get your first payout moving.
-      </p>
+      <!-- Once the four gated steps are done the card folds to one line; the
+           toggle reopens it for anyone who wants to manage socials or
+           reopen the community from here. -->
+      <div class="flex flex-wrap items-center justify-between gap-4">
+        <div class="flex min-w-0 items-center gap-4">
+          @if (setupDone()) {
+            <span
+              class="flex size-14 shrink-0 items-center justify-center rounded-full bg-[#EC612C] max-sm:size-[46px]"
+              [class.hidden]="showChecklist()"
+              aria-hidden="true"
+            >
+              <span class="flex size-6 items-center justify-center rounded-full bg-white">
+                <svg data-p-icon="check" [size]="13" class="text-[#EC612C]"></svg>
+              </span>
+            </span>
+          }
+          <div class="min-w-0">
+            <h2
+              id="creator-setup-heading"
+              class="m-0 text-[20px] leading-6 font-medium text-[#2B2B2B] [font-family:var(--clapout-font-body)]"
+            >
+              {{ setupDone() ? 'You are set up' : 'Finish setting up' }}
+            </h2>
+            <p class="mt-[9px] mb-0 text-[20px] leading-6 text-[#808080] max-sm:text-[16px]">
+              {{ setupDone() ? setupSummary() : 'A few steps to get your first payout moving.' }}
+            </p>
+          </div>
+        </div>
 
-      <ul class="mt-[35px] flex list-none flex-col gap-[35px] p-0">
+        @if (setupDone()) {
+          <div class="flex shrink-0 items-center gap-2">
+            @if (canSubmit() && !showChecklist()) {
+              <a
+                [routerLink]="submitLink()"
+                [queryParams]="submitLinkQuery()"
+                class="inline-flex h-[50px] items-center justify-center rounded-[34px] bg-[#EEEEEE] px-[27.74px] text-[18px] leading-[23.8px] font-medium text-[#2B2B2B] no-underline transition-colors hover:bg-[#E4E4E4] max-sm:h-10 max-sm:px-4 max-sm:text-[14px]"
+              >
+                {{ submissionsDone() ? 'Submit another clip' : 'Submit content' }}
+              </a>
+            }
+            <button
+              type="button"
+              class="inline-flex h-[50px] cursor-pointer items-center justify-center rounded-[34px] border border-[#E4E4E4] bg-white px-[20px] text-[16px] font-medium text-[#2B2B2B] transition-colors hover:bg-[#F5F5F5] max-sm:h-10 max-sm:px-4 max-sm:text-[14px]"
+              [attr.aria-expanded]="showChecklist()"
+              aria-controls="creator-setup-steps"
+              (click)="toggleChecklist()"
+            >
+              {{ showChecklist() ? 'Hide steps' : 'Show steps' }}
+            </button>
+          </div>
+        }
+      </div>
+
+      <ul
+        id="creator-setup-steps"
+        class="mt-[35px] flex list-none flex-col gap-[35px] p-0"
+        [hidden]="!showChecklist()"
+      >
         <li class="flex flex-wrap items-center justify-between gap-4 max-sm:flex-nowrap">
           <div class="flex min-w-0 items-center gap-4">
             <span

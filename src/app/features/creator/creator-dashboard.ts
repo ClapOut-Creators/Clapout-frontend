@@ -161,6 +161,27 @@ export class CreatorDashboard {
     () => this.state() === 'ready' && this.joinedCount() > 0,
   );
 
+  /**
+   * The four steps that have a requirement behind them. Once they are all done
+   * the checklist folds into a one-line summary — the fifth step (submit a
+   * clip) has nothing to gate, so it is not worth a full-height card.
+   */
+  protected readonly setupDone = computed(
+    () => this.socialsDone() && this.joinedCommunity() && this.campaignsDone(),
+  );
+  /** "Show steps" on the folded summary reopens the full list for this visit. */
+  protected readonly checklistExpanded = signal(false);
+  protected readonly showChecklist = computed(() => !this.setupDone() || this.checklistExpanded());
+
+  protected readonly setupSummary = computed(() => {
+    if (this.submissionsDone()) {
+      return 'All five steps done. Keep the clips coming.';
+    }
+    return this.canSubmit()
+      ? 'One thing left: submit your first clip.'
+      : 'One thing left: submit your first clip once a campaign accepts you.';
+  });
+
   /** The count is only true once the fetch succeeded; before that it is unknown. */
   protected readonly campaignsValue = computed(() =>
     this.state() === 'ready' ? String(this.joinedCount()) : NOT_ANNOUNCED,
@@ -243,6 +264,10 @@ export class CreatorDashboard {
     return Number.isNaN(applied.getTime())
       ? NOT_ANNOUNCED
       : applied.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+
+  protected toggleChecklist(): void {
+    this.checklistExpanded.update((open) => !open);
   }
 
   protected openSocialsDialog(): void {
