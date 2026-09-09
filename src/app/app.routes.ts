@@ -32,13 +32,13 @@ export const routes: Routes = [
   {
     path: 'terms',
     loadComponent: () => import('./features/legal/legal-page').then((m) => m.LegalPage),
-    data: { title: 'Terms of Service' },
+    data: { title: 'Terms of Service', kind: 'terms' },
     title: 'Terms of Service - ClapOut',
   },
   {
     path: 'privacy',
     loadComponent: () => import('./features/legal/legal-page').then((m) => m.LegalPage),
-    data: { title: 'Privacy Policy' },
+    data: { title: 'Privacy Policy', kind: 'privacy' },
     title: 'Privacy Policy - ClapOut',
   },
   {
