@@ -1,10 +1,11 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { filter } from 'rxjs';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ToastModule } from 'primeng/toast';
 import { AuthService } from './core/auth/auth-service';
+import { ThemeService } from './core/theme/theme-service';
 import { SideNav } from './shared/layout/side-nav';
 import { PublicFooter } from './shared/public/public-footer';
 import { PublicNavbar } from './shared/public/public-navbar';
@@ -18,6 +19,7 @@ import { PublicNavbar } from './shared/public/public-navbar';
 export class App {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly theme = inject(ThemeService);
 
   private readonly currentUrl = signal(this.router.url);
 
@@ -44,6 +46,22 @@ export class App {
   );
 
   constructor() {
+    // The public pages replicate clapoutcreators.com, which renders at 1:1; the
+    // studio's desktop scale (see `--ui-scale` in styles.css) would shrink them
+    // 20% below the site a visitor just left. `body.co-public` restores 1:1.
+    effect(() => {
+      document.body.classList.toggle('co-public', this.showPublicChrome());
+    });
+    // Dark mode exists for the public pages only (it is the landing site's,
+    // carried over); the signed-in studio has no dark theme, so the class
+    // comes off the moment someone signs in.
+    effect(() => {
+      document.documentElement.classList.toggle(
+        'co-dark',
+        this.showPublicChrome() && this.theme.isDark(),
+      );
+    });
+
     this.router.events
       .pipe(
         filter((event): event is NavigationEnd => event instanceof NavigationEnd),

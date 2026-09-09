@@ -106,14 +106,14 @@ export function elapsedLabel(iso: string | null | undefined, now: number = Date.
     <!-- The chrome is a div so a host can project an action (the dashboard's
          "Submit clip") inside the card without nesting a link in a link. -->
     <div
-      class="flex h-full w-full flex-col rounded-[15.5px] border border-[#E5E5E8] bg-white shadow-[0_2px_14px_rgba(15,15,18,0.06)] transition-shadow hover:shadow-[0_6px_20px_rgba(15,15,18,0.12)] xl:rounded-[14.7px]"
+      class="flex h-full w-full flex-col rounded-[15.5px] border border-[#E5E5E8] dark:border-white/10 bg-white dark:bg-[#161616] shadow-[0_2px_14px_rgba(15,15,18,0.06)] transition-shadow hover:shadow-[0_6px_20px_rgba(15,15,18,0.12)] xl:rounded-[14.7px]"
     >
       <a
         [routerLink]="['/campaigns', campaign().slug]"
         class="flex flex-1 flex-col pb-[9.7px] pl-[3.9px] pr-[3.9px] pt-[3.2px] no-underline"
       >
         <span
-          class="block aspect-[350/192] w-full overflow-hidden rounded-[16.5px] bg-[#DDDDDD] xl:rounded-[15.6px]"
+          class="block aspect-[350/192] w-full overflow-hidden rounded-[16.5px] bg-[#DDDDDD] dark:bg-white/10 xl:rounded-[15.6px]"
         >
           @if (campaign().bannerUrl; as bannerUrl) {
             <img [src]="bannerUrl" alt="" class="h-full w-full object-cover" loading="lazy" />
@@ -141,7 +141,9 @@ export function elapsedLabel(iso: string | null | undefined, now: number = Date.
                 [logoFit]="campaign().brand.logoFit"
                 sizeClass="h-[27px] w-[27px] xl:h-[26px] xl:w-[26px]"
               />
-              <span class="truncate text-[14.9px] font-medium text-[#5C5C61] xl:text-[14px]">
+              <span
+                class="truncate text-[14.9px] font-medium text-[#5C5C61] dark:text-white/80 xl:text-[14px]"
+              >
                 {{ campaign().brand.name }}
               </span>
               <svg
@@ -160,7 +162,7 @@ export function elapsedLabel(iso: string | null | undefined, now: number = Date.
                 />
               </svg>
             </div>
-            <span class="shrink-0 text-[14.9px] text-[#8C8C94] xl:text-[14px]">
+            <span class="shrink-0 text-[14.9px] text-[#8C8C94] dark:text-[#A3A3A3] xl:text-[14px]">
               <span class="sr-only">{{ metaLabel() ? metaLabelPrefix() : 'Updated' }}</span>
               {{ metaLabel() ?? updatedLabel() }}
             </span>
@@ -170,7 +172,7 @@ export function elapsedLabel(iso: string | null | undefined, now: number = Date.
             <div class="flex shrink-0 items-center gap-[6px] xl:gap-[5.7px]">
               @for (platform of campaign().platforms; track platform) {
                 <span
-                  class="flex h-[22px] w-[22px] items-center justify-center rounded-full border border-[#E5E5E8] bg-white text-[#0F0F12] xl:h-[21px] xl:w-[21px]"
+                  class="flex h-[22px] w-[22px] items-center justify-center rounded-full border border-[#E5E5E8] dark:border-white/10 bg-white dark:bg-[#161616] text-[#0F0F12] dark:text-white xl:h-[21px] xl:w-[21px]"
                 >
                   @switch (platform) {
                     @case ('tiktok') {
@@ -203,7 +205,7 @@ export function elapsedLabel(iso: string | null | undefined, now: number = Date.
         </div>
 
         <h3
-          class="co-user-text mt-[6.2px] line-clamp-2 px-[14px] text-[21.8px] font-semibold leading-[27.8px] text-[#0F0F12] xl:mt-[5.9px] xl:text-[20.6px] xl:leading-[26.2px]"
+          class="co-user-text mt-[6.2px] line-clamp-2 px-[14px] text-[21.8px] font-semibold leading-[27.8px] text-[#0F0F12] dark:text-white xl:mt-[5.9px] xl:text-[20.6px] xl:leading-[26.2px]"
         >
           {{ campaign().title }}
         </h3>
@@ -213,17 +215,19 @@ export function elapsedLabel(iso: string | null | undefined, now: number = Date.
         >
           <p class="co-display m-0 flex items-baseline gap-[4.5px]">
             <span class="sr-only">Paid out</span>
-            <span class="text-[17.1px] font-medium text-[#0F0F12] xl:text-[16.2px]">
+            <span class="text-[17.1px] font-medium text-[#0F0F12] dark:text-white xl:text-[16.2px]">
               {{ spentLabel() }}
             </span>
-            <span class="text-[14px] font-medium text-[#737378] xl:text-[13.2px]">
+            <span
+              class="text-[14px] font-medium text-[#737378] dark:text-[#A3A3A3] xl:text-[13.2px]"
+            >
               /{{ totalLabel() }}
             </span>
           </p>
 
           <div class="flex shrink-0 items-center gap-[11px] xl:gap-[10.4px]">
             <span
-              class="co-display inline-flex items-center gap-[4.5px] rounded-full border border-[#E5E5E8] bg-white px-[7.7px] py-[3.2px] text-[14px] font-medium text-[#0F0F12] xl:text-[13.2px]"
+              class="co-display inline-flex items-center gap-[4.5px] rounded-full border border-[#E5E5E8] dark:border-white/10 bg-white dark:bg-[#161616] px-[7.7px] py-[3.2px] text-[14px] font-medium text-[#0F0F12] dark:text-white xl:text-[13.2px]"
             >
               <svg data-p-icon="user" [size]="14" aria-hidden="true"></svg>
               <span aria-hidden="true">{{ participantsLabel() }}</span>
@@ -231,7 +235,7 @@ export function elapsedLabel(iso: string | null | undefined, now: number = Date.
             </span>
 
             <span
-              class="inline-flex items-center gap-[4.5px] rounded-full border border-[#E5E5E8] bg-white px-[7.7px] py-[3.2px]"
+              class="inline-flex items-center gap-[4.5px] rounded-full border border-[#E5E5E8] dark:border-white/10 bg-white dark:bg-[#161616] px-[7.7px] py-[3.2px]"
             >
               <span
                 class="flex h-[13px] w-[13px] shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#FC5404] to-[#F27002] text-[8px] font-semibold leading-none text-white"
@@ -250,10 +254,13 @@ export function elapsedLabel(iso: string | null | undefined, now: number = Date.
         @if (hasBudget(campaign().budgetTotal)) {
           <div class="mt-auto px-[14px] pt-[16.4px] xl:pt-[15.5px]">
             <div
-              class="h-[5px] w-full overflow-hidden rounded-full bg-[#EBEBED]"
+              class="h-[5px] w-full overflow-hidden rounded-full bg-[#EBEBED] dark:bg-white/10"
               aria-hidden="true"
             >
-              <div class="h-full rounded-full bg-[#17171A]" [style.width.%]="spentPercent()"></div>
+              <div
+                class="h-full rounded-full bg-[#17171A] dark:bg-white"
+                [style.width.%]="spentPercent()"
+              ></div>
             </div>
           </div>
         }

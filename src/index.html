@@ -11,6 +11,21 @@
     <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
     <meta name="theme-color" content="#EC612C" />
+    <!-- Public-page theme, before first paint. Same resolution as ThemeService:
+         the cookie shared with clapoutcreators.com, this origin's storage, the
+         OS. Skipped when a session token is present: the studio is light. -->
+    <script>
+      (function () {
+        try {
+          var m = document.cookie.match(/(?:^|;\s*)clapout-theme=(dark|light)(?:;|$)/);
+          var t = m ? m[1] : localStorage.getItem('theme');
+          var dark = t ? t === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+          var signedIn =
+            localStorage.getItem('clapout.token') || sessionStorage.getItem('clapout.token');
+          if (dark && !signedIn) document.documentElement.classList.add('co-dark');
+        } catch (e) {}
+      })();
+    </script>
     <!-- Same heading font the landing page (clapoutcreators.com) loads. -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />

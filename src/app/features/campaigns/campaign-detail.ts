@@ -11,6 +11,7 @@ import {
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { cameFromLandingSite, LANDING_CAMPAIGNS_URL } from '../../shared/public/public-links';
 import { ChevronDown } from '@primeicons/angular/chevron-down';
 import { ChevronLeft } from '@primeicons/angular/chevron-left';
 import { ExternalLink } from '@primeicons/angular/external-link';
@@ -172,6 +173,14 @@ export class CampaignDetail {
    * than pushing, precisely so they cannot rewrite this answer.
    */
   private readonly arrivedFromApp: boolean;
+
+  /**
+   * The public Back pill: a visitor who followed a card on clapoutcreators.com
+   * returns to that list, not to this app's copy of it. Read once — the
+   * referrer does not change while the page is open.
+   */
+  protected readonly cameFromLanding = cameFromLandingSite();
+  protected readonly landingCampaignsUrl = LANDING_CAMPAIGNS_URL;
 
   protected readonly isUpcoming = computed(() => this.campaign()?.status === 'UPCOMING');
 

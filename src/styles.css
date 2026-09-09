@@ -1,6 +1,10 @@
 @import 'tailwindcss';
 @import 'tailwindcss-primeui';
 
+/* `dark:` follows a class the app shell sets on <html> for the signed-out
+   public pages, never the OS setting on its own — see ThemeService. */
+@custom-variant dark (&:where(.co-dark, .co-dark *));
+
 :root {
   color-scheme: light;
   --clapout-primary: var(--p-primary-500);
@@ -222,6 +226,15 @@ label:has(+ textarea[pTextarea]) {
     zoom: var(--ui-scale);
   }
 
+  /* The signed-out public pages replicate clapoutcreators.com, which is
+     1:1, so they opt out of the scale (app.ts sets the class). Overriding the
+     variable on body keeps every rule below — the viewport-unit fixes and the
+     overlay cancellation — consistent at scale 1. */
+  body.co-public {
+    --ui-scale: 1;
+    zoom: 1;
+  }
+
   /* Viewport units are resolved against the real viewport and are NOT divided
      by `zoom`, so `100vh` inside the zoomed body renders 20% short. Grow the
      full-height utilities back by 1/scale. These sit outside `@layer` on
@@ -405,4 +418,25 @@ label:has(+ textarea[pTextarea]) {
 p-select .p-select-label {
   display: flex;
   align-items: center;
+}
+
+/* --------------------------------------------------------------------------
+   Public-page dark mode (carried over from clapoutcreators.com)
+   -------------------------------------------------------------------------- */
+html.co-dark body.co-public {
+  color-scheme: dark;
+  background: #0c0c0c;
+}
+
+/* The shell wrapper in app.html paints white; the page ground under it goes dark. */
+html.co-dark body.co-public > app-root > .bg-white {
+  background: #0c0c0c;
+}
+
+/* PrimeNG overlays appended to <body> (the list's filter panel). */
+html.co-dark body.co-public .p-popover,
+html.co-dark body.co-public .p-popover-content {
+  background: #161616;
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.1);
 }
