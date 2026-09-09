@@ -47,7 +47,7 @@ function emailLocalPart(email: string | undefined): string {
       </p>
 
       <p
-        class="m-0 inline-flex shrink-0 items-center gap-2 rounded-[26px] bg-[#F1F1F1] py-1.5 pr-1.5 pl-3.5 text-[14px] leading-[17px] text-[#464646]"
+        class="m-0 inline-flex shrink-0 items-center gap-2 rounded-[26px] bg-[#F1F1F1] py-1.5 pr-1.5 pl-3.5 text-[14px] leading-[17px] text-[#464646] max-lg:hidden"
       >
         <span class="max-w-[16rem] truncate">{{ displayName() }}</span>
         <span

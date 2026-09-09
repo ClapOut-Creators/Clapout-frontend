@@ -30,16 +30,16 @@
       >
         @switch (link.icon) {
           @case ('clipboard') {
-            <svg data-p-icon="clipboard" [size]="18"></svg>
+            <app-solar-icon name="campaign" [size]="18" />
           }
           @case ('compass') {
             <svg data-p-icon="compass" [size]="18"></svg>
           }
           @case ('shop') {
-            <svg data-p-icon="shop" [size]="18"></svg>
+            <app-solar-icon name="shop" [size]="18" />
           }
           @case ('video') {
-            <svg data-p-icon="video" [size]="18"></svg>
+            <app-solar-icon name="video" [size]="18" />
           }
           @case ('inbox') {
             <svg data-p-icon="inbox" [size]="18"></svg>
@@ -61,7 +61,7 @@
       pTooltip="Settings coming soon"
       tooltipPosition="right"
     >
-      <svg data-p-icon="cog" [size]="18"></svg>
+      <app-solar-icon name="settings" [size]="18" />
     </button>
 
     <button
@@ -106,7 +106,7 @@
 <!-- Mobile: slim top bar. Clippers get their name and avatar (tap for the
      account menu); admins keep the drawer button, their section list lives there. -->
 <header
-  class="sticky top-0 z-20 flex items-center justify-between border-b border-[#ECECEC] bg-white px-4 py-3 lg:hidden"
+  class="co-mobile-topbar fixed inset-x-0 top-0 z-30 flex items-center justify-between border-b border-[#ECECEC] bg-white px-4 py-3 lg:hidden"
 >
   <a [routerLink]="homeLink()" class="flex items-center text-surface-900 no-underline">
     <img src="/logo/clapout-logo.png" alt="ClapOut" class="h-9 w-9 select-none" draggable="false" />
@@ -187,16 +187,16 @@
           >
             @switch (link.icon) {
               @case ('clipboard') {
-                <svg data-p-icon="clipboard" [size]="16"></svg>
+                <app-solar-icon name="campaign" [size]="16" />
               }
               @case ('compass') {
                 <svg data-p-icon="compass" [size]="16"></svg>
               }
               @case ('shop') {
-                <svg data-p-icon="shop" [size]="16"></svg>
+                <app-solar-icon name="shop" [size]="16" />
               }
               @case ('video') {
-                <svg data-p-icon="video" [size]="16"></svg>
+                <app-solar-icon name="video" [size]="16" />
               }
               @case ('inbox') {
                 <svg data-p-icon="inbox" [size]="16"></svg>
@@ -257,7 +257,9 @@
   out, which is why this only ever sits on the white bar.
 -->
 @if (showMobileTabBar()) {
-  <nav class="co-mobile-tabbar lg:hidden" aria-label="Quick navigation">
+  <!-- `flex lg:hidden` both live in Tailwind's utility layer, so the breakpoint
+       wins; the stylesheet deliberately leaves `display` alone. -->
+  <nav class="co-mobile-tabbar flex lg:hidden" aria-label="Quick navigation">
     @for (tab of mobileTabs; track tab.path) {
       <a
         [routerLink]="tab.path"
