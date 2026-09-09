@@ -1,5 +1,7 @@
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
+import { provideRouter, Router } from '@angular/router';
+import { Component } from '@angular/core';
 import { AuthService } from '../../core/auth/auth-service';
 import { Me, ProfilePatch } from '../../core/models/user';
 import { OnboardingStepper } from './onboarding-stepper';
@@ -24,6 +26,10 @@ function authDouble(user: Me) {
   return {
     user: currentUser.asReadonly(),
     patches,
+    signedOut: 0,
+    signOut() {
+      this.signedOut++;
+    },
     updateProfile: async (patch: ProfilePatch) => {
       patches.push(patch);
       currentUser.update((current) => ({
@@ -36,6 +42,9 @@ function authDouble(user: Me) {
   };
 }
 
+@Component({ template: '' })
+class EmptyRoute {}
+
 describe('OnboardingStepper', () => {
   let auth: ReturnType<typeof authDouble>;
   let finished: number;
@@ -45,7 +54,10 @@ describe('OnboardingStepper', () => {
     finished = 0;
     await TestBed.configureTestingModule({
       imports: [OnboardingStepper],
-      providers: [{ provide: AuthService, useValue: auth }],
+      providers: [
+        { provide: AuthService, useValue: auth },
+        provideRouter([{ path: 'auth/sign-in', component: EmptyRoute }]),
+      ],
     }).compileComponents();
 
     const fixture = TestBed.createComponent(OnboardingStepper);
@@ -119,6 +131,17 @@ describe('OnboardingStepper', () => {
 
     button(fixture, 'Browse campaigns').click();
     expect(finished).toBe(1);
+  });
+
+  it('offers a way out for the wrong account, landing on sign-in', async () => {
+    const fixture = await render();
+    expect(text(fixture)).toContain('Signed in as cara@clapout.test');
+
+    button(fixture, 'Not you? Sign out').click();
+    await settle(fixture);
+
+    expect(auth.signedOut).toBe(1);
+    expect(TestBed.inject(Router).url).toBe('/auth/sign-in');
   });
 
   it('seeds saved socials for a returning creator and skips the request when nothing changed', async () => {

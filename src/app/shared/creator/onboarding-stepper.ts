@@ -1,4 +1,5 @@
 import { Component, computed, inject, input, output, signal } from '@angular/core';
+import { Router } from '@angular/router';
 import {
   FormArray,
   FormControl,
@@ -214,6 +215,19 @@ function sameSocials(left: readonly SocialAccount[], right: readonly SocialAccou
         </div>
       }
     }
+
+    <!-- The dashboard sheet cannot be dismissed and hides the side nav, so
+         this is the only way out for someone signed into the wrong account. -->
+    <p class="m-0 mt-[24px] text-center text-[13px] leading-[19px] text-[#898989]">
+      Signed in as {{ email() }}.
+      <button
+        type="button"
+        class="cursor-pointer border-0 bg-transparent p-0 text-[13px] font-semibold text-[#2B2B2B] underline underline-offset-2"
+        (click)="signOut()"
+      >
+        Not you? Sign out
+      </button>
+    </p>
   `,
 })
 export class OnboardingStepper {
@@ -223,6 +237,7 @@ export class OnboardingStepper {
   readonly finished = output<void>();
 
   private readonly auth = inject(AuthService);
+  private readonly router = inject(Router);
   private readonly formBuilder = inject(NonNullableFormBuilder);
 
   protected readonly steps = STEPS;
@@ -233,6 +248,7 @@ export class OnboardingStepper {
   protected readonly errorMessage = signal('');
   /** The invite has been opened at least once; only then can the join be confirmed. */
   protected readonly linkOpened = signal(false);
+  protected readonly email = computed(() => this.auth.user()?.email ?? '');
 
   protected readonly links = new FormArray<FormControl<string>>([]);
 
@@ -332,6 +348,12 @@ export class OnboardingStepper {
     } finally {
       this.saving.set(false);
     }
+  }
+
+  /** Same landing as the side nav's sign-out: the sign-in screen. */
+  protected signOut(): void {
+    this.auth.signOut();
+    void this.router.navigate(['/auth/sign-in']);
   }
 
   private createLink(url = ''): FormControl<string> {
