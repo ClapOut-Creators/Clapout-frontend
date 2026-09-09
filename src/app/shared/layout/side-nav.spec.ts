@@ -97,7 +97,7 @@ describe('SideNav', () => {
     const tabs = Array.from(element.querySelectorAll('.co-mobile-tabbar a')).map((a) =>
       a.textContent?.trim(),
     );
-    expect(tabs).toEqual(['Dashboard', 'Submissions', 'Campaigns']);
+    expect(tabs).toEqual(['Dashboard', 'Campaigns', 'Submissions']);
     expect(element.querySelector('.co-mobile-tabbar .co-tabbar-action')).toBeTruthy();
 
     // No drawer button for a clipper: the chip carries the account menu.
