@@ -137,22 +137,18 @@
       <div
         class="flex h-12 w-full items-center gap-[6px] rounded-lg border border-[#D7D7D7] bg-white px-[17px] sm:h-[50px] sm:rounded-xl sm:px-[18px]"
       >
-        <p-select
-          ariaLabel="Country dialling code"
-          formControlName="phoneCountry"
-          optionLabel="label"
-          optionValue="iso"
-          class="shrink-0 !border-0 !bg-transparent !shadow-none [&_.p-select-dropdown]:!w-6 [&_.p-select-label]:!px-0 [&_.p-select-label]:!py-0 [&_.p-select-label]:!text-[16px] [&_.p-select-label]:!text-[#5A5A5A] sm:[&_.p-select-label]:!text-[18px]"
-          [options]="phoneCodes"
+        <!-- Ghana only for now: the code is fixed rather than picked. -->
+        <span
+          class="shrink-0 text-[16px] text-[#5A5A5A] sm:text-[18px]"
+          aria-label="Country dialling code, Ghana"
+          >{{ dialCode }}</span
         >
-          <ng-template #selectedItem let-option>{{ option?.dialCode }}</ng-template>
-        </p-select>
         <input
           pInputText
           id="signup-phone"
           type="tel"
           inputmode="tel"
-          placeholder="020 123 4567"
+          placeholder="024 123 4567"
           autocomplete="tel-national"
           formControlName="phone"
           class="h-full min-w-0 flex-1 !rounded-none !border-0 !bg-transparent !px-0 !shadow-none text-[16px] placeholder:text-[#DFDFDF] sm:text-[18px]"

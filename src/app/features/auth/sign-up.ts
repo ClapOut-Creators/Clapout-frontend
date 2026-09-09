@@ -1,5 +1,10 @@
 import { Component, inject, input, signal } from '@angular/core';
-import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  NonNullableFormBuilder,
+  ReactiveFormsModule,
+  ValidatorFn,
+  Validators,
+} from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { ONBOARDING_PATH } from '../../core/auth/onboarding-guard';
 import { Lock } from '@primeicons/angular/lock';
@@ -8,7 +13,6 @@ import { CheckboxModule } from 'primeng/checkbox';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { PasswordModule } from 'primeng/password';
-import { SelectModule } from 'primeng/select';
 import { ApiError } from '../../core/api/api-error';
 import { AuthService } from '../../core/auth/auth-service';
 import {
@@ -17,19 +21,12 @@ import {
   reloadForFreshBundle,
 } from '../../core/routing/chunk-reload';
 import { SignUpPayload } from '../../core/models/user';
-import {
-  DEFAULT_PHONE_ISO,
-  PHONE_CODES,
-  dialCodeFor,
-  toInternationalPhone,
-} from '../../core/util/phone-codes';
+import { GHANA_DIAL_CODE, isGhanaMobile, normalizeGhanaMobile } from '../../core/util/ghana-phone';
 import { firstErrorMessage } from '../../shared/forms/form-errors';
 
-/**
- * Digits with the punctuation people actually type. The country code lives in
- * its own control, so anything longer than a national number is a mistake.
- */
-const PHONE_PATTERN = /^\+?[\d\s().-]{6,20}$/;
+/** Only Ghanaians can register for now: the number must be a Ghana mobile. */
+const ghanaMobileValidator: ValidatorFn = (control) =>
+  !control.value || isGhanaMobile(String(control.value)) ? null : { ghanaMobile: true };
 
 const MESSAGES: Record<string, Record<string, string>> = {
   fullName: {
@@ -44,7 +41,7 @@ const MESSAGES: Record<string, Record<string, string>> = {
   whatsapp: { required: 'Your WhatsApp username is required.' },
   phone: {
     required: 'Your phone number is required.',
-    pattern: 'Enter a phone number using digits only.',
+    ghanaMobile: 'Enter a Ghana mobile number, for example 024 123 4567.',
   },
   terms: { required: 'Accept the ClapOut terms to create your account.' },
 };
@@ -61,7 +58,6 @@ type ErrorField = 'fullName' | 'email' | 'password' | 'whatsapp' | 'phone' | 'te
     PasswordModule,
     ReactiveFormsModule,
     RouterLink,
-    SelectModule,
   ],
   selector: 'app-sign-up',
   templateUrl: './sign-up.html',
@@ -74,15 +70,14 @@ export class SignUp {
   private readonly router = inject(Router);
   private readonly formBuilder = inject(NonNullableFormBuilder);
 
-  protected readonly phoneCodes = PHONE_CODES;
+  protected readonly dialCode = GHANA_DIAL_CODE;
 
   protected readonly form = this.formBuilder.group({
     fullName: ['', [Validators.required, Validators.minLength(2)]],
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(8)]],
     whatsapp: ['', [Validators.required]],
-    phoneCountry: [DEFAULT_PHONE_ISO, [Validators.required]],
-    phone: ['', [Validators.required, Validators.pattern(PHONE_PATTERN)]],
+    phone: ['', [Validators.required, ghanaMobileValidator]],
     // Consent is a client-side gate; the API contract carries no `terms` field.
     terms: [false, [Validators.requiredTrue]],
   });
@@ -148,15 +143,15 @@ export class SignUp {
   }
 
   private buildPayload(): SignUpPayload {
-    const { fullName, email, password, whatsapp, phoneCountry, phone } = this.form.getRawValue();
+    const { fullName, email, password, whatsapp, phone } = this.form.getRawValue();
     return {
       fullName: fullName.trim(),
       email: email.trim(),
       password,
       whatsapp: whatsapp.trim(),
       // One international string, because the admin table builds `wa.me` links
-      // straight off this value.
-      phone: toInternationalPhone(dialCodeFor(phoneCountry), phone),
+      // straight off this value. The validator has already vouched for it.
+      phone: normalizeGhanaMobile(phone) ?? phone.trim(),
     };
   }
 }
