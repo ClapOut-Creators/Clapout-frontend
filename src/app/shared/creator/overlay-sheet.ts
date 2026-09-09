@@ -222,13 +222,13 @@ export const SHEET_FIELD_CLASS =
 /** Left padding that clears the platform glyph drawn inside a link field. */
 export const SHEET_FIELD_WITH_GLYPH_CLASS = 'pl-[44px] lg:pl-[46px]';
 
-/** The near-black gradient primary: "Continue →", "Save social". */
+/** The near-black gradient primary: "Continue →", "Save social". 50px tall, the same as a field. */
 export const SHEET_PRIMARY_BUTTON_CLASS =
-  'inline-flex h-[40px] cursor-pointer items-center justify-center gap-[10px] rounded-[12px] border-0 bg-[linear-gradient(180deg,#3F3F3F_0%,#0A0A0A_100%)] px-[27.74px] text-[16px] leading-[23.8px] font-medium text-white disabled:cursor-not-allowed disabled:opacity-60 lg:h-[50px] lg:text-[18px]';
+  'inline-flex h-[50px] cursor-pointer items-center justify-center gap-[10px] rounded-[12px] border-0 bg-[linear-gradient(180deg,#3F3F3F_0%,#0A0A0A_100%)] px-[27.74px] text-[16px] leading-[23.8px] font-medium text-white disabled:cursor-not-allowed disabled:opacity-60 lg:text-[18px]';
 
 /** The white outlined companion: "Back", "Change". */
 export const SHEET_SECONDARY_BUTTON_CLASS =
-  'inline-flex h-[40px] cursor-pointer items-center justify-center gap-[10px] rounded-[12px] border border-[#D7D7D7] bg-white px-[27.74px] text-[16px] leading-[23.8px] font-medium text-[#2D2D2D] disabled:cursor-not-allowed disabled:opacity-60 lg:h-[50px] lg:border-[#CBCBCB] lg:text-[18px] lg:text-[#464646]';
+  'inline-flex h-[50px] cursor-pointer items-center justify-center gap-[10px] rounded-[12px] border border-[#D7D7D7] bg-white px-[27.74px] text-[16px] leading-[23.8px] font-medium text-[#2D2D2D] disabled:cursor-not-allowed disabled:opacity-60 lg:border-[#CBCBCB] lg:text-[18px] lg:text-[#464646]';
 
 /** The orange chip: "Upload image", "Add link". */
 export const SHEET_CHIP_BUTTON_CLASS =
