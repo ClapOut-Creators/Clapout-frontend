@@ -4,6 +4,7 @@ import { Eye } from '@primeicons/angular/eye';
 import { CampaignLeaderboard, LeaderboardEntry } from '../../core/models/leaderboard';
 import { formatMoneyExact, NOT_ANNOUNCED } from '../../core/util/campaign-format';
 import { shortElapsed } from '../../core/util/relative-time';
+import { ClipperAvatar } from './clipper-avatar';
 
 /**
  * Rank pill fill (Figma "Frame 292" on each row): a warm gradient for the
@@ -92,7 +93,7 @@ export function needsOwnStandingFooter(leaderboard: CampaignLeaderboard | null):
  * and, when nobody has an approved clip yet, the empty copy.
  */
 @Component({
-  imports: [Crown, Eye],
+  imports: [ClipperAvatar, Crown, Eye],
   selector: 'app-leaderboard-list',
   template: `
     <div class="flex items-baseline justify-between gap-3">
@@ -139,11 +140,18 @@ export function needsOwnStandingFooter(leaderboard: CampaignLeaderboard | null):
               </span>
 
               <span class="flex min-w-0 items-center gap-1.5 lg:gap-[19px]">
+                <!-- The same DiceBear face the clipper has everywhere else, seeded by their id. -->
                 <span
-                  class="size-[30px] shrink-0 rounded-full border border-[#F2F2F2] lg:size-11"
-                  [style.background-image]="avatarGradient(entry.creatorId)"
+                  class="size-[30px] shrink-0 overflow-hidden rounded-full border border-[#F2F2F2] lg:size-11"
                   aria-hidden="true"
-                ></span>
+                >
+                  <app-clipper-avatar
+                    [seed]="entry.creatorId"
+                    [name]="entry.displayName"
+                    [size]="44"
+                    [fluid]="true"
+                  />
+                </span>
                 <span
                   class="co-user-text min-w-0 truncate text-[14px] leading-[23.8px] text-[#454545] [font-family:var(--clapout-font-heading)] lg:text-[18px]"
                   >{{ entryLabel(entry) }}</span

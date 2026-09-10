@@ -5,26 +5,56 @@
   1487-wide content column inset 120px, a 464x46 search box on the search row
   with the 56x46 filter button pinned right, and 358x361 cards on a 10/18px grid.
 -->
-<main
-  class="mx-auto w-full max-w-[1728px] bg-white dark:bg-[#0C0C0C] px-4 pb-20 pt-6 sm:px-6 lg:px-10 xl:px-[120px] xl:pb-[140px] xl:pt-[50px]"
->
-  <!-- Signed-in clippers get the studio breadcrumb; anonymous visitors have the public navbar. -->
-  @if (isStudio()) {
+<!--
+  Two layouts over one body. A signed-in clipper sees the studio arrangement
+  the dashboard uses: breadcrumb header, left-aligned title, and the search,
+  filters and cards inside one outlined white card. An anonymous visitor keeps
+  the public page — centred title on white under the landing-style navbar.
+-->
+@if (isStudio()) {
+  <main class="flex flex-col gap-[5px]">
     <app-creator-page-header [crumbs]="crumbs" />
-  }
-  <header class="text-center">
-    <h1
-      class="m-0 text-[20px] font-medium leading-[30px] text-black/80 dark:text-white xl:text-[31px] xl:leading-[47px]"
-    >
-      Campaigns
-    </h1>
-    <p
-      class="mx-auto mb-0 mt-0.5 max-w-[331px] text-[16px] leading-[19px] text-[#464646] dark:text-white/80 xl:mt-0 xl:max-w-none xl:text-[22px] xl:leading-[30px]"
-    >
-      Discover active campaigns from this Content Rewards community
-    </p>
-  </header>
 
+    <div class="flex flex-col gap-[15px]">
+      <header>
+        <h1 class="m-0 text-[30px] leading-[45px] font-semibold tracking-tight text-[#171A1C]">
+          Campaigns
+        </h1>
+        <p class="mt-2 mb-0 text-[20px] leading-6 text-[#464646]">
+          Discover active campaigns from this Content Rewards community
+        </p>
+      </header>
+
+      <section
+        class="rounded-[18.8px] border border-[#ECECEC] bg-white px-[30px] pt-[9px] pb-[30px]"
+        aria-labelledby="featured-campaigns"
+      >
+        <ng-container *ngTemplateOutlet="body" />
+      </section>
+    </div>
+  </main>
+} @else {
+  <main
+    class="mx-auto w-full max-w-[1728px] bg-white dark:bg-[#0C0C0C] px-4 pb-20 pt-6 sm:px-6 lg:px-10 xl:px-[120px] xl:pb-[140px] xl:pt-[50px]"
+  >
+    <header class="text-center">
+      <h1
+        class="m-0 text-[20px] font-medium leading-[30px] text-black/80 dark:text-white xl:text-[31px] xl:leading-[47px]"
+      >
+        Campaigns
+      </h1>
+      <p
+        class="mx-auto mb-0 mt-0.5 max-w-[331px] text-[16px] leading-[19px] text-[#464646] dark:text-white/80 xl:mt-0 xl:max-w-none xl:text-[22px] xl:leading-[30px]"
+      >
+        Discover active campaigns from this Content Rewards community
+      </p>
+    </header>
+
+    <ng-container *ngTemplateOutlet="body" />
+  </main>
+}
+
+<ng-template #body>
   <div class="mt-[21px] flex items-center justify-between gap-[18px] xl:mt-[41px]">
     <label class="sr-only" for="campaign-search">Search campaigns</label>
     <div
@@ -238,4 +268,4 @@
       }
     }
   }
-</main>
+</ng-template>
