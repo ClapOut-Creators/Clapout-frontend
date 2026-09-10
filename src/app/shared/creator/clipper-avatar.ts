@@ -21,13 +21,14 @@ export function clipperAvatarUrl(seed: string, size: number): string {
  */
 @Component({
   selector: 'app-clipper-avatar',
-  host: { class: 'inline-flex shrink-0' },
+  host: { class: 'inline-flex shrink-0', '[class.h-full]': 'fluid()', '[class.w-full]': 'fluid()' },
   template: `
     @if (failed()) {
       <span
         class="flex items-center justify-center rounded-full bg-gradient-to-br from-[#FFC93C] to-[#EC612C] font-semibold text-white"
-        [style.width.px]="size()"
-        [style.height.px]="size()"
+        [class]="fluid() ? 'h-full w-full' : ''"
+        [style.width.px]="fluid() ? null : size()"
+        [style.height.px]="fluid() ? null : size()"
         [style.font-size.px]="fontSize()"
         aria-hidden="true"
         >{{ letters() }}</span
@@ -37,10 +38,10 @@ export function clipperAvatarUrl(seed: string, size: number): string {
         [src]="url()"
         [width]="size()"
         [height]="size()"
-        [style.width.px]="size()"
-        [style.height.px]="size()"
+        [style.width.px]="fluid() ? null : size()"
+        [style.height.px]="fluid() ? null : size()"
         class="rounded-full bg-[#F1F1F1] object-cover select-none"
-        [class]="ring() ? 'border border-[#EC612C]' : ''"
+        [class]="(ring() ? 'border border-[#EC612C] ' : '') + (fluid() ? 'h-full w-full' : '')"
         alt=""
         loading="lazy"
         decoding="async"
@@ -58,6 +59,12 @@ export class ClipperAvatar {
   readonly size = input(32);
   /** The orange hairline the header chip draws around its avatar. */
   readonly ring = input(false);
+  /**
+   * Fill the host instead of fixing the pixel size, for wrappers sized by
+   * breakpoint (the leaderboard's 30px / 44px circle). `size` then only sets
+   * the resolution requested.
+   */
+  readonly fluid = input(false);
 
   protected readonly failed = signal(false);
   protected readonly url = computed(() => clipperAvatarUrl(this.seed(), this.size()));
