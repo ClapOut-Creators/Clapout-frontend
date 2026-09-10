@@ -1,6 +1,7 @@
 import { Component, input } from '@angular/core';
 
-export type SolarIconName = 'campaign' | 'campaign-bold' | 'link' | 'settings' | 'shop' | 'video';
+export type SolarIconName =
+  'campaign' | 'campaign-bold' | 'home' | 'link' | 'settings' | 'shop' | 'video';
 
 /**
  * The Solar icons the Figma rail draws, supplied as SVG by Steve (Downloads/icons,
@@ -13,6 +14,23 @@ export type SolarIconName = 'campaign' | 'campaign-bold' | 'link' | 'settings' |
   host: { class: 'inline-flex shrink-0 items-center justify-center' },
   template: `
     @switch (name()) {
+      @case ('home') {
+        <!-- Solar "Home Angle" linear, redrawn to match Steve's home.svg. -->
+        <svg
+          viewBox="0 0 24 24"
+          [attr.width]="size()"
+          [attr.height]="size()"
+          fill="none"
+          aria-hidden="true"
+        >
+          <path
+            d="M2.5 12.2c0-1.5.7-2.9 1.9-3.8l5.5-4.3a3.4 3.4 0 0 1 4.2 0l5.5 4.3c1.2.9 1.9 2.3 1.9 3.8v5.3c0 2-1.6 3.5-3.5 3.5H6c-1.9 0-3.5-1.5-3.5-3.5z"
+            stroke="currentColor"
+            stroke-width="1.5"
+          />
+          <path d="M12 15v3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+        </svg>
+      }
       @case ('campaign') {
         <svg
           viewBox="0 0 24 24"
