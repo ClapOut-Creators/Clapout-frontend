@@ -1,3 +1,4 @@
+import { NgTemplateOutlet } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Search } from '@primeicons/angular/search';
@@ -48,6 +49,7 @@ const PLATFORM_FILTERS: readonly CampaignPlatform[] = [
  */
 @Component({
   imports: [
+    NgTemplateOutlet,
     CreatorPageHeader,
     ButtonModule,
     CheckboxModule,
