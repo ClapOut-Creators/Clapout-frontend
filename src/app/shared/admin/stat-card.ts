@@ -18,7 +18,7 @@ const TONE_CLASSES: Record<StatCardTone, string> = {
 @Component({
   selector: 'app-stat-card',
   styles: `
-    /* The opt-in phone card: 95px, r10, 14px label, 18px Poppins value. */
+    /* The opt-in phone card: 95px, r10, 16px label, 18px Poppins value. */
     @media (max-width: 639px) {
       .co-stat-phone {
         min-height: 95px;
@@ -26,8 +26,8 @@ const TONE_CLASSES: Record<StatCardTone, string> = {
         padding: 16px 18px 20px;
       }
       .co-stat-phone dt {
-        font-size: 14px;
-        line-height: 17px;
+        font-size: 16px;
+        line-height: 19px;
       }
       .co-stat-phone dd {
         margin-top: 14px;
