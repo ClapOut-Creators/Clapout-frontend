@@ -10,6 +10,7 @@ import { ButtonModule } from 'primeng/button';
 import { DrawerModule } from 'primeng/drawer';
 import { TooltipModule } from 'primeng/tooltip';
 import { AuthService } from '../../core/auth/auth-service';
+import { ClipperAvatar } from '../creator/clipper-avatar';
 import { SolarIcon } from '../icons/solar-icon';
 
 interface NavLink {
@@ -64,6 +65,7 @@ const ADMIN_LINKS: NavLink[] = [
  */
 @Component({
   imports: [
+    ClipperAvatar,
     ButtonModule,
     Compass,
     DrawerModule,

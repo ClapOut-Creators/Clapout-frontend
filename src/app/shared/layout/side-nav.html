@@ -86,7 +86,7 @@
       tooltipPosition="right"
       (click)="toggleUserMenu()"
     >
-      {{ initials() }}
+      <app-clipper-avatar [seed]="user()?.id ?? ''" [name]="user()?.fullName ?? ''" [size]="32" />
     </button>
 
     @if (userMenuOpen()) {
@@ -161,11 +161,12 @@
         (click)="toggleUserMenu()"
       >
         <span class="max-w-[9rem] truncate">{{ displayName() }}</span>
-        <span
-          class="flex size-[30px] shrink-0 items-center justify-center rounded-full border border-[#EC612C] bg-[#BABABA] text-[12px] font-semibold text-white"
-          aria-hidden="true"
-          >{{ initials() }}</span
-        >
+        <app-clipper-avatar
+          [seed]="user()?.id ?? ''"
+          [name]="displayName()"
+          [size]="30"
+          [ring]="true"
+        />
       </button>
 
       @if (userMenuOpen()) {

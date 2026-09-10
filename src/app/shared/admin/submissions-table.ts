@@ -30,6 +30,7 @@ import { TagModule } from 'primeng/tag';
 import { TextareaModule } from 'primeng/textarea';
 import { ApiError } from '../../core/api/api-error';
 import { AdminRepository } from '../../core/data/admin-repository';
+import { ClipperAvatar } from '../creator/clipper-avatar';
 import { AdminSubmission, AdminSubmissionQuery } from '../../core/models/admin';
 import { Submission, SubmissionStatus, SubmissionViewCheck } from '../../core/models/submission';
 import { PayoutMethod } from '../../core/models/user';
@@ -114,6 +115,7 @@ export function viewsCheckedLabel(
  */
 @Component({
   imports: [
+    ClipperAvatar,
     ButtonModule,
     CheckboxModule,
     DialogModule,
