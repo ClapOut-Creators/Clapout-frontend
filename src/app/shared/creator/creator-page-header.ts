@@ -1,6 +1,22 @@
 import { Component, computed, inject, input } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { Home } from '@primeicons/angular/home';
 import { AuthService } from '../../core/auth/auth-service';
+
+/** One breadcrumb: a plain label, or a label that links somewhere. */
+export type Crumb = string | { label: string; path: string };
+
+/** The trail's first stop on every signed-in creator page. */
+export const DASHBOARD_CRUMB: Crumb = { label: 'Dashboard', path: '/creator/dashboard' };
+export const CAMPAIGNS_CRUMB: Crumb = { label: 'Campaigns', path: '/campaigns' };
+
+function crumbLabel(crumb: Crumb): string {
+  return typeof crumb === 'string' ? crumb : crumb.label;
+}
+
+function crumbPath(crumb: Crumb): string | null {
+  return typeof crumb === 'string' ? null : crumb.path;
+}
 
 /** `user@host` has no place on a breadcrumb chip; the local part reads fine. */
 function emailLocalPart(email: string | undefined): string {
@@ -17,7 +33,7 @@ function emailLocalPart(email: string | undefined): string {
  * greys "Dashboard" beside the campaign it drilled into.
  */
 @Component({
-  imports: [Home],
+  imports: [Home, RouterLink],
   selector: 'app-creator-page-header',
   template: `
     <div class="flex items-start justify-between gap-3 pb-5">
@@ -29,20 +45,31 @@ function emailLocalPart(email: string | undefined): string {
       <p
         class="m-0 inline-flex min-w-0 items-center gap-2 rounded-[26px] bg-[#F1F1F1] px-2.5 py-1.5 text-[14px] leading-[17px] text-[#464646]"
       >
-        <svg
-          data-p-icon="home"
-          [size]="14"
-          class="shrink-0 text-[#585858]"
-          aria-hidden="true"
-        ></svg>
+        <!-- The home glyph is the trail's root: it goes to the dashboard. -->
+        <a
+          routerLink="/creator/dashboard"
+          class="flex shrink-0 items-center text-[#585858] no-underline hover:text-[#171A1C]"
+          aria-label="Dashboard"
+        >
+          <svg data-p-icon="home" [size]="14" aria-hidden="true"></svg>
+        </a>
         @for (crumb of crumbs(); track $index) {
           <span class="h-[17px] w-px shrink-0 bg-[#D5D5D5]" aria-hidden="true"></span>
-          <span
-            class="co-user-text min-w-0 max-w-[22rem] truncate"
-            [class]="$last ? '' : 'shrink-0 text-[#A8A8A8]'"
-            [attr.aria-current]="$last ? 'page' : null"
-            >{{ crumb }}</span
-          >
+          @if (!$last && pathOf(crumb); as path) {
+            <!-- Every crumb before the last is a link back up the trail. -->
+            <a
+              [routerLink]="path"
+              class="co-user-text min-w-0 max-w-[22rem] shrink-0 truncate text-[#A8A8A8] no-underline hover:text-[#464646] hover:underline"
+              >{{ labelOf(crumb) }}</a
+            >
+          } @else {
+            <span
+              class="co-user-text min-w-0 max-w-[22rem] truncate"
+              [class]="$last ? '' : 'shrink-0 text-[#A8A8A8]'"
+              [attr.aria-current]="$last ? 'page' : null"
+              >{{ labelOf(crumb) }}</span
+            >
+          }
         }
       </p>
 
@@ -60,8 +87,20 @@ function emailLocalPart(email: string | undefined): string {
   `,
 })
 export class CreatorPageHeader {
-  /** Breadcrumb trail after the home glyph, e.g. `['Dashboard', 'E-wale clipping']`. */
-  readonly crumbs = input<readonly string[]>([]);
+  /**
+   * Breadcrumb trail after the home glyph, e.g. `[DASHBOARD_CRUMB, 'E-wale
+   * clipping']`. A crumb with a `path` renders as a link unless it is the
+   * last (current) one.
+   */
+  readonly crumbs = input<readonly Crumb[]>([]);
+
+  protected labelOf(crumb: Crumb): string {
+    return crumbLabel(crumb);
+  }
+
+  protected pathOf(crumb: Crumb): string | null {
+    return crumbPath(crumb);
+  }
 
   private readonly auth = inject(AuthService);
 

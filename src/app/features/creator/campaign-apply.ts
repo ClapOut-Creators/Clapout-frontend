@@ -10,6 +10,12 @@ import { SelectModule } from 'primeng/select';
 import { SkeletonModule } from 'primeng/skeleton';
 import { TextareaModule } from 'primeng/textarea';
 import { ApiError } from '../../core/api/api-error';
+import {
+  CAMPAIGNS_CRUMB,
+  CreatorPageHeader,
+  Crumb,
+  DASHBOARD_CRUMB,
+} from '../../shared/creator/creator-page-header';
 import { CampaignsRepository } from '../../core/data/campaigns-repository';
 import { RegistrationsRepository } from '../../core/data/registrations-repository';
 import { CampaignPlatform, PublicCampaign } from '../../core/models/campaign';
@@ -37,6 +43,7 @@ const MESSAGES: Record<string, Record<string, string>> = {
 /** Guarded campaign application form (`POST /registrations`). */
 @Component({
   imports: [
+    CreatorPageHeader,
     ButtonModule,
     CheckboxModule,
     InputTextModule,
@@ -51,6 +58,17 @@ const MESSAGES: Record<string, Record<string, string>> = {
   templateUrl: './campaign-apply.html',
 })
 export class CampaignApply {
+  /** Dashboard › Campaigns › the campaign › Apply. */
+  protected readonly crumbs = computed<Crumb[]>(() => {
+    const campaign = this.campaign();
+    const title = campaign?.title || campaign?.brand.name || 'Campaign';
+    return [
+      DASHBOARD_CRUMB,
+      CAMPAIGNS_CRUMB,
+      { label: title, path: `/campaigns/${this.slug()}` },
+      'Apply',
+    ];
+  });
   /** Bound from the `:slug` route parameter via `withComponentInputBinding()`. */
   readonly slug = input.required<string>();
 

@@ -1,8 +1,9 @@
 import { computed, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { AuthService } from '../../core/auth/auth-service';
 import { Me } from '../../core/models/user';
-import { CreatorPageHeader } from './creator-page-header';
+import { CreatorPageHeader, Crumb, DASHBOARD_CRUMB } from './creator-page-header';
 
 const creator: Me = {
   id: 'creator-1',
@@ -27,10 +28,10 @@ function authDouble(user: Me | null) {
 }
 
 describe('CreatorPageHeader', () => {
-  async function render(crumbs: string[], user: Me | null = creator) {
+  async function render(crumbs: Crumb[], user: Me | null = creator) {
     await TestBed.configureTestingModule({
       imports: [CreatorPageHeader],
-      providers: [{ provide: AuthService, useValue: authDouble(user) }],
+      providers: [provideRouter([]), { provide: AuthService, useValue: authDouble(user) }],
     }).compileComponents();
 
     const fixture = TestBed.createComponent(CreatorPageHeader);
@@ -53,6 +54,25 @@ describe('CreatorPageHeader', () => {
 
     expect(dashboard?.className).toContain('text-[#A8A8A8]');
     expect(current?.textContent?.trim()).toBe('E-wale clipping');
+  });
+
+  it('links every crumb before the last, and the home glyph, back up the trail', async () => {
+    const element = await render([
+      DASHBOARD_CRUMB,
+      { label: 'Campaigns', path: '/campaigns' },
+      'E-wale',
+    ]);
+
+    const links = Array.from(element.querySelectorAll('a')).map((a) => [
+      a.textContent?.trim() || a.getAttribute('aria-label'),
+      a.getAttribute('href'),
+    ]);
+    expect(links).toEqual([
+      ['Dashboard', '/creator/dashboard'],
+      ['Dashboard', '/creator/dashboard'],
+      ['Campaigns', '/campaigns'],
+    ]);
+    expect(element.querySelector('[aria-current="page"]')?.textContent?.trim()).toBe('E-wale');
   });
 
   it('shows the signed-in name and its initials', async () => {

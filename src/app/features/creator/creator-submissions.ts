@@ -8,6 +8,12 @@ import { DialogModule } from 'primeng/dialog';
 import { MessageModule } from 'primeng/message';
 import { SkeletonModule } from 'primeng/skeleton';
 import { ApiError } from '../../core/api/api-error';
+import {
+  CreatorPageHeader,
+  Crumb,
+  DASHBOARD_CRUMB,
+} from '../../shared/creator/creator-page-header';
+
 import { RegistrationsRepository } from '../../core/data/registrations-repository';
 import { SubmissionsRepository } from '../../core/data/submissions-repository';
 import { Registration, registrationCampaign } from '../../core/models/registration';
@@ -43,6 +49,7 @@ interface AcceptedCampaign {
  */
 @Component({
   imports: [
+    CreatorPageHeader,
     BrandLogoTile,
     ButtonModule,
     ChevronRight,
@@ -58,6 +65,7 @@ interface AcceptedCampaign {
   templateUrl: './creator-submissions.html',
 })
 export class CreatorSubmissions {
+  protected readonly crumbs: Crumb[] = [DASHBOARD_CRUMB, 'Submissions'];
   private readonly submissionsRepository = inject(SubmissionsRepository);
   private readonly registrations = inject(RegistrationsRepository);
   private readonly confirmations = inject(ConfirmationService);
