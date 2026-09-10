@@ -16,6 +16,7 @@ import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { ApiError } from '../../core/api/api-error';
 import { AdminRepository } from '../../core/data/admin-repository';
+import { ClipperAvatar } from '../creator/clipper-avatar';
 import { AdminRegistration } from '../../core/models/admin';
 import { RegistrationStatus } from '../../core/models/registration';
 import {
@@ -58,6 +59,7 @@ const STATUS_OPTIONS: SelectOption<RegistrationStatus>[] = [
  */
 @Component({
   imports: [
+    ClipperAvatar,
     ButtonModule,
     Facebook,
     FormsModule,

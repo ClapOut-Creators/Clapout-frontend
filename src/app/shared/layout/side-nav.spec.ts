@@ -113,7 +113,9 @@ describe('SideNav', () => {
     expect(element.querySelector('header button[aria-label="Open menu"]')).toBeNull();
     const chip = element.querySelector<HTMLButtonElement>('header button[aria-haspopup="menu"]');
     expect(chip?.textContent).toContain('Cara Creator');
-    expect(chip?.textContent).toContain('CC');
+    expect(chip?.querySelector('app-clipper-avatar img')?.getAttribute('src')).toContain(
+      'seed=creator-1',
+    );
 
     chip?.click();
     fixture.detectChanges();

@@ -10,6 +10,7 @@ import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { ApiError } from '../../core/api/api-error';
 import { AdminRepository } from '../../core/data/admin-repository';
+import { ClipperAvatar } from '../creator/clipper-avatar';
 import { AdminCreator, AdminCreatorFilter, AdminCreatorQuery } from '../../core/models/admin';
 import { NOT_ANNOUNCED } from '../../core/util/campaign-format';
 import { downloadCsv, toCsv } from '../export/csv';
@@ -60,6 +61,7 @@ export function signedUpLabel(iso: string): string {
  */
 @Component({
   imports: [
+    ClipperAvatar,
     ButtonModule,
     FormsModule,
     InputTextModule,

@@ -1,6 +1,7 @@
 import { Component, computed, inject, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Home } from '@primeicons/angular/home';
+import { ClipperAvatar } from './clipper-avatar';
 import { AuthService } from '../../core/auth/auth-service';
 
 /** One breadcrumb: a plain label, or a label that links somewhere. */
@@ -33,7 +34,7 @@ function emailLocalPart(email: string | undefined): string {
  * greys "Dashboard" beside the campaign it drilled into.
  */
 @Component({
-  imports: [Home, RouterLink],
+  imports: [ClipperAvatar, Home, RouterLink],
   selector: 'app-creator-page-header',
   template: `
     <div class="flex items-start justify-between gap-3 pb-5">
@@ -77,11 +78,12 @@ function emailLocalPart(email: string | undefined): string {
         class="m-0 inline-flex shrink-0 items-center gap-2 rounded-[26px] bg-[#F1F1F1] py-1.5 pr-1.5 pl-3.5 text-[14px] leading-[17px] text-[#464646] max-lg:hidden"
       >
         <span class="max-w-[16rem] truncate">{{ displayName() }}</span>
-        <span
-          class="flex size-[30px] shrink-0 items-center justify-center rounded-full border border-[#EC612C] bg-[#BABABA] text-[12px] font-semibold text-white"
-          aria-hidden="true"
-          >{{ initials() }}</span
-        >
+        <app-clipper-avatar
+          [seed]="user()?.id ?? ''"
+          [name]="displayName()"
+          [size]="30"
+          [ring]="true"
+        />
       </p>
     </div>
   `,
@@ -103,6 +105,7 @@ export class CreatorPageHeader {
   }
 
   private readonly auth = inject(AuthService);
+  protected readonly user = this.auth.user;
 
   protected readonly displayName = computed(() => {
     const user = this.auth.user();

@@ -75,18 +75,20 @@ describe('CreatorPageHeader', () => {
     expect(element.querySelector('[aria-current="page"]')?.textContent?.trim()).toBe('E-wale');
   });
 
-  it('shows the signed-in name and its initials', async () => {
+  it('shows the signed-in name and their seeded avatar', async () => {
     const element = await render(['Dashboard']);
 
     expect(element.textContent).toContain('Cara Creator');
-    expect(element.textContent).toContain('CC');
+    expect(element.querySelector('app-clipper-avatar img')?.getAttribute('src')).toContain(
+      'seed=creator-1',
+    );
   });
 
   it('falls back to the email local part when the profile has no name', async () => {
     const element = await render(['Dashboard'], { ...creator, fullName: '' });
 
     expect(element.textContent).toContain('cara');
-    expect(element.textContent).toContain('C');
+    expect(element.querySelector('app-clipper-avatar img')).toBeTruthy();
   });
 
   it('stays renderable with no session at all', async () => {

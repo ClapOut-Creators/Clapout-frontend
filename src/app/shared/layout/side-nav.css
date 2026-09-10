@@ -35,24 +35,21 @@
 
 .co-rail-avatar {
   align-items: center;
-  background: var(--p-surface-200);
+  background: transparent;
   border: 0;
   border-radius: 999px;
-  color: var(--clapout-text-muted);
+  cursor: pointer;
   display: inline-flex;
-  font-size: 0.6875rem;
-  font-weight: 700;
   height: 32px;
   justify-content: center;
-  line-height: 1;
   padding: 0;
+  transition: box-shadow 150ms ease;
   width: 32px;
 }
 
 .co-rail-avatar:hover,
 .co-rail-avatar:focus-visible {
-  background: var(--p-surface-300);
-  color: var(--clapout-text-strong);
+  box-shadow: 0 0 0 2px var(--p-primary-color);
 }
 
 /* --------------------------------------------------------------------------
