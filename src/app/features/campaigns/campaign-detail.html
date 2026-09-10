@@ -8,43 +8,44 @@
   <main class="flex flex-col gap-[5px] pb-6">
     <app-creator-page-header [crumbs]="crumbs()" />
 
+    <!-- Back and Share sit outside the card, on the page, as on the dashboard. -->
+    <div class="flex items-center justify-between gap-3 py-[10px]">
+      <button
+        type="button"
+        class="inline-flex cursor-pointer items-center gap-2.5 rounded-full border border-[#CDCDCD] dark:border-white/15 bg-transparent px-2 py-0.5 text-[16px] leading-[23.8px] text-[#212121] dark:text-white [font-family:var(--clapout-font-heading)] hover:bg-[#F6F6F6] dark:hover:bg-white/10 max-sm:min-h-10"
+        (click)="back()"
+      >
+        <svg
+          data-p-icon="chevron-left"
+          [size]="14"
+          class="text-[#2D2D2D] dark:text-white"
+          aria-hidden="true"
+        ></svg>
+        Back
+      </button>
+
+      @if (campaign(); as campaign) {
+        <app-share-campaign-button
+          variant="dark"
+          [slug]="campaign.slug"
+          [title]="campaign.title"
+          [brandName]="campaign.brand.name"
+          [label]="shareLabel()"
+          [ariaLabel]="shareAriaLabel()"
+          [dialogTitle]="tab() === 'leaderboard' ? 'Share leaderboard' : 'Share campaign'"
+          [dialogDescription]="
+            tab() === 'leaderboard'
+              ? 'Copy this link to share the campaign leaderboard.'
+              : 'Copy this link to share the campaign.'
+          "
+          [urlSuffix]="shareUrlSuffix()"
+        />
+      }
+    </div>
+
     <section
       class="flex flex-col gap-6 rounded-[10px] bg-white dark:bg-[#161616] px-[18px] py-[23px] lg:gap-[23px] lg:rounded-[18.83px] lg:px-[22px] lg:py-5"
     >
-      <div class="flex items-center justify-between gap-3">
-        <button
-          type="button"
-          class="inline-flex cursor-pointer items-center gap-2.5 rounded-full border border-[#CDCDCD] dark:border-white/15 bg-transparent px-2 py-0.5 text-[16px] leading-[23.8px] text-[#212121] dark:text-white [font-family:var(--clapout-font-heading)] hover:bg-[#F6F6F6] dark:hover:bg-white/10 max-sm:min-h-10"
-          (click)="back()"
-        >
-          <svg
-            data-p-icon="chevron-left"
-            [size]="14"
-            class="text-[#2D2D2D] dark:text-white"
-            aria-hidden="true"
-          ></svg>
-          Back
-        </button>
-
-        @if (campaign(); as campaign) {
-          <app-share-campaign-button
-            variant="dark"
-            [slug]="campaign.slug"
-            [title]="campaign.title"
-            [brandName]="campaign.brand.name"
-            [label]="shareLabel()"
-            [ariaLabel]="shareAriaLabel()"
-            [dialogTitle]="tab() === 'leaderboard' ? 'Share leaderboard' : 'Share campaign'"
-            [dialogDescription]="
-              tab() === 'leaderboard'
-                ? 'Copy this link to share the campaign leaderboard.'
-                : 'Copy this link to share the campaign.'
-            "
-            [urlSuffix]="shareUrlSuffix()"
-          />
-        }
-      </div>
-
       <div class="flex flex-wrap items-center gap-2.5" role="tablist" aria-label="Campaign views">
         <button
           type="button"
