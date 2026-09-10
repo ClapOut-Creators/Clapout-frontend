@@ -100,6 +100,15 @@ describe('SideNav', () => {
     expect(tabs).toEqual(['Dashboard', 'Campaigns', 'Submissions']);
     expect(element.querySelector('.co-mobile-tabbar .co-tabbar-action')).toBeTruthy();
 
+    // The logo is not a link for a clipper, on the rail or the phone bar.
+    expect(element.querySelector('a[aria-label="ClapOut home"]')).toBeNull();
+    expect(element.querySelectorAll('img[src="/logo/clapout-logo.png"]').length).toBe(2);
+    expect(
+      Array.from(element.querySelectorAll('img[src="/logo/clapout-logo.png"]')).some((img) =>
+        img.closest('a'),
+      ),
+    ).toBe(false);
+
     // No drawer button for a clipper: the chip carries the account menu.
     expect(element.querySelector('header button[aria-label="Open menu"]')).toBeNull();
     const chip = element.querySelector<HTMLButtonElement>('header button[aria-haspopup="menu"]');
