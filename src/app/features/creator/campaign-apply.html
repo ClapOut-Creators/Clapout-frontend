@@ -1,4 +1,6 @@
 <main class="mx-auto max-w-2xl px-4 py-10">
+  <app-creator-page-header [crumbs]="crumbs()" />
+
   <a
     [routerLink]="['/campaigns', slug()]"
     class="inline-flex items-center gap-2 rounded-lg border border-surface-200 px-3 py-1.5 text-sm text-surface-700 no-underline hover:bg-surface-100"

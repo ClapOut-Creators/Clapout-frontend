@@ -30,6 +30,7 @@ import { StatCard } from '../../shared/admin/stat-card';
 import { PublicCampaignCard } from '../../shared/public/public-campaign-card';
 import { SocialsDialog } from './socials-dialog';
 import { SolarIcon } from '../../shared/icons/solar-icon';
+import { CreatorPageHeader } from '../../shared/creator/creator-page-header';
 import { COMMUNITY_URL, OnboardingStepper } from '../../shared/creator/onboarding-stepper';
 import { OverlaySheet } from '../../shared/creator/overlay-sheet';
 
@@ -65,6 +66,7 @@ function emailLocalPart(email: string | undefined): string {
     OnboardingStepper,
     OverlaySheet,
     SocialsDialog,
+    CreatorPageHeader,
     SolarIcon,
     StatCard,
     TagModule,

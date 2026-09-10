@@ -7,9 +7,15 @@ import { MessageModule } from 'primeng/message';
 import { PopoverModule } from 'primeng/popover';
 import { SkeletonModule } from 'primeng/skeleton';
 import { ApiError } from '../../core/api/api-error';
+import { AuthService } from '../../core/auth/auth-service';
 import { CampaignsRepository } from '../../core/data/campaigns-repository';
 import { CampaignPlatform, CampaignStatus, PublicCampaign } from '../../core/models/campaign';
 import { campaignStatusLabel, platformLabel } from '../../core/util/campaign-format';
+import {
+  CreatorPageHeader,
+  Crumb,
+  DASHBOARD_CRUMB,
+} from '../../shared/creator/creator-page-header';
 import { PublicCampaignCard } from '../../shared/public/public-campaign-card';
 
 type ListState = 'loading' | 'ready' | 'error';
@@ -42,6 +48,7 @@ const PLATFORM_FILTERS: readonly CampaignPlatform[] = [
  */
 @Component({
   imports: [
+    CreatorPageHeader,
     ButtonModule,
     CheckboxModule,
     FormsModule,
@@ -55,6 +62,10 @@ const PLATFORM_FILTERS: readonly CampaignPlatform[] = [
   templateUrl: './campaign-list.html',
 })
 export class CampaignList {
+  private readonly auth = inject(AuthService);
+  /** A signed-in clipper sees this list inside the studio shell, with its breadcrumb. */
+  protected readonly isStudio = computed(() => this.auth.isSignedIn() && !this.auth.isAdmin());
+  protected readonly crumbs: Crumb[] = [DASHBOARD_CRUMB, 'Campaigns'];
   private readonly repository = inject(CampaignsRepository);
 
   protected readonly state = signal<ListState>('loading');

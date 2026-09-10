@@ -8,6 +8,10 @@
 <main
   class="mx-auto w-full max-w-[1728px] bg-white dark:bg-[#0C0C0C] px-4 pb-20 pt-6 sm:px-6 lg:px-10 xl:px-[120px] xl:pb-[140px] xl:pt-[50px]"
 >
+  <!-- Signed-in clippers get the studio breadcrumb; anonymous visitors have the public navbar. -->
+  @if (isStudio()) {
+    <app-creator-page-header [crumbs]="crumbs" />
+  }
   <header class="text-center">
     <h1
       class="m-0 text-[20px] font-medium leading-[30px] text-black/80 dark:text-white xl:text-[31px] xl:leading-[47px]"

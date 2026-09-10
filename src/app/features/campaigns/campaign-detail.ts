@@ -48,7 +48,12 @@ import {
   registrationStatusLabel,
 } from '../../core/util/campaign-format';
 import { BrandLogoTile } from '../../shared/admin/brand-logo-tile';
-import { CreatorPageHeader } from '../../shared/creator/creator-page-header';
+import {
+  CAMPAIGNS_CRUMB,
+  CreatorPageHeader,
+  Crumb,
+  DASHBOARD_CRUMB,
+} from '../../shared/creator/creator-page-header';
 import { LeaderboardList } from '../../shared/creator/leaderboard-list';
 import { SubmitPostDialog } from '../../shared/creator/submit-post-dialog';
 import { SnapchatIcon } from '../../shared/icons/snapchat-icon';
@@ -328,9 +333,13 @@ export class CampaignDetail {
   }
 
   /** Breadcrumb trail on the studio header: Dashboard › this campaign. */
-  protected crumbs(): string[] {
+  protected crumbs(): Crumb[] {
     const campaign = this.campaign();
-    return ['Dashboard', campaign?.title || campaign?.brand.name || 'Campaign'];
+    return [
+      DASHBOARD_CRUMB,
+      CAMPAIGNS_CRUMB,
+      campaign?.title || campaign?.brand.name || 'Campaign',
+    ];
   }
 
   protected selectTab(tab: DetailTab): void {
