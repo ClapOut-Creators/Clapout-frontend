@@ -1,4 +1,4 @@
-import { Component, computed, inject, input, output, signal } from '@angular/core';
+import { Component, computed, DestroyRef, inject, input, output, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import {
   FormArray,
@@ -27,9 +27,14 @@ import {
 /** Invite link for the creator community, opened in a new tab. */
 export const COMMUNITY_URL = 'https://chat.whatsapp.com/L9d71dKBrFy7QonMQJ73da';
 
-export type OnboardingStep = 'socials' | 'community' | 'done';
+export type OnboardingStep = 'email' | 'socials' | 'community' | 'done';
 
-const STEPS: readonly OnboardingStep[] = ['socials', 'community', 'done'];
+const ALL_STEPS: readonly OnboardingStep[] = ['email', 'socials', 'community', 'done'];
+
+/** Matches the API's per-account cooldown on `POST /auth/resend-verification`. */
+export const RESEND_COOLDOWN_SECONDS = 60;
+/** How often the email step re-reads `GET /me` to notice a link opened elsewhere. */
+export const VERIFICATION_POLL_MS = 6000;
 
 const LINK_MESSAGES: Record<string, string> = {
   required: 'Add the link, or remove this row.',
@@ -49,9 +54,10 @@ function sameSocials(left: readonly SocialAccount[], right: readonly SocialAccou
 }
 
 /**
- * The three onboarding steps every creator must complete once: add at least
- * one social account, join the WhatsApp community, then go and find a
- * campaign. It is the body of both the `/creator/onboarding` page a fresh
+ * The onboarding steps every creator must complete once: verify the email
+ * address they signed up with (the step only appears while it is unverified),
+ * add at least one social account, join the WhatsApp community, then go and
+ * find a campaign. It is the body of both the `/creator/onboarding` page a fresh
  * sign-up lands on and the sheet the dashboard raises for anyone who signed up
  * before onboarding existed — the host decides where "finish" leads.
  *
@@ -79,8 +85,59 @@ function sameSocials(left: readonly SocialAccount[], right: readonly SocialAccou
     </ol>
 
     @switch (step()) {
+      @case ('email') {
+        <p class="m-0 mb-[4px] text-center text-[14px] font-medium text-[#EC612C]">
+          {{ stepLabel() }}
+        </p>
+        <h3 [class]="headingClass">Verify your email</h3>
+        <p [class]="bodyClass">
+          We sent a verification link to
+          <strong class="font-semibold text-[#2B2B2B]">{{ email() }}</strong
+          >. Open it to confirm this address is yours. The link works for 24 hours. Not there? Check
+          your spam folder.
+        </p>
+
+        @if (errorMessage(); as message) {
+          <p [class]="errorClass" class="mb-[12px]" role="alert">{{ message }}</p>
+        }
+        @if (resendNotice(); as notice) {
+          <p
+            class="m-0 mb-[12px] text-center text-[14px] leading-[19px] text-[#1B7F3B]"
+            role="status"
+          >
+            {{ notice }}
+          </p>
+        }
+
+        <div class="flex flex-col gap-[12px]">
+          <button
+            type="button"
+            [class]="primaryClass"
+            class="w-full"
+            [disabled]="checking()"
+            (click)="checkVerified()"
+          >
+            {{ checking() ? 'Checking…' : 'I have verified, continue' }}
+          </button>
+          <button
+            type="button"
+            [class]="secondaryClass"
+            class="w-full"
+            [disabled]="saving() || resendCooldown() > 0"
+            (click)="resendEmail()"
+          >
+            {{ resendLabel() }}
+          </button>
+          <p class="m-0 text-center text-[14px] leading-[19px] text-[#898989]">
+            This page moves on by itself once the link has been opened.
+          </p>
+        </div>
+      }
+
       @case ('socials') {
-        <p class="m-0 mb-[4px] text-center text-[14px] font-medium text-[#EC612C]">Step 1 of 3</p>
+        <p class="m-0 mb-[4px] text-center text-[14px] font-medium text-[#EC612C]">
+          {{ stepLabel() }}
+        </p>
         <h3 [class]="headingClass">Add your social accounts</h3>
         <p [class]="bodyClass">
           Link the TikTok, Instagram or YouTube profile you will be clipping from. Brands see these
@@ -161,7 +218,9 @@ function sameSocials(left: readonly SocialAccount[], right: readonly SocialAccou
       }
 
       @case ('community') {
-        <p class="m-0 mb-[4px] text-center text-[14px] font-medium text-[#EC612C]">Step 2 of 3</p>
+        <p class="m-0 mb-[4px] text-center text-[14px] font-medium text-[#EC612C]">
+          {{ stepLabel() }}
+        </p>
         <h3 [class]="headingClass">Join our WhatsApp community</h3>
         <p [class]="bodyClass">
           Every campaign brief, payout update and clipping tip lands in the community first. Open
@@ -202,7 +261,9 @@ function sameSocials(left: readonly SocialAccount[], right: readonly SocialAccou
       }
 
       @case ('done') {
-        <p class="m-0 mb-[4px] text-center text-[14px] font-medium text-[#EC612C]">Step 3 of 3</p>
+        <p class="m-0 mb-[4px] text-center text-[14px] font-medium text-[#EC612C]">
+          {{ stepLabel() }}
+        </p>
         <h3 [class]="headingClass">You are all set</h3>
         <p [class]="bodyClass">
           Your socials are linked and you are part of the movement. Pick a campaign, register, and
@@ -239,11 +300,37 @@ export class OnboardingStepper {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   private readonly formBuilder = inject(NonNullableFormBuilder);
+  private readonly destroyRef = inject(DestroyRef);
 
-  protected readonly steps = STEPS;
-  protected readonly step = signal<OnboardingStep>('socials');
-  protected readonly stepIndex = computed(() => STEPS.indexOf(this.step()));
+  /**
+   * Decided once, on arrival: a creator who turns up unverified keeps the
+   * email step in the progress bar after it completes, instead of the bar
+   * shrinking under them.
+   */
+  private readonly emailStepNeeded = !this.auth.user()?.emailVerifiedAt;
+
+  protected readonly steps: readonly OnboardingStep[] = this.emailStepNeeded
+    ? ALL_STEPS
+    : ALL_STEPS.filter((item) => item !== 'email');
+  protected readonly step = signal<OnboardingStep>(this.emailStepNeeded ? 'email' : 'socials');
+  protected readonly stepIndex = computed(() => this.steps.indexOf(this.step()));
+  protected readonly stepLabel = computed(
+    () => `Step ${this.stepIndex() + 1} of ${this.steps.length}`,
+  );
   protected readonly saving = signal(false);
+  /** The email step's "I have verified" re-read of the profile is in flight. */
+  protected readonly checking = signal(false);
+  /** Seconds until another verification email may be requested. */
+  protected readonly resendCooldown = signal(0);
+  protected readonly resendNotice = signal('');
+  protected readonly resendLabel = computed(() => {
+    if (this.saving()) {
+      return 'Sending…';
+    }
+    const seconds = this.resendCooldown();
+    return seconds > 0 ? `Resend the email (${seconds}s)` : 'Resend the email';
+  });
+  private cooldownTimer: ReturnType<typeof setInterval> | null = null;
   protected readonly submitted = signal(false);
   protected readonly errorMessage = signal('');
   /** The invite has been opened at least once; only then can the join be confirmed. */
@@ -275,6 +362,109 @@ export class OnboardingStepper {
     }
     if (this.links.length === 0) {
       this.links.push(this.createLink());
+    }
+
+    // The link is usually opened in another tab (or on the phone), so the
+    // step watches the profile and moves on without a click.
+    if (this.emailStepNeeded) {
+      const poll = setInterval(() => void this.pollVerification(), VERIFICATION_POLL_MS);
+      this.destroyRef.onDestroy(() => clearInterval(poll));
+    }
+    this.destroyRef.onDestroy(() => this.stopCooldown());
+  }
+
+  /** "I have verified, continue": re-read the profile and move on if the link was opened. */
+  protected async checkVerified(): Promise<void> {
+    if (this.checking()) {
+      return;
+    }
+    this.errorMessage.set('');
+    this.checking.set(true);
+    try {
+      const me = await this.auth.refreshProfile();
+      if (me?.emailVerifiedAt) {
+        this.leaveEmailStep();
+      } else {
+        this.errorMessage.set(
+          'We have not seen the link opened yet. Open the email we sent you, then try again.',
+        );
+      }
+    } catch (error) {
+      this.errorMessage.set(toApiError(error).message);
+    } finally {
+      this.checking.set(false);
+    }
+  }
+
+  protected async resendEmail(): Promise<void> {
+    if (this.saving() || this.resendCooldown() > 0) {
+      return;
+    }
+    this.errorMessage.set('');
+    this.resendNotice.set('');
+    this.saving.set(true);
+    try {
+      const result = await this.auth.resendVerification();
+      if (result.alreadyVerified) {
+        // Verified meanwhile (another tab): nothing to resend, carry on.
+        await this.auth.refreshProfile().catch(() => null);
+        this.leaveEmailStep();
+        return;
+      }
+      this.resendNotice.set(
+        result.sent
+          ? `Sent. Check ${this.email()}, and the spam folder.`
+          : 'We could not send the email right now. Please try again in a minute.',
+      );
+      this.startCooldown(RESEND_COOLDOWN_SECONDS);
+    } catch (error) {
+      const apiError = toApiError(error);
+      this.errorMessage.set(apiError.message);
+      if (apiError.code === 'VERIFICATION_COOLDOWN') {
+        this.startCooldown(RESEND_COOLDOWN_SECONDS);
+      }
+    } finally {
+      this.saving.set(false);
+    }
+  }
+
+  private async pollVerification(): Promise<void> {
+    if (this.step() !== 'email' || this.checking()) {
+      return;
+    }
+    try {
+      const me = await this.auth.refreshProfile();
+      if (me?.emailVerifiedAt && this.step() === 'email') {
+        this.leaveEmailStep();
+      }
+    } catch {
+      // Offline or a blip: the next tick tries again.
+    }
+  }
+
+  private leaveEmailStep(): void {
+    this.errorMessage.set('');
+    this.resendNotice.set('');
+    this.stopCooldown();
+    this.step.set('socials');
+  }
+
+  private startCooldown(seconds: number): void {
+    this.stopCooldown();
+    this.resendCooldown.set(seconds);
+    this.cooldownTimer = setInterval(() => {
+      const left = this.resendCooldown() - 1;
+      this.resendCooldown.set(Math.max(0, left));
+      if (left <= 0) {
+        this.stopCooldown();
+      }
+    }, 1000);
+  }
+
+  private stopCooldown(): void {
+    if (this.cooldownTimer !== null) {
+      clearInterval(this.cooldownTimer);
+      this.cooldownTimer = null;
     }
   }
 

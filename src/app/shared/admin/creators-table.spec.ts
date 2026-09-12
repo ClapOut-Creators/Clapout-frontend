@@ -16,6 +16,7 @@ function creator(overrides: Partial<AdminCreator> = {}): AdminCreator {
     socials: [{ url: 'https://www.tiktok.com/@ama' }],
     payout: { method: 'MTN_MOMO', accountNumber: '0244000000', accountName: 'Ama Mensah' },
     communityJoinedAt: '2026-09-09T12:00:00.000Z',
+    emailVerifiedAt: '2026-09-09T11:00:00.000Z',
     createdAt: '2026-09-01T08:00:00.000Z',
     registrationCount: 2,
     ...overrides,
@@ -87,6 +88,7 @@ describe('CreatorsTable', () => {
         socials: [],
         payout: null,
         communityJoinedAt: null,
+        emailVerifiedAt: null,
         registrationCount: 0,
       }),
     ];

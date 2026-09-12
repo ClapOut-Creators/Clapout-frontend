@@ -29,6 +29,12 @@ export interface Me {
    * creator into onboarding (see `onboardingGuard`) until they do.
    */
   communityJoinedAt: string | null;
+  /**
+   * When the creator opened the verification link we emailed at sign-up.
+   * Null until then: the API refuses registrations and submissions, and the
+   * onboarding flow starts with a "verify your email" step.
+   */
+  emailVerifiedAt: string | null;
   createdAt: string;
 }
 
@@ -61,4 +67,21 @@ export interface SignInPayload {
 export interface AuthSession {
   token: string;
   user: Me;
+  /** Sign-up only: whether the verification email actually went out. */
+  verificationSent?: boolean;
+}
+
+/** `POST /auth/verify-email` — the account the link belonged to, now verified. */
+export interface VerifyEmailResponse {
+  ok: true;
+  user: Me;
+}
+
+/** `POST /auth/resend-verification`. */
+export interface ResendVerificationResponse {
+  ok: true;
+  /** Nothing was sent because the address is already confirmed. */
+  alreadyVerified: boolean;
+  /** False when the mailer failed; the link was still issued, so a retry works. */
+  sent: boolean;
 }

@@ -18,6 +18,11 @@ export const AUTH_ROUTES: Routes = [
     title: 'Reset your password - ClapOut Studio',
   },
   {
+    path: 'verify-email',
+    loadComponent: () => import('./verify-email').then((module) => module.VerifyEmail),
+    title: 'Verify your email - ClapOut Studio',
+  },
+  {
     path: 'reset-password',
     loadComponent: () => import('./reset-password').then((module) => module.ResetPassword),
     title: 'Choose a new password - ClapOut Studio',

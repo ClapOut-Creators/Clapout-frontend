@@ -75,6 +75,8 @@ export interface AdminRegistration {
 export interface AdminCreator extends AdminRegistrationCreator {
   /** Null until the clipper confirms the WhatsApp community in onboarding. */
   communityJoinedAt: string | null;
+  /** Null until the clipper opens the verification link emailed at sign-up. */
+  emailVerifiedAt: string | null;
   /** Sign-up time. */
   createdAt: string;
   /** Campaign registrations in any status. */

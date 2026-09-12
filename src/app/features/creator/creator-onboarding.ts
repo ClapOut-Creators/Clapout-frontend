@@ -5,7 +5,9 @@ import { OnboardingStepper } from '../../shared/creator/onboarding-stepper';
 
 /**
  * `/creator/onboarding` — where sign-up lands and where {@link onboardingGuard}
- * sends a creator who tries to apply before finishing setup. The page is only
+ * sends a creator who tries to apply before finishing setup. The steps are
+ * email verification (until the emailed link is opened), socials and the
+ * WhatsApp community. The page is only
  * the stepper, centred, with no navigation chrome: the point is that there is
  * nothing else to do here until the steps are done.
  *
@@ -32,7 +34,7 @@ import { OnboardingStepper } from '../../shared/creator/onboarding-stepper';
         <p
           class="m-0 mb-[28px] text-center text-[15px] leading-[22px] text-[#6B6B6B] lg:text-[16px]"
         >
-          Two quick steps and you are ready to clip.
+          A few quick steps and you are ready to clip.
         </p>
         <app-onboarding-stepper (finished)="finish()" />
       </section>

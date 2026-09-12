@@ -15,6 +15,7 @@ const creator: Me = {
   socials: [],
   payout: null,
   communityJoinedAt: null,
+  emailVerifiedAt: '2026-08-01T00:00:00.000Z',
   createdAt: '2026-08-01T00:00:00.000Z',
 };
 
@@ -26,7 +27,10 @@ function authDouble(user: Me | null) {
     isSignedIn,
     isAdmin: computed(() => currentUser()?.role === 'ADMIN'),
     needsOnboarding: computed(
-      () => isSignedIn() && currentUser()?.role === 'CREATOR' && !currentUser()?.communityJoinedAt,
+      () =>
+        isSignedIn() &&
+        currentUser()?.role === 'CREATOR' &&
+        (!currentUser()?.emailVerifiedAt || !currentUser()?.communityJoinedAt),
     ),
     whenSessionReady: () => Promise.resolve(),
   };
