@@ -8,17 +8,20 @@ import { ONBOARDING_PATH } from '../../core/auth/onboarding-guard';
 import { RESEND_COOLDOWN_SECONDS } from '../../shared/creator/onboarding-stepper';
 
 /**
- * 'verifying' while the token is being redeemed; 'success' once the address
- * is confirmed; 'invalid' for an unknown, used or expired link; 'missing'
- * when the URL carried no token at all; 'error' for anything else.
+ * 'ready' until the creator presses the confirm button; 'verifying' while the
+ * token is being redeemed; 'success' once the address is confirmed; 'invalid'
+ * for an unknown, used or expired link; 'missing' when the URL carried no
+ * token at all; 'error' for anything else.
  */
-type VerifyState = 'verifying' | 'success' | 'invalid' | 'missing' | 'error';
+type VerifyState = 'ready' | 'verifying' | 'success' | 'invalid' | 'missing' | 'error';
 
 /**
  * `/auth/verify-email?token=…` — where the link in the verification email
- * lands. The page redeems the token with a POST (so a mail scanner that
- * prefetches links cannot use it up), then sends the creator on: into
- * onboarding when they are signed in here, otherwise to sign-in.
+ * lands. The token is redeemed only when the creator presses the button, and
+ * only ever by POST: a mail scanner that prefetches the link, even one that
+ * runs the page's JavaScript, cannot use the single-use token up before the
+ * creator gets to it. Success sends them on: into onboarding when they are
+ * signed in here, otherwise to sign-in.
  *
  * A dead link offers a resend when the signed-in account is the unverified
  * one; anyone else is pointed at sign-in, from where onboarding resends.
@@ -36,7 +39,7 @@ export class VerifyEmail implements OnInit {
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
 
-  protected readonly state = signal<VerifyState>('verifying');
+  protected readonly state = signal<VerifyState>('ready');
   protected readonly errorMessage = signal('');
   /** The address that was just confirmed, for the success copy. */
   protected readonly verifiedEmail = signal('');
@@ -61,15 +64,18 @@ export class VerifyEmail implements OnInit {
   }
 
   ngOnInit(): void {
-    void this.redeem();
+    if (!this.token()?.trim()) {
+      this.state.set('missing');
+    }
   }
 
-  private async redeem(): Promise<void> {
+  /** The confirm button: the one place the token is spent. */
+  protected async confirm(): Promise<void> {
     const token = this.token()?.trim();
-    if (!token) {
-      this.state.set('missing');
+    if (!token || this.state() === 'verifying') {
       return;
     }
+    this.state.set('verifying');
     // The session must be known first, so the success page can tell a
     // signed-in creator from a visitor opening the link on another device.
     await this.auth.whenSessionReady();
