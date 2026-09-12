@@ -171,6 +171,13 @@
                   class="block truncate text-[16px] text-[#444444] no-underline hover:underline"
                   >{{ row.email }}</a
                 >
+                <span class="mt-0.5 block truncate text-xs">
+                  @if (row.emailVerifiedAt) {
+                    <span class="text-[#1E8E3E]">Email verified</span>
+                  } @else {
+                    <span class="text-[#B45309]">Email not verified</span>
+                  }
+                </span>
               </td>
 
               <td class="!border-0 !px-6 !py-5">

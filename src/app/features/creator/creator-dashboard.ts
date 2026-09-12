@@ -88,6 +88,8 @@ export class CreatorDashboard {
   protected readonly errorMessage = signal('');
   /** Stamped by the onboarding steps; `PATCH /me` writes it back into `user`. */
   protected readonly joinedCommunity = computed(() => !!this.user()?.communityJoinedAt);
+  /** Stamped when the emailed verification link is opened. */
+  protected readonly emailVerified = computed(() => !!this.user()?.emailVerifiedAt);
   protected readonly socialsDialogOpen = signal(false);
   /**
    * Sign-ups from before onboarding existed arrive here with the flag unset.
@@ -165,7 +167,8 @@ export class CreatorDashboard {
    * clip) has nothing to gate, so it is not worth a full-height card.
    */
   protected readonly setupDone = computed(
-    () => this.socialsDone() && this.joinedCommunity() && this.campaignsDone(),
+    () =>
+      this.emailVerified() && this.socialsDone() && this.joinedCommunity() && this.campaignsDone(),
   );
   /** "Show steps" on the folded summary reopens the full list for this visit. */
   protected readonly checklistExpanded = signal(false);

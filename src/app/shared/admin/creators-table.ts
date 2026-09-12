@@ -173,6 +173,7 @@ export class CreatorsTable {
       [
         'Clipper',
         'Email',
+        'Email verified',
         'WhatsApp',
         'Phone',
         'Socials',
@@ -186,6 +187,7 @@ export class CreatorsTable {
       rows.map((row) => [
         row.fullName,
         row.email,
+        row.emailVerifiedAt ?? '',
         row.whatsapp ?? '',
         row.phone ?? '',
         row.socials.map((account) => account.url).join(' '),

@@ -20,6 +20,8 @@ export function submissionErrorMessage(error: unknown, platform: CampaignPlatfor
     return 'We could not submit your clip. Please try again.';
   }
   switch (error.code) {
+    case 'EMAIL_NOT_VERIFIED':
+      return 'Verify your email address first. Open the link we emailed you, then try again.';
     case 'REGISTRATION_NOT_ACCEPTED':
       return 'Your application for this campaign has not been accepted yet, so clips cannot be submitted.';
     case 'SUBMISSIONS_CLOSED':

@@ -1,0 +1,109 @@
+<main
+  class="flex min-h-[calc(100svh-3.75rem)] flex-col items-center justify-center px-4 py-10 lg:min-h-svh"
+>
+  <div class="flex h-[66px] w-[66px] items-center justify-center rounded-[20px] bg-primary p-2">
+    <img
+      src="/logo/clapout-hand.png"
+      alt=""
+      class="h-[50px] w-[50px] select-none"
+      draggable="false"
+    />
+  </div>
+
+  @switch (state()) {
+    @case ('verifying') {
+      <h1
+        class="mt-4 text-center text-3xl font-semibold tracking-tight text-surface-900"
+        aria-live="polite"
+      >
+        Verifying your email…
+      </h1>
+      <p class="mt-2 max-w-sm text-center text-surface-600">This only takes a moment.</p>
+    }
+
+    @case ('success') {
+      <h1 class="mt-4 text-center text-3xl font-semibold tracking-tight text-surface-900">
+        Email verified
+      </h1>
+      <p class="mt-2 max-w-sm text-center text-surface-600">
+        <span class="font-medium text-surface-800">{{ verifiedEmail() }}</span> is confirmed.
+        @if (signedIn()) {
+          Finish the last setup steps and you are ready to clip.
+        } @else {
+          Sign in to finish setting up and start clipping.
+        }
+      </p>
+
+      <a [routerLink]="continuePath()" class="mt-8 no-underline">
+        <p-button [label]="signedIn() ? 'Continue' : 'Go to sign in'" />
+      </a>
+    }
+
+    @case ('invalid') {
+      <h1 class="mt-4 text-center text-3xl font-semibold tracking-tight text-surface-900">
+        This verification link is invalid
+      </h1>
+      <p class="mt-2 max-w-sm text-center text-surface-600">
+        The link is invalid, has expired or was already used. Verification links last 24 hours and
+        work once.
+      </p>
+
+      @if (errorMessage()) {
+        <div class="mt-5 w-full max-w-sm">
+          <p-message severity="error" [closable]="false">{{ errorMessage() }}</p-message>
+        </div>
+      }
+      @if (resendNotice()) {
+        <div class="mt-5 w-full max-w-sm">
+          <p-message severity="success" [closable]="false">{{ resendNotice() }}</p-message>
+        </div>
+      }
+
+      @if (canResend()) {
+        <p-button
+          class="mt-8"
+          [label]="resendCooldown() > 0 ? 'Resend in ' + resendCooldown() + 's' : 'Send a new link'"
+          [loading]="resending()"
+          [disabled]="resending() || resendCooldown() > 0"
+          (onClick)="resend()"
+        />
+      } @else if (signedIn()) {
+        <a routerLink="/creator/dashboard" class="mt-8 no-underline">
+          <p-button label="Go to your dashboard" />
+        </a>
+      } @else {
+        <p class="mt-6 max-w-sm text-center text-sm text-surface-600">
+          Sign in and you can request a new link from the setup steps.
+        </p>
+        <a routerLink="/auth/sign-in" class="mt-4 no-underline">
+          <p-button label="Go to sign in" />
+        </a>
+      }
+    }
+
+    @case ('missing') {
+      <h1 class="mt-4 text-center text-3xl font-semibold tracking-tight text-surface-900">
+        This link is incomplete
+      </h1>
+      <p class="mt-2 max-w-sm text-center text-surface-600">
+        This page needs the link from your verification email. Copy the whole link from the email,
+        or request a new one from your setup steps.
+      </p>
+      <a [routerLink]="continuePath()" class="mt-8 no-underline">
+        <p-button [label]="signedIn() ? 'Back to setup' : 'Go to sign in'" />
+      </a>
+    }
+
+    @case ('error') {
+      <h1 class="mt-4 text-center text-3xl font-semibold tracking-tight text-surface-900">
+        We could not verify your email
+      </h1>
+      <div class="mt-5 w-full max-w-sm">
+        <p-message severity="error" [closable]="false">{{ errorMessage() }}</p-message>
+      </div>
+      <a [routerLink]="continuePath()" class="mt-8 no-underline">
+        <p-button [label]="signedIn() ? 'Back to setup' : 'Go to sign in'" />
+      </a>
+    }
+  }
+</main>

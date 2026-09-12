@@ -3,7 +3,15 @@ import { computed, effect, inject, Injectable, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { toApiError } from '../api/api-error';
 import { APP_ENVIRONMENT } from '../config/app-environment';
-import { AuthSession, Me, ProfilePatch, SignInPayload, SignUpPayload } from '../models/user';
+import {
+  AuthSession,
+  Me,
+  ProfilePatch,
+  ResendVerificationResponse,
+  SignInPayload,
+  SignUpPayload,
+  VerifyEmailResponse,
+} from '../models/user';
 import { TokenStore } from './token-store';
 
 /**
@@ -29,14 +37,20 @@ export class AuthService {
   readonly isSignedIn = computed(() => this.tokens.token() !== null && this.currentUser() !== null);
   /** Drives the admin guard and the role-aware side nav. */
   readonly isAdmin = computed(() => this.isSignedIn() && this.currentUser()?.role === 'ADMIN');
+  /** The signed-in user has opened the verification link we emailed them. */
+  readonly emailVerified = computed(() => !!this.currentUser()?.emailVerifiedAt);
   /**
-   * A signed-in creator who has not yet confirmed joining the WhatsApp
-   * community. Drives the onboarding page after sign-up, the dashboard's
-   * onboarding sheet, and `onboardingGuard` on the apply route.
+   * A signed-in creator who has not yet verified their email or confirmed
+   * joining the WhatsApp community. Drives the onboarding page after sign-up,
+   * the dashboard's onboarding sheet, and `onboardingGuard` on the apply route.
    */
   readonly needsOnboarding = computed(() => {
     const user = this.currentUser();
-    return this.isSignedIn() && user?.role === 'CREATOR' && user.communityJoinedAt === null;
+    return (
+      this.isSignedIn() &&
+      user?.role === 'CREATOR' &&
+      (user.emailVerifiedAt === null || user.communityJoinedAt === null)
+    );
   });
 
   constructor() {
@@ -89,6 +103,60 @@ export class AuthService {
       );
       this.currentUser.set(response.user);
       return response.user;
+    } catch (error) {
+      throw toApiError(error);
+    }
+  }
+
+  /**
+   * Re-reads `GET /me` and replaces the session copy. Used while a creator
+   * waits on the "verify your email" step, so a link opened in another tab
+   * is noticed without a reload. Resolves null when nobody is signed in.
+   */
+  async refreshProfile(): Promise<Me | null> {
+    if (!this.tokens.token()) {
+      return null;
+    }
+    try {
+      const response = await firstValueFrom(this.http.get<{ user: Me }>(`${this.baseUrl}/me`));
+      this.currentUser.set(response.user);
+      return response.user;
+    } catch (error) {
+      throw toApiError(error);
+    }
+  }
+
+  /**
+   * `POST /auth/verify-email` — redeems the token from the emailed link.
+   * Unauthenticated: the token alone identifies the account. Throws
+   * `ApiError` `INVALID_VERIFICATION_TOKEN` (400) for an unknown, used or
+   * expired link. When the verified account is the one signed in here, the
+   * session copy is updated so `needsOnboarding` and the checklist move on.
+   */
+  async verifyEmail(token: string): Promise<Me> {
+    try {
+      const response = await firstValueFrom(
+        this.http.post<VerifyEmailResponse>(`${this.baseUrl}/auth/verify-email`, { token }),
+      );
+      if (this.currentUser()?.id === response.user.id) {
+        this.currentUser.set(response.user);
+      }
+      return response.user;
+    } catch (error) {
+      throw toApiError(error);
+    }
+  }
+
+  /**
+   * `POST /auth/resend-verification` — emails a fresh link to the signed-in
+   * creator's own address. Throws `ApiError` `VERIFICATION_COOLDOWN` (429)
+   * when the previous one went out less than a minute ago.
+   */
+  async resendVerification(): Promise<ResendVerificationResponse> {
+    try {
+      return await firstValueFrom(
+        this.http.post<ResendVerificationResponse>(`${this.baseUrl}/auth/resend-verification`, {}),
+      );
     } catch (error) {
       throw toApiError(error);
     }

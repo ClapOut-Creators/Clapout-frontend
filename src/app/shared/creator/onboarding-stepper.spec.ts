@@ -16,6 +16,7 @@ const creator: Me = {
   socials: [],
   payout: null,
   communityJoinedAt: null,
+  emailVerifiedAt: '2026-08-01T00:00:00.000Z',
   createdAt: '2026-08-01T00:00:00.000Z',
 };
 
@@ -29,6 +30,24 @@ function authDouble(user: Me) {
     signedOut: 0,
     signOut() {
       this.signedOut++;
+    },
+    /** What `GET /me` answers on the next refresh; tests flip it to "verified". */
+    refreshes: 0,
+    resends: 0,
+    resendOutcome: { ok: true as const, alreadyVerified: false, sent: true },
+    async refreshProfile(): Promise<Me> {
+      this.refreshes++;
+      return currentUser();
+    },
+    markVerified() {
+      currentUser.update((current) => ({
+        ...current,
+        emailVerifiedAt: '2026-09-12T08:00:00.000Z',
+      }));
+    },
+    async resendVerification() {
+      this.resends++;
+      return this.resendOutcome;
     },
     updateProfile: async (patch: ProfilePatch) => {
       patches.push(patch);
@@ -88,6 +107,48 @@ describe('OnboardingStepper', () => {
   }
 
   afterEach(() => TestBed.resetTestingModule());
+
+  it('starts on the email step for an unverified creator and moves on once the link is opened', async () => {
+    const fixture = await render({ ...creator, emailVerifiedAt: null });
+
+    expect(text(fixture)).toContain('Step 1 of 4');
+    expect(text(fixture)).toContain('Verify your email');
+    expect(text(fixture)).toContain('cara@clapout.test');
+
+    // Not yet: the profile still says unverified.
+    button(fixture, 'I have verified, continue').click();
+    await settle(fixture);
+    expect(auth.refreshes).toBe(1);
+    expect(text(fixture)).toContain('We have not seen the link opened yet');
+    expect(text(fixture)).toContain('Step 1 of 4');
+
+    auth.markVerified();
+    button(fixture, 'I have verified, continue').click();
+    await settle(fixture);
+
+    expect(text(fixture)).toContain('Step 2 of 4');
+    expect(text(fixture)).toContain('Add your social accounts');
+  });
+
+  it('resends the verification email and holds the button for the cooldown', async () => {
+    const fixture = await render({ ...creator, emailVerifiedAt: null });
+
+    button(fixture, 'Resend the email').click();
+    await settle(fixture);
+
+    expect(auth.resends).toBe(1);
+    expect(text(fixture)).toContain('Sent. Check cara@clapout.test');
+    const resend = button(fixture, 'Resend the email');
+    expect(resend.textContent).toContain('(60s)');
+    expect(resend.disabled).toBe(true);
+  });
+
+  it('skips the email step entirely for a creator who is already verified', async () => {
+    const fixture = await render();
+
+    expect(text(fixture)).toContain('Step 1 of 3');
+    expect(text(fixture)).not.toContain('Verify your email');
+  });
 
   it('refuses to move on without at least one valid social link', async () => {
     const fixture = await render();
