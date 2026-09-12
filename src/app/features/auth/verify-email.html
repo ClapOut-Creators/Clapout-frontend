@@ -11,6 +11,17 @@
   </div>
 
   @switch (state()) {
+    @case ('ready') {
+      <h1 class="mt-4 text-center text-3xl font-semibold tracking-tight text-surface-900">
+        Confirm your email
+      </h1>
+      <p class="mt-2 max-w-sm text-center text-surface-600">
+        Press the button to confirm this is your email address. It unlocks campaign registration and
+        clip submissions on your ClapOut account.
+      </p>
+      <p-button class="mt-8" label="Verify my email" (onClick)="confirm()" />
+    }
+
     @case ('verifying') {
       <h1
         class="mt-4 text-center text-3xl font-semibold tracking-tight text-surface-900"

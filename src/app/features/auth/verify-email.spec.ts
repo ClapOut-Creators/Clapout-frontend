@@ -82,6 +82,22 @@ describe('VerifyEmail', () => {
     return fixture;
   }
 
+  /** Presses the one button that spends the token. */
+  async function confirm(fixture: {
+    nativeElement: HTMLElement;
+    detectChanges(): void;
+    whenStable(): Promise<unknown>;
+  }) {
+    const button = Array.from(fixture.nativeElement.querySelectorAll('button')).find((node) =>
+      node.textContent?.includes('Verify my email'),
+    );
+    if (!button) {
+      throw new Error('No "Verify my email" button');
+    }
+    button.click();
+    await flush(fixture);
+  }
+
   /** The redeem chains a few awaits; a macrotask tick lets them all settle before asserting. */
   async function flush(fixture: { detectChanges(): void; whenStable(): Promise<unknown> }) {
     await fixture.whenStable();
@@ -95,12 +111,18 @@ describe('VerifyEmail', () => {
 
   afterEach(() => TestBed.resetTestingModule());
 
-  it('redeems the token once and sends a signed-in creator into onboarding', async () => {
+  it('spends the token only on the button press, then sends a signed-in creator into onboarding', async () => {
     const fixture = await render('raw-token', {
       signedIn: true,
       emailVerified: true,
       outcome: 'ok',
     });
+
+    // Merely opening the link (as a mail scanner would) redeems nothing.
+    expect(auth.tokensSeen).toEqual([]);
+    expect(text(fixture)).toContain('Confirm your email');
+
+    await confirm(fixture);
 
     expect(auth.tokensSeen).toEqual(['raw-token']);
     expect(text(fixture)).toContain('Email verified');
@@ -115,6 +137,7 @@ describe('VerifyEmail', () => {
       emailVerified: false,
       outcome: 'ok',
     });
+    await confirm(fixture);
 
     expect(text(fixture)).toContain('Email verified');
     expect(text(fixture)).toContain('Go to sign in');
@@ -127,6 +150,7 @@ describe('VerifyEmail', () => {
       emailVerified: false,
       outcome: 'invalid',
     });
+    await confirm(fixture);
 
     expect(text(fixture)).toContain('This verification link is invalid');
     const button = fixture.nativeElement.querySelector('button') as HTMLButtonElement;
@@ -146,6 +170,7 @@ describe('VerifyEmail', () => {
       emailVerified: false,
       outcome: 'invalid',
     });
+    await confirm(fixture);
 
     expect(text(fixture)).toContain('This verification link is invalid');
     expect(fixture.nativeElement.querySelector('button')?.textContent).toContain('Go to sign in');
@@ -169,6 +194,7 @@ describe('VerifyEmail', () => {
       emailVerified: false,
       outcome: 'down',
     });
+    await confirm(fixture);
 
     expect(text(fixture)).toContain('We could not verify your email');
     expect(text(fixture)).toContain('Check your connection');
