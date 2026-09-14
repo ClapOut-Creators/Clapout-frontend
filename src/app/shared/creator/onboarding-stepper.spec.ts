@@ -4,7 +4,7 @@ import { provideRouter, Router } from '@angular/router';
 import { Component } from '@angular/core';
 import { AuthService } from '../../core/auth/auth-service';
 import { Me, ProfilePatch } from '../../core/models/user';
-import { OnboardingStepper } from './onboarding-stepper';
+import { OnboardingStepper, VERIFICATION_POLL_MS } from './onboarding-stepper';
 
 const creator: Me = {
   id: 'creator-1',
@@ -106,27 +106,45 @@ describe('OnboardingStepper', () => {
     fixture.detectChanges();
   }
 
-  afterEach(() => TestBed.resetTestingModule());
+  afterEach(() => {
+    vi.useRealTimers();
+    TestBed.resetTestingModule();
+  });
 
-  it('starts on the email step for an unverified creator and moves on once the link is opened', async () => {
+  it('starts on the email screen for an unverified creator and moves on once the link is opened', async () => {
+    // Only the poll interval is faked; the profile refresh still settles on real macrotasks.
+    vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] });
     const fixture = await render({ ...creator, emailVerifiedAt: null });
 
-    expect(text(fixture)).toContain('Step 1 of 4');
+    // A screen of its own: no step number, no progress bar, no second click.
     expect(text(fixture)).toContain('Verify your email');
     expect(text(fixture)).toContain('cara@clapout.test');
+    expect(text(fixture)).not.toContain('Step 1 of');
+    expect(text(fixture)).not.toContain('24 hours');
+    expect(fixture.nativeElement.querySelector('[aria-label="Progress"]')).toBeNull();
 
-    // Not yet: the profile still says unverified.
-    button(fixture, 'I have verified, continue').click();
+    // "Open email inbox" unfolds the popular providers, each in a new tab.
+    button(fixture, 'Open email inbox').click();
     await settle(fixture);
-    expect(auth.refreshes).toBe(1);
-    expect(text(fixture)).toContain('We have not seen the link opened yet');
-    expect(text(fixture)).toContain('Step 1 of 4');
+    const inboxes = Array.from(
+      (fixture.nativeElement as HTMLElement).querySelectorAll('#onboarding-inbox-links a'),
+    ) as HTMLAnchorElement[];
+    expect(inboxes.map((a) => a.textContent?.trim())).toEqual([
+      'Gmail',
+      'Outlook',
+      'Yahoo Mail',
+      'iCloud Mail',
+    ]);
+    expect(inboxes.every((a) => a.target === '_blank' && a.rel.includes('noopener'))).toBe(true);
 
+    // The poll notices the link being opened elsewhere and moves on by itself.
     auth.markVerified();
-    button(fixture, 'I have verified, continue').click();
+    vi.advanceTimersByTime(VERIFICATION_POLL_MS);
+    await new Promise((resolve) => setTimeout(resolve, 0));
     await settle(fixture);
 
-    expect(text(fixture)).toContain('Step 2 of 4');
+    expect(auth.refreshes).toBe(1);
+    expect(text(fixture)).toContain('Step 1 of 3');
     expect(text(fixture)).toContain('Add your social accounts');
   });
 
@@ -143,7 +161,7 @@ describe('OnboardingStepper', () => {
     expect(resend.disabled).toBe(true);
   });
 
-  it('skips the email step entirely for a creator who is already verified', async () => {
+  it('skips the email screen entirely for a creator who is already verified', async () => {
     const fixture = await render();
 
     expect(text(fixture)).toContain('Step 1 of 3');

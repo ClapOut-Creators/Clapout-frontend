@@ -29,7 +29,26 @@ export const COMMUNITY_URL = 'https://chat.whatsapp.com/L9d71dKBrFy7QonMQJ73da';
 
 export type OnboardingStep = 'email' | 'socials' | 'community' | 'done';
 
-const ALL_STEPS: readonly OnboardingStep[] = ['email', 'socials', 'community', 'done'];
+/**
+ * The numbered steps. Email verification comes before them as its own screen
+ * — no progress bar, no "Step 1 of 4" — because until the address is confirmed
+ * there is nothing to set up yet.
+ */
+const NUMBERED_STEPS: readonly OnboardingStep[] = ['socials', 'community', 'done'];
+
+export type InboxProvider = 'gmail' | 'outlook' | 'yahoo' | 'icloud';
+
+/** Where "Open email inbox" can take a creator. Gmail lands on a search for the email itself. */
+export const INBOX_LINKS: readonly { id: InboxProvider; label: string; href: string }[] = [
+  {
+    id: 'gmail',
+    label: 'Gmail',
+    href: 'https://mail.google.com/mail/u/0/#search/Verify+your+email+for+ClapOut',
+  },
+  { id: 'outlook', label: 'Outlook', href: 'https://outlook.live.com/mail/0/inbox' },
+  { id: 'yahoo', label: 'Yahoo Mail', href: 'https://mail.yahoo.com/' },
+  { id: 'icloud', label: 'iCloud Mail', href: 'https://www.icloud.com/mail/' },
+];
 
 /** Matches the API's per-account cooldown on `POST /auth/resend-verification`. */
 export const RESEND_COOLDOWN_SECONDS = 60;
@@ -55,7 +74,8 @@ function sameSocials(left: readonly SocialAccount[], right: readonly SocialAccou
 
 /**
  * The onboarding steps every creator must complete once: verify the email
- * address they signed up with (the step only appears while it is unverified),
+ * address they signed up with (a screen of its own, shown only while the
+ * address is unverified; it moves on by itself once the link is opened),
  * add at least one social account, join the WhatsApp community, then go and
  * find a campaign. It is the body of both the `/creator/onboarding` page a fresh
  * sign-up lands on and the sheet the dashboard raises for anyone who signed up
@@ -72,29 +92,29 @@ function sameSocials(left: readonly SocialAccount[], right: readonly SocialAccou
   selector: 'app-onboarding-stepper',
   host: { class: 'block' },
   template: `
-    <ol class="m-0 mb-[28px] flex list-none justify-center gap-[10px] p-0" aria-label="Progress">
-      @for (item of steps; track item; let index = $index) {
-        <li
-          class="h-[6px] w-[44px] rounded-full transition-colors"
-          [class]="index <= stepIndex() ? 'bg-[#EC612C]' : 'bg-[#E4E4E4]'"
-          [attr.aria-current]="item === step() ? 'step' : null"
-        >
-          <span class="sr-only">Step {{ index + 1 }}{{ item === step() ? ', current' : '' }}</span>
-        </li>
-      }
-    </ol>
+    @if (!onEmailStep()) {
+      <ol class="m-0 mb-[28px] flex list-none justify-center gap-[10px] p-0" aria-label="Progress">
+        @for (item of steps; track item; let index = $index) {
+          <li
+            class="h-[6px] w-[44px] rounded-full transition-colors"
+            [class]="index <= stepIndex() ? 'bg-[#EC612C]' : 'bg-[#E4E4E4]'"
+            [attr.aria-current]="item === step() ? 'step' : null"
+          >
+            <span class="sr-only"
+              >Step {{ index + 1 }}{{ item === step() ? ', current' : '' }}</span
+            >
+          </li>
+        }
+      </ol>
+    }
 
     @switch (step()) {
       @case ('email') {
-        <p class="m-0 mb-[4px] text-center text-[14px] font-medium text-[#EC612C]">
-          {{ stepLabel() }}
-        </p>
         <h3 [class]="headingClass">Verify your email</h3>
         <p [class]="bodyClass">
           We sent a verification link to
           <strong class="font-semibold text-[#2B2B2B]">{{ email() }}</strong
-          >. Open it to confirm this address is yours. The link works for 24 hours. Not there? Check
-          your spam folder.
+          >. Not there? Check your spam folder.
         </p>
 
         @if (errorMessage(); as message) {
@@ -114,11 +134,98 @@ function sameSocials(left: readonly SocialAccount[], right: readonly SocialAccou
             type="button"
             [class]="primaryClass"
             class="w-full"
-            [disabled]="checking()"
-            (click)="checkVerified()"
+            [attr.aria-expanded]="inboxOpen()"
+            aria-controls="onboarding-inbox-links"
+            (click)="toggleInbox()"
           >
-            {{ checking() ? 'Checking…' : 'I have verified, continue' }}
+            Open email inbox
           </button>
+          @if (inboxOpen()) {
+            <ul
+              id="onboarding-inbox-links"
+              class="m-0 grid list-none grid-cols-2 gap-[10px] p-0"
+              aria-label="Email providers"
+            >
+              @for (inbox of inboxLinks; track inbox.id) {
+                <li class="flex">
+                  <a
+                    [href]="inbox.href"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    [class]="secondaryClass"
+                    class="w-full no-underline"
+                  >
+                    <!-- Inline marks rather than [innerHTML]: Angular's sanitiser strips <svg>. -->
+                    @switch (inbox.id) {
+                      @case ('gmail') {
+                        <svg viewBox="0 0 48 36" class="block h-[15px] w-[20px]" aria-hidden="true">
+                          <path
+                            fill="#4285F4"
+                            d="M3.3 36h7.6V17.5L0 9.4v23.3C0 34.5 1.5 36 3.3 36Z"
+                          />
+                          <path
+                            fill="#34A853"
+                            d="M37.1 36h7.6c1.8 0 3.3-1.5 3.3-3.3V9.4l-10.9 8.1V36Z"
+                          />
+                          <path
+                            fill="#FBBC04"
+                            d="M37.1 3.3v14.2L48 9.4V4.9c0-4.1-4.7-6.4-7.9-4L37.1 3.3Z"
+                          />
+                          <path
+                            fill="#EA4335"
+                            d="M10.9 17.5V3.3L24 13.1 37.1 3.3v14.2L24 27.3 10.9 17.5Z"
+                          />
+                          <path
+                            fill="#C5221F"
+                            d="M0 4.9v4.5l10.9 8.1V3.3L7.9.9C4.7-1.5 0 .8 0 4.9Z"
+                          />
+                        </svg>
+                      }
+                      @case ('outlook') {
+                        <svg viewBox="0 0 24 24" class="block size-[20px]" aria-hidden="true">
+                          <path fill="#1490DF" d="M9 4h12a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H9V4Z" />
+                          <path fill="#0F78D4" d="M9 4h12a1 1 0 0 1 1 1v6.5L15 15 9 11.5V4Z" />
+                          <path fill="#28A8EA" d="M9 11.5 15 15l7-3.5V19a1 1 0 0 1-1 1H9v-8.5Z" />
+                          <rect x="2" y="6.5" width="11" height="11" rx="1.2" fill="#0364B8" />
+                          <ellipse
+                            cx="7.5"
+                            cy="12"
+                            rx="2.7"
+                            ry="3.3"
+                            fill="none"
+                            stroke="#FFFFFF"
+                            stroke-width="1.6"
+                          />
+                        </svg>
+                      }
+                      @case ('yahoo') {
+                        <svg viewBox="0 0 24 24" class="block size-[20px]" aria-hidden="true">
+                          <rect width="24" height="24" rx="6" fill="#6001D2" />
+                          <path
+                            fill="#FFFFFF"
+                            d="M5.2 7.4h2.9l2.3 4.4 2.3-4.4h2.8l-3.9 6.9v4.3h-2.4v-4.3L5.2 7.4Z"
+                          />
+                          <path
+                            fill="#FFFFFF"
+                            d="M16.6 7.4h2.4l-.5 7h-1.4l-.5-7Zm1.2 8.1a1.3 1.3 0 1 1 0 2.6 1.3 1.3 0 0 1 0-2.6Z"
+                          />
+                        </svg>
+                      }
+                      @case ('icloud') {
+                        <svg viewBox="0 0 24 24" class="block size-[20px]" aria-hidden="true">
+                          <path
+                            fill="#3693F3"
+                            d="M7.4 18.5a3.9 3.9 0 0 1-.6-7.75A5.1 5.1 0 0 1 16.6 9a4.05 4.05 0 0 1 3.6 4.05 4.03 4.03 0 0 1-2.6 3.78L17 18.5H7.4Z"
+                          />
+                        </svg>
+                      }
+                    }
+                    <span>{{ inbox.label }}</span>
+                  </a>
+                </li>
+              }
+            </ul>
+          }
           <button
             type="button"
             [class]="secondaryClass"
@@ -302,24 +409,21 @@ export class OnboardingStepper {
   private readonly formBuilder = inject(NonNullableFormBuilder);
   private readonly destroyRef = inject(DestroyRef);
 
-  /**
-   * Decided once, on arrival: a creator who turns up unverified keeps the
-   * email step in the progress bar after it completes, instead of the bar
-   * shrinking under them.
-   */
+  /** Decided once, on arrival: whether the email screen comes first. */
   private readonly emailStepNeeded = !this.auth.user()?.emailVerifiedAt;
 
-  protected readonly steps: readonly OnboardingStep[] = this.emailStepNeeded
-    ? ALL_STEPS
-    : ALL_STEPS.filter((item) => item !== 'email');
+  protected readonly steps = NUMBERED_STEPS;
   protected readonly step = signal<OnboardingStep>(this.emailStepNeeded ? 'email' : 'socials');
+  /** Public so the host page can drop its own heading while the email screen is up. */
+  readonly onEmailStep = computed(() => this.step() === 'email');
   protected readonly stepIndex = computed(() => this.steps.indexOf(this.step()));
   protected readonly stepLabel = computed(
     () => `Step ${this.stepIndex() + 1} of ${this.steps.length}`,
   );
   protected readonly saving = signal(false);
-  /** The email step's "I have verified" re-read of the profile is in flight. */
-  protected readonly checking = signal(false);
+  /** The "Open email inbox" button has unfolded the provider links. */
+  protected readonly inboxOpen = signal(false);
+  protected readonly inboxLinks = INBOX_LINKS;
   /** Seconds until another verification email may be requested. */
   protected readonly resendCooldown = signal(0);
   protected readonly resendNotice = signal('');
@@ -373,27 +477,8 @@ export class OnboardingStepper {
     this.destroyRef.onDestroy(() => this.stopCooldown());
   }
 
-  /** "I have verified, continue": re-read the profile and move on if the link was opened. */
-  protected async checkVerified(): Promise<void> {
-    if (this.checking()) {
-      return;
-    }
-    this.errorMessage.set('');
-    this.checking.set(true);
-    try {
-      const me = await this.auth.refreshProfile();
-      if (me?.emailVerifiedAt) {
-        this.leaveEmailStep();
-      } else {
-        this.errorMessage.set(
-          'We have not seen the link opened yet. Open the email we sent you, then try again.',
-        );
-      }
-    } catch (error) {
-      this.errorMessage.set(toApiError(error).message);
-    } finally {
-      this.checking.set(false);
-    }
+  protected toggleInbox(): void {
+    this.inboxOpen.update((open) => !open);
   }
 
   protected async resendEmail(): Promise<void> {
@@ -429,7 +514,7 @@ export class OnboardingStepper {
   }
 
   private async pollVerification(): Promise<void> {
-    if (this.step() !== 'email' || this.checking()) {
+    if (this.step() !== 'email') {
       return;
     }
     try {
