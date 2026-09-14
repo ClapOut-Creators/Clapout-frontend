@@ -8,20 +8,23 @@ import { ONBOARDING_PATH } from '../../core/auth/onboarding-guard';
 import { RESEND_COOLDOWN_SECONDS } from '../../shared/creator/onboarding-stepper';
 
 /**
- * 'ready' until the creator presses the confirm button; 'verifying' while the
- * token is being redeemed; 'success' once the address is confirmed; 'invalid'
- * for an unknown, used or expired link; 'missing' when the URL carried no
- * token at all; 'error' for anything else.
+ * 'verifying' while the token is being redeemed; 'success' once the address
+ * is confirmed; 'invalid' for an unknown or expired link; 'missing' when the
+ * URL carried no token at all; 'error' for anything else.
  */
-type VerifyState = 'ready' | 'verifying' | 'success' | 'invalid' | 'missing' | 'error';
+type VerifyState = 'verifying' | 'success' | 'invalid' | 'missing' | 'error';
+
+/** How long the verified page waits before moving on by itself. */
+export const VERIFIED_REDIRECT_SECONDS = 5;
 
 /**
  * `/auth/verify-email?token=…` — where the link in the verification email
- * lands. The token is redeemed only when the creator presses the button, and
- * only ever by POST: a mail scanner that prefetches the link, even one that
- * runs the page's JavaScript, cannot use the single-use token up before the
- * creator gets to it. Success sends them on: into onboarding when they are
- * signed in here, otherwise to sign-in.
+ * lands. The token is redeemed the moment the page opens (by POST, so a mail
+ * scanner that prefetches the link does not spend it; and the API answers a
+ * repeat with success until the link expires, so a scanner that did run the
+ * page, or a second open, still lands here verified). Success counts down
+ * and moves on: into onboarding when the creator is signed in here, otherwise
+ * to sign-in. The button under the countdown skips the wait.
  *
  * A dead link offers a resend when the signed-in account is the unverified
  * one; anyone else is pointed at sign-in, from where onboarding resends.
@@ -39,7 +42,7 @@ export class VerifyEmail implements OnInit {
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
 
-  protected readonly state = signal<VerifyState>('ready');
+  protected readonly state = signal<VerifyState>('verifying');
   protected readonly errorMessage = signal('');
   /** The address that was just confirmed, for the success copy. */
   protected readonly verifiedEmail = signal('');
@@ -53,6 +56,9 @@ export class VerifyEmail implements OnInit {
   protected readonly resendCooldown = signal(0);
   protected readonly resendNotice = signal('');
   private cooldownTimer: ReturnType<typeof setInterval> | null = null;
+  /** Seconds left on the success page before it moves on by itself. */
+  protected readonly redirectIn = signal(VERIFIED_REDIRECT_SECONDS);
+  private redirectTimer: ReturnType<typeof setInterval> | null = null;
 
   /** Signed in: straight into the remaining onboarding steps. Otherwise sign in first. */
   protected readonly continuePath = computed(() =>
@@ -60,22 +66,22 @@ export class VerifyEmail implements OnInit {
   );
 
   constructor() {
-    this.destroyRef.onDestroy(() => this.stopCooldown());
+    this.destroyRef.onDestroy(() => {
+      this.stopCooldown();
+      this.stopRedirect();
+    });
   }
 
   ngOnInit(): void {
-    if (!this.token()?.trim()) {
-      this.state.set('missing');
-    }
+    void this.redeem();
   }
 
-  /** The confirm button: the one place the token is spent. */
-  protected async confirm(): Promise<void> {
+  private async redeem(): Promise<void> {
     const token = this.token()?.trim();
-    if (!token || this.state() === 'verifying') {
+    if (!token) {
+      this.state.set('missing');
       return;
     }
-    this.state.set('verifying');
     // The session must be known first, so the success page can tell a
     // signed-in creator from a visitor opening the link on another device.
     await this.auth.whenSessionReady();
@@ -83,6 +89,7 @@ export class VerifyEmail implements OnInit {
       const user = await this.auth.verifyEmail(token);
       this.verifiedEmail.set(user.email);
       this.state.set('success');
+      this.startRedirect();
     } catch (error) {
       if (error instanceof ApiError && error.code === 'INVALID_VERIFICATION_TOKEN') {
         this.state.set('invalid');
@@ -127,6 +134,31 @@ export class VerifyEmail implements OnInit {
       }
     } finally {
       this.resending.set(false);
+    }
+  }
+
+  /** The button under the countdown: same destination, no wait. */
+  protected continueNow(): void {
+    this.stopRedirect();
+    void this.router.navigateByUrl(this.continuePath(), { replaceUrl: true });
+  }
+
+  private startRedirect(): void {
+    this.stopRedirect();
+    this.redirectIn.set(VERIFIED_REDIRECT_SECONDS);
+    this.redirectTimer = setInterval(() => {
+      const left = this.redirectIn() - 1;
+      this.redirectIn.set(Math.max(0, left));
+      if (left <= 0) {
+        this.continueNow();
+      }
+    }, 1000);
+  }
+
+  private stopRedirect(): void {
+    if (this.redirectTimer !== null) {
+      clearInterval(this.redirectTimer);
+      this.redirectTimer = null;
     }
   }
 
