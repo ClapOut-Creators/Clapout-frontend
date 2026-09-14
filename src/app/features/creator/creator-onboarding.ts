@@ -1,4 +1,4 @@
-import { Component, inject, input } from '@angular/core';
+import { Component, computed, inject, input, viewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../core/auth/auth-service';
 import { OnboardingStepper } from '../../shared/creator/onboarding-stepper';
@@ -7,7 +7,9 @@ import { OnboardingStepper } from '../../shared/creator/onboarding-stepper';
  * `/creator/onboarding` — where sign-up lands and where {@link onboardingGuard}
  * sends a creator who tries to apply before finishing setup. The steps are
  * email verification (until the emailed link is opened), socials and the
- * WhatsApp community. The page is only the stepper, centred, with no
+ * WhatsApp community. While the email screen is up the card starts with its
+ * own "Verify your email" heading and the page's heading stays out of the
+ * way. The page is only the stepper, centred, with no
  * navigation chrome (`app.ts` lists this route as chromeless, so the rail is
  * not drawn): the point is that there is nothing else to do here until the
  * steps are done. Without the shell around it, the page paints the studio's
@@ -27,17 +29,19 @@ import { OnboardingStepper } from '../../shared/creator/onboarding-stepper';
         class="w-full max-w-[560px] rounded-[24px] border border-[#EDEDED] bg-white px-6 py-8 shadow-[0_18px_60px_rgba(0,0,0,0.06)] lg:px-10 lg:py-10"
         aria-labelledby="onboarding-title"
       >
-        <h1
-          id="onboarding-title"
-          class="m-0 mb-[6px] text-center text-[26px] leading-[34px] font-semibold text-black/80 [font-family:var(--clapout-font-heading)] lg:text-[32px] lg:leading-[42px]"
-        >
-          Finish setting up
-        </h1>
-        <p
-          class="m-0 mb-[28px] text-center text-[15px] leading-[22px] text-[#6B6B6B] lg:text-[16px]"
-        >
-          A few quick steps and you are ready to clip.
-        </p>
+        @if (showHeading()) {
+          <h1
+            id="onboarding-title"
+            class="m-0 mb-[6px] text-center text-[26px] leading-[34px] font-semibold text-black/80 [font-family:var(--clapout-font-heading)] lg:text-[32px] lg:leading-[42px]"
+          >
+            Finish setting up
+          </h1>
+          <p
+            class="m-0 mb-[28px] text-center text-[15px] leading-[22px] text-[#6B6B6B] lg:text-[16px]"
+          >
+            A few quick steps and you are ready to clip.
+          </p>
+        }
         <app-onboarding-stepper (finished)="finish()" />
       </section>
     </main>
@@ -49,6 +53,10 @@ export class CreatorOnboarding {
 
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
+
+  private readonly stepper = viewChild(OnboardingStepper);
+  /** The email screen carries its own heading; the page's would sit on top of it. */
+  protected readonly showHeading = computed(() => !(this.stepper()?.onEmailStep() ?? true));
 
   constructor() {
     void this.skipIfDone();
