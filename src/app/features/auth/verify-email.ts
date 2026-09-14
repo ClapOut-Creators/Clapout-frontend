@@ -15,7 +15,7 @@ import { RESEND_COOLDOWN_SECONDS } from '../../shared/creator/onboarding-stepper
 type VerifyState = 'verifying' | 'success' | 'invalid' | 'missing' | 'error';
 
 /** How long the verified page waits before moving on by itself. */
-export const VERIFIED_REDIRECT_SECONDS = 5;
+export const VERIFIED_REDIRECT_SECONDS = 3;
 
 /**
  * `/auth/verify-email?token=…` — where the link in the verification email
