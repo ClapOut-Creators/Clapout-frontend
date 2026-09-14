@@ -5,6 +5,7 @@ import { filter } from 'rxjs';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ToastModule } from 'primeng/toast';
 import { AuthService } from './core/auth/auth-service';
+import { ONBOARDING_PATH } from './core/auth/onboarding-guard';
 import { ThemeService } from './core/theme/theme-service';
 import { SideNav } from './shared/layout/side-nav';
 import { PublicFooter } from './shared/public/public-footer';
@@ -24,14 +25,22 @@ export class App {
   private readonly currentUrl = signal(this.router.url);
 
   /**
-   * Chromeless routes — no nav of either kind. The auth pages, plus the public
-   * brand onboarding link: a brand's representative arrives with no session and
-   * nothing to navigate to, so the page is the whole screen. (The name is kept
-   * because `app.html` binds it.)
+   * Chromeless routes — no nav of either kind. The auth pages (sign-in, sign-up,
+   * password reset, the email verification link); the public brand onboarding
+   * link, where a brand's representative arrives with no session and nothing to
+   * navigate to; and the clipper's own onboarding page, where a fresh sign-up
+   * lands to verify their email and finish setting up. Until those steps are
+   * done there is nothing else for them to do, so the rail stays out of sight
+   * and the page is the whole screen. (The name is kept because it predates the
+   * non-auth entries.)
    */
   protected readonly isAuthRoute = computed(() => {
     const url = this.currentUrl();
-    return url.startsWith('/auth') || url.startsWith('/brand/onboard');
+    return (
+      url.startsWith('/auth') ||
+      url.startsWith('/brand/onboard') ||
+      url.startsWith(ONBOARDING_PATH)
+    );
   });
   /** Side nav is a signed-in (dashboard) affordance. */
   protected readonly showSideNav = computed(() => !this.isAuthRoute() && this.auth.isSignedIn());

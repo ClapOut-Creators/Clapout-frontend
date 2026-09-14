@@ -7,9 +7,11 @@ import { OnboardingStepper } from '../../shared/creator/onboarding-stepper';
  * `/creator/onboarding` — where sign-up lands and where {@link onboardingGuard}
  * sends a creator who tries to apply before finishing setup. The steps are
  * email verification (until the emailed link is opened), socials and the
- * WhatsApp community. The page is only
- * the stepper, centred, with no navigation chrome: the point is that there is
- * nothing else to do here until the steps are done.
+ * WhatsApp community. The page is only the stepper, centred, with no
+ * navigation chrome (`app.ts` lists this route as chromeless, so the rail is
+ * not drawn): the point is that there is nothing else to do here until the
+ * steps are done. Without the shell around it, the page paints the studio's
+ * grey canvas and fills the viewport itself.
  *
  * `?returnUrl=` carries the page that was asked for (a campaign's apply form,
  * usually) and is honoured by the final button; without one, "Browse
@@ -20,7 +22,7 @@ import { OnboardingStepper } from '../../shared/creator/onboarding-stepper';
   imports: [OnboardingStepper],
   selector: 'app-creator-onboarding',
   template: `
-    <main class="flex min-h-[calc(100vh-88px)] items-center justify-center px-4 py-10">
+    <main class="flex min-h-svh items-center justify-center bg-[#F9F9F9] px-4 py-10">
       <section
         class="w-full max-w-[560px] rounded-[24px] border border-[#EDEDED] bg-white px-6 py-8 shadow-[0_18px_60px_rgba(0,0,0,0.06)] lg:px-10 lg:py-10"
         aria-labelledby="onboarding-title"
