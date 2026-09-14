@@ -9,6 +9,7 @@ import { MessageModule } from 'primeng/message';
 import { PasswordModule } from 'primeng/password';
 import { ApiError } from '../../core/api/api-error';
 import { AuthService } from '../../core/auth/auth-service';
+import { ONBOARDING_PATH } from '../../core/auth/onboarding-guard';
 import {
   isChunkLoadError,
   NEXT_PAGE_FAILED_MESSAGE,
@@ -63,8 +64,25 @@ export class SignIn {
     if (!this.auth.isSignedIn()) {
       return;
     }
-    const fallback = this.auth.isAdmin() ? '/admin/dashboard' : '/creator/dashboard';
-    await this.router.navigateByUrl(this.returnUrl() || fallback);
+    await this.router.navigateByUrl(this.landing());
+  }
+
+  /**
+   * Where a signed-in session goes from here. A clipper with setup steps left
+   * (email unverified, or the community not yet confirmed) goes to the
+   * onboarding page first, with any requested page waiting in `returnUrl`;
+   * the onboarding page is chromeless, so the rail stays out of sight until
+   * the steps are done. Everyone else gets the page they asked for, or their
+   * dashboard.
+   */
+  private landing(): string {
+    const returnUrl = this.returnUrl();
+    if (this.auth.needsOnboarding()) {
+      return returnUrl
+        ? `${ONBOARDING_PATH}?returnUrl=${encodeURIComponent(returnUrl)}`
+        : ONBOARDING_PATH;
+    }
+    return returnUrl || (this.auth.isAdmin() ? '/admin/dashboard' : '/creator/dashboard');
   }
 
   protected readonly submitted = signal(false);
@@ -97,9 +115,8 @@ export class SignIn {
     let target: string;
     try {
       const { email, password, rememberMe } = this.form.getRawValue();
-      const user = await this.auth.signIn({ email, password }, rememberMe);
-      const home = user.role === 'ADMIN' ? '/admin/dashboard' : '/creator/dashboard';
-      target = this.returnUrl() || home;
+      await this.auth.signIn({ email, password }, rememberMe);
+      target = this.landing();
     } catch (error) {
       this.errorMessage.set(
         error instanceof ApiError
