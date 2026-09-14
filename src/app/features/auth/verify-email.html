@@ -11,17 +11,6 @@
   </div>
 
   @switch (state()) {
-    @case ('ready') {
-      <h1 class="mt-4 text-center text-3xl font-semibold tracking-tight text-surface-900">
-        Confirm your email
-      </h1>
-      <p class="mt-2 max-w-sm text-center text-surface-600">
-        Press the button to confirm this is your email address. It unlocks campaign registration and
-        clip submissions on your ClapOut account.
-      </p>
-      <p-button class="mt-8" label="Verify my email" (onClick)="confirm()" />
-    }
-
     @case ('verifying') {
       <h1
         class="mt-4 text-center text-3xl font-semibold tracking-tight text-surface-900"
@@ -44,10 +33,19 @@
           Sign in to finish setting up and start clipping.
         }
       </p>
+      <p class="mt-4 text-center text-sm text-surface-500" aria-live="polite">
+        @if (signedIn()) {
+          Taking you to the next step in {{ redirectIn() }}s…
+        } @else {
+          Taking you to sign in in {{ redirectIn() }}s…
+        }
+      </p>
 
-      <a [routerLink]="continuePath()" class="mt-8 no-underline">
-        <p-button [label]="signedIn() ? 'Continue' : 'Go to sign in'" />
-      </a>
+      <p-button
+        class="mt-6"
+        [label]="signedIn() ? 'Continue now' : 'Go to sign in'"
+        (onClick)="continueNow()"
+      />
     }
 
     @case ('invalid') {
@@ -55,8 +53,7 @@
         This verification link is invalid
       </h1>
       <p class="mt-2 max-w-sm text-center text-surface-600">
-        The link is invalid, has expired or was already used. Verification links last 24 hours and
-        work once.
+        The link is invalid or has expired. Verification links last 24 hours.
       </p>
 
       @if (errorMessage()) {

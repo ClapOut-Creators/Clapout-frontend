@@ -1,10 +1,10 @@
 import { Component, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 import { ApiError } from '../../core/api/api-error';
 import { AuthService } from '../../core/auth/auth-service';
 import { Me } from '../../core/models/user';
-import { VerifyEmail } from './verify-email';
+import { VERIFIED_REDIRECT_SECONDS, VerifyEmail } from './verify-email';
 
 const verified: Me = {
   id: 'creator-1',
@@ -82,22 +82,6 @@ describe('VerifyEmail', () => {
     return fixture;
   }
 
-  /** Presses the one button that spends the token. */
-  async function confirm(fixture: {
-    nativeElement: HTMLElement;
-    detectChanges(): void;
-    whenStable(): Promise<unknown>;
-  }) {
-    const button = Array.from(fixture.nativeElement.querySelectorAll('button')).find((node) =>
-      node.textContent?.includes('Verify my email'),
-    );
-    if (!button) {
-      throw new Error('No "Verify my email" button');
-    }
-    button.click();
-    await flush(fixture);
-  }
-
   /** The redeem chains a few awaits; a macrotask tick lets them all settle before asserting. */
   async function flush(fixture: { detectChanges(): void; whenStable(): Promise<unknown> }) {
     await fixture.whenStable();
@@ -106,29 +90,49 @@ describe('VerifyEmail', () => {
   }
 
   const text = (fixture: { nativeElement: HTMLElement }) => fixture.nativeElement.textContent ?? '';
-  const links = (fixture: { nativeElement: HTMLElement }) =>
-    Array.from(fixture.nativeElement.querySelectorAll('a')).map((a) => a.getAttribute('href'));
 
-  afterEach(() => TestBed.resetTestingModule());
+  afterEach(() => {
+    vi.useRealTimers();
+    TestBed.resetTestingModule();
+  });
 
-  it('spends the token only on the button press, then sends a signed-in creator into onboarding', async () => {
+  it('verifies as soon as the link opens and counts a signed-in creator down into onboarding', async () => {
+    // Only the countdown interval is faked; the redeem still settles on real
+    // macrotasks through flush().
+    vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] });
     const fixture = await render('raw-token', {
       signedIn: true,
       emailVerified: true,
       outcome: 'ok',
     });
 
-    // Merely opening the link (as a mail scanner would) redeems nothing.
-    expect(auth.tokensSeen).toEqual([]);
-    expect(text(fixture)).toContain('Confirm your email');
-
-    await confirm(fixture);
-
     expect(auth.tokensSeen).toEqual(['raw-token']);
     expect(text(fixture)).toContain('Email verified');
     expect(text(fixture)).toContain('cara@clapout.test');
-    expect(text(fixture)).toContain('Continue');
-    expect(links(fixture)).toContain('/creator/onboarding');
+    expect(text(fixture)).toContain(`next step in ${VERIFIED_REDIRECT_SECONDS}s`);
+    expect(text(fixture)).toContain('Continue now');
+
+    vi.advanceTimersByTime(VERIFIED_REDIRECT_SECONDS * 1000);
+    await flush(fixture);
+
+    expect(TestBed.inject(Router).url).toBe('/creator/onboarding');
+  });
+
+  it('lets a signed-in creator skip the countdown', async () => {
+    const fixture = await render('raw-token', {
+      signedIn: true,
+      emailVerified: true,
+      outcome: 'ok',
+    });
+
+    const element = fixture.nativeElement as HTMLElement;
+    const button = Array.from(element.querySelectorAll('button')).find((node) =>
+      node.textContent?.includes('Continue now'),
+    );
+    button?.click();
+    await flush(fixture);
+
+    expect(TestBed.inject(Router).url).toBe('/creator/onboarding');
   });
 
   it('points a signed-out visitor at sign-in after verifying', async () => {
@@ -137,11 +141,10 @@ describe('VerifyEmail', () => {
       emailVerified: false,
       outcome: 'ok',
     });
-    await confirm(fixture);
 
     expect(text(fixture)).toContain('Email verified');
+    expect(text(fixture)).toContain('Taking you to sign in');
     expect(text(fixture)).toContain('Go to sign in');
-    expect(links(fixture)).toContain('/auth/sign-in');
   });
 
   it('explains a dead link and offers a resend to the unverified signed-in account', async () => {
@@ -150,7 +153,6 @@ describe('VerifyEmail', () => {
       emailVerified: false,
       outcome: 'invalid',
     });
-    await confirm(fixture);
 
     expect(text(fixture)).toContain('This verification link is invalid');
     const button = fixture.nativeElement.querySelector('button') as HTMLButtonElement;
@@ -170,7 +172,6 @@ describe('VerifyEmail', () => {
       emailVerified: false,
       outcome: 'invalid',
     });
-    await confirm(fixture);
 
     expect(text(fixture)).toContain('This verification link is invalid');
     expect(fixture.nativeElement.querySelector('button')?.textContent).toContain('Go to sign in');
@@ -194,7 +195,6 @@ describe('VerifyEmail', () => {
       emailVerified: false,
       outcome: 'down',
     });
-    await confirm(fixture);
 
     expect(text(fixture)).toContain('We could not verify your email');
     expect(text(fixture)).toContain('Check your connection');
