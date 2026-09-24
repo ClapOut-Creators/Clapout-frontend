@@ -170,6 +170,29 @@ export function openCountdownLabel(
   return `${pad(Math.floor(totalSeconds / 3600))}:${pad(Math.floor((totalSeconds % 3600) / 60))}:${pad(totalSeconds % 60)}`;
 }
 
+/** How long before its end an active campaign starts counting down on its page. */
+export const ENDING_SOON_WINDOW_MS = 48 * 60 * 60 * 1000;
+
+/**
+ * 'HH:MM:SS' until an ACTIVE campaign ends, but only inside the last
+ * {@link ENDING_SOON_WINDOW_MS} (so at most '48:00:00'). Null for any other
+ * status, a campaign with no end date or an unparsable one, one that is further
+ * out than the window, and one whose end has already passed.
+ */
+export function endCountdownLabel(
+  campaign: { status: CampaignStatus; endDate: string | null },
+  now: number = Date.now(),
+): string | null {
+  if (campaign.status !== 'ACTIVE' || !campaign.endDate) {
+    return null;
+  }
+  const end = new Date(campaign.endDate).getTime();
+  if (Number.isNaN(end) || end - now > ENDING_SOON_WINDOW_MS) {
+    return null;
+  }
+  return openCountdownLabel(campaign.endDate, now);
+}
+
 /**
  * Design-spec money: two decimals with a thin space after the symbol
  * ("₵ 2,000.00"). Unannounced amounts render "₵ —".
