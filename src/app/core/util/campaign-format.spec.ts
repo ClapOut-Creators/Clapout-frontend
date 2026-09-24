@@ -3,6 +3,7 @@ import { CampaignPlatform } from '../models/campaign';
 import {
   brandInviteStatusLabel,
   brandInviteStatusTone,
+  endCountdownLabel,
   NOT_ANNOUNCED,
   platformLabel,
   PLATFORM_LABELS,
@@ -122,5 +123,34 @@ describe('platformLabel', () => {
     for (const platform of platforms) {
       expect(platformLabel(platform)).toBeTruthy();
     }
+  });
+});
+
+describe('endCountdownLabel', () => {
+  const now = Date.UTC(2026, 8, 24, 12, 0, 0);
+  const hours = (h: number) => new Date(now + h * 3_600_000).toISOString();
+
+  it('counts down an active campaign in its last 48 hours', () => {
+    expect(endCountdownLabel({ status: 'ACTIVE', endDate: hours(48) }, now)).toBe('48:00:00');
+    expect(endCountdownLabel({ status: 'ACTIVE', endDate: hours(5.5) }, now)).toBe('05:30:00');
+    expect(endCountdownLabel({ status: 'ACTIVE', endDate: hours(1 / 3600) }, now)).toBe('00:00:01');
+  });
+
+  it('stays quiet until the last 48 hours', () => {
+    expect(endCountdownLabel({ status: 'ACTIVE', endDate: hours(48 + 1 / 3600) }, now)).toBeNull();
+    expect(endCountdownLabel({ status: 'ACTIVE', endDate: hours(24 * 7) }, now)).toBeNull();
+  });
+
+  it('stops once the end has passed', () => {
+    expect(endCountdownLabel({ status: 'ACTIVE', endDate: hours(0) }, now)).toBeNull();
+    expect(endCountdownLabel({ status: 'ACTIVE', endDate: hours(-2) }, now)).toBeNull();
+  });
+
+  it('only counts down ACTIVE campaigns with a real end date', () => {
+    expect(endCountdownLabel({ status: 'UPCOMING', endDate: hours(5) }, now)).toBeNull();
+    expect(endCountdownLabel({ status: 'CLOSED', endDate: hours(5) }, now)).toBeNull();
+    expect(endCountdownLabel({ status: 'DRAFT', endDate: hours(5) }, now)).toBeNull();
+    expect(endCountdownLabel({ status: 'ACTIVE', endDate: null }, now)).toBeNull();
+    expect(endCountdownLabel({ status: 'ACTIVE', endDate: 'not a date' }, now)).toBeNull();
   });
 });

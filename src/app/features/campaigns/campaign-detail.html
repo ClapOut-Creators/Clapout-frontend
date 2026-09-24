@@ -591,12 +591,30 @@
                 >
                   Submit post link
                 </button>
+                @if (endCountdown(); as countdown) {
+                  <p
+                    class="m-0 text-center text-[14px] leading-6 text-[#7B7B7B] dark:text-[#A3A3A3]"
+                    role="timer"
+                  >
+                    Ends in -
+                    <span class="font-medium tabular-nums text-[#EC612C]">{{ countdown }}</span>
+                  </p>
+                }
               } @else {
                 <a
                   [routerLink]="submitUrl()"
                   class="flex h-10 w-full items-center justify-center rounded-xl bg-[#EC612C] text-[18px] font-medium text-white no-underline"
                   >Submit content</a
                 >
+                @if (endCountdown(); as countdown) {
+                  <p
+                    class="m-0 text-center text-[14px] leading-6 text-[#7B7B7B] dark:text-[#A3A3A3]"
+                    role="timer"
+                  >
+                    Ends in -
+                    <span class="font-medium tabular-nums text-[#EC612C]">{{ countdown }}</span>
+                  </p>
+                }
                 <p class="m-0 text-center text-[14px] leading-6 text-[#7B7B7B] dark:text-[#A3A3A3]">
                   You are accepted on this campaign — paste the link to a clip you posted.
                 </p>
@@ -638,6 +656,15 @@
                 [styleClass]="ctaClass"
                 (onClick)="register()"
               />
+              @if (endCountdown(); as countdown) {
+                <p
+                  class="m-0 text-center text-[14px] leading-6 text-[#7B7B7B] dark:text-[#A3A3A3]"
+                  role="timer"
+                >
+                  Ends in -
+                  <span class="font-medium tabular-nums text-[#EC612C]">{{ countdown }}</span>
+                </p>
+              }
               @if (!isSignedIn()) {
                 <p class="m-0 text-center text-[14px] leading-6 text-[#7B7B7B] dark:text-[#A3A3A3]">
                   You will create a free creator account first - it takes under a minute.

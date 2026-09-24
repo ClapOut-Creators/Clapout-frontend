@@ -44,6 +44,7 @@ import {
   hasBudget,
   NOT_ANNOUNCED,
   openCountdownLabel,
+  endCountdownLabel,
   platformLabel,
   registrationStatusLabel,
 } from '../../core/util/campaign-format';
@@ -197,12 +198,36 @@ export class CampaignDetail {
     () =>
       this.existingRegistration()?.status === 'ACCEPTED' && this.campaign()?.status === 'ACTIVE',
   );
-  private readonly now = createNowSignal({ enabled: this.isUpcoming });
+  /** A live campaign with an end date: the only kind that can end soon. */
+  private readonly hasLiveEnd = computed(
+    () => this.campaign()?.status === 'ACTIVE' && !!this.campaign()?.endDate,
+  );
+  /**
+   * A 30-second clock that only notices the campaign entering its last 48 hours,
+   * so an active page does not run change detection every second for days.
+   */
+  private readonly coarseNow = createNowSignal({ intervalMs: 30_000, enabled: this.hasLiveEnd });
+  private readonly endingSoon = computed(() => {
+    const campaign = this.campaign();
+    return campaign ? endCountdownLabel(campaign, this.coarseNow()) !== null : false;
+  });
+  private readonly now = createNowSignal({
+    enabled: computed(() => this.isUpcoming() || this.endingSoon()),
+  });
 
   /** 'HH:MM:SS' until registration opens, or null once it has (or if unknown). */
   protected readonly openCountdown = computed(() =>
     this.isUpcoming() ? openCountdownLabel(this.campaign()?.startDate, this.now()) : null,
   );
+
+  /**
+   * 'HH:MM:SS' until an active campaign ends, in its last 48 hours only; shown
+   * under the register (or submit) button. Null outside that window.
+   */
+  protected readonly endCountdown = computed(() => {
+    const campaign = this.campaign();
+    return campaign && this.endingSoon() ? endCountdownLabel(campaign, this.now()) : null;
+  });
 
   /** Placeholder rows while the leaderboard request is in flight. */
   protected readonly skeletonRows = [0, 1, 2, 3, 4];

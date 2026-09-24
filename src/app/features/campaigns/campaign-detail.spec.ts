@@ -336,3 +336,91 @@ describe('CampaignDetail — leaderboard polling', () => {
     expect(leaderboardCalls).toBe(0);
   });
 });
+
+describe('CampaignDetail — ends-in countdown', () => {
+  afterEach(() => TestBed.resetTestingModule());
+
+  /** `endsInHours` is measured from the real clock, so the page sees the same window. */
+  async function render(
+    endsInHours: number,
+    options: {
+      user?: Me | null;
+      registrations?: Registration[];
+      status?: PublicCampaign['status'];
+    } = {},
+  ) {
+    const live: PublicCampaign = {
+      ...campaign,
+      status: options.status ?? 'ACTIVE',
+      endDate: new Date(Date.now() + endsInHours * 3_600_000).toISOString(),
+    };
+    await TestBed.configureTestingModule({
+      providers: [
+        ConfirmationService,
+        MessageService,
+        provideAppConfiguration(),
+        provideHttpClient(),
+        provideRouter(
+          [{ path: 'campaigns/:slug', component: CampaignDetail }],
+          withComponentInputBinding(),
+        ),
+        {
+          provide: AuthService,
+          useValue: authDouble(options.user === undefined ? creator : options.user),
+        },
+        {
+          provide: CampaignsRepository,
+          useValue: {
+            bySlug: () => Promise.resolve(live),
+            leaderboard: () => Promise.resolve(leaderboard),
+          },
+        },
+        {
+          provide: RegistrationsRepository,
+          useValue: { listMine: () => Promise.resolve(options.registrations ?? []) },
+        },
+      ],
+    }).compileComponents();
+
+    const harness = await RouterTestingHarness.create('/campaigns/e-wale-clipping');
+    await harness.fixture.whenStable();
+    harness.detectChanges();
+    await harness.fixture.whenStable();
+    harness.detectChanges();
+    return harness.routeNativeElement as HTMLElement;
+  }
+
+  const timer = (element: HTMLElement) => element.querySelector('[role="timer"]');
+
+  it('counts down under the register button in the last 48 hours', async () => {
+    const element = await render(5, { user: null });
+
+    const line = timer(element)?.textContent?.replace(/\s+/g, ' ').trim() ?? '';
+    expect(line).toMatch(/^Ends in - (04:59:5\d|05:00:00)$/);
+    // It sits directly under the button, above the sign-up note.
+    const button = Array.from(element.querySelectorAll('button')).find((node) =>
+      node.textContent?.includes('Register for this campaign'),
+    );
+    expect(button?.closest('p-button')?.nextElementSibling).toBe(timer(element));
+  });
+
+  it('shows nothing while the end is more than 48 hours away', async () => {
+    const element = await render(49, { user: null });
+
+    expect(element.textContent).toContain('Register for this campaign');
+    expect(timer(element)).toBeNull();
+  });
+
+  it('counts down under the submit button for an accepted clipper', async () => {
+    const element = await render(30, { registrations: [acceptedRegistration] });
+
+    expect(element.textContent).toContain('Submit post link');
+    expect(timer(element)?.textContent).toMatch(/Ends in -\s*(29:59:5\d|30:00:00)/);
+  });
+
+  it('never counts down a campaign that is not active', async () => {
+    const element = await render(5, { user: null, status: 'UPCOMING' });
+
+    expect(timer(element)).toBeNull();
+  });
+});
