@@ -105,12 +105,16 @@ describe('AdminDashboard', () => {
 
   afterEach(() => TestBed.resetTestingModule());
 
-  it('renders metrics, activity summary, attention items, and recent campaigns', async () => {
+  it('renders metrics, activity summary, and recent campaigns', async () => {
     const { element } = await render();
 
     // The #F9F9F9 canvas is painted by the app shell (app.html), not by this
     // component, so only the landmark itself is asserted here.
     expect(element.querySelector('main')).toBeTruthy();
+    const firstCard = element.querySelector('dl > div');
+    expect(firstCard?.querySelector('dt')?.textContent).toContain('Total revenue');
+    // 120 spent on the active campaign; the unbudgeted one counts as nothing.
+    expect(firstCard?.querySelector('dd')?.textContent).toContain('GHS 120');
     expect(element.textContent).toContain('Published campaigns');
     expect(element.textContent).toContain('Total creators');
     expect(element.textContent).toContain('17 new registrations from 11 Aug to 13 Aug.');
@@ -119,9 +123,9 @@ describe('AdminDashboard', () => {
     expect(element.querySelector('[echarts][role="img"]')?.getAttribute('aria-label')).toContain(
       'Bar chart of new registrations',
     );
-    expect(element.textContent).toContain('Need Attention');
-    expect(element.textContent).toContain('Creator applications');
-    expect(element.textContent).toContain('Pending budget');
+    expect(element.textContent).not.toContain('Awaiting review');
+    expect(element.textContent).not.toContain('Total brands');
+    expect(element.textContent).not.toContain('Need Attention');
     expect(element.textContent).toContain('E-wale tech');
     expect(element.textContent).toContain('View details');
   });

@@ -657,3 +657,34 @@ browser-local ISO datetimes (`YYYY-MM-DDTHH:mm:ss`) instead of date-only strings
 
 Reason: Code and automated gates passed, but the signed-in campaign wizard still needs a manual
 desktop/tablet/mobile and AXE pass against an admin session.
+
+## Dashboard trim from brand feedback (2026-10-22)
+
+### Outcome
+
+The client's markup of `/admin/dashboard` is applied. There is no BRAND role, so the
+changes land on the admin dashboard and admin nav.
+
+- Stat row is now four cards: **Total revenue** (first, no trend chip), Published
+  campaigns, New registrations (7d), Total creators. "Awaiting review" and "Total
+  brands" are gone.
+- "Need Attention" panel removed; Registration activity spans the full width.
+- Inquiries removed from the admin nav. `/admin/inquiries` still resolves. Brands
+  stays in the nav because campaign creation needs a brand.
+
+### Contract notes
+
+- `GET /admin/stats` has no revenue field. Total revenue is summed client side from
+  `budgetSpent` across `GET /admin/campaigns`, and shows `—` when campaigns mix
+  currencies. Swap in a server `totalRevenue` once the API provides one.
+- `awaitingReview` / `totalBrands` stay in `AdminStats`; the API still sends them.
+
+### Verification
+
+| Check                  | Result                                                                                                 |
+| ---------------------- | ------------------------------------------------------------------------------------------------------ |
+| `npm run lint`         | PASS                                                                                                   |
+| `npm run format:check` | Changed files clean; `app.ts` and `admin-campaign-detail.html` were already failing before this change |
+| `npm run test:unit`    | PASS on Node `v24.18.0`: 31 files, 262 tests                                                           |
+| `npm run build`        | PASS with initial-bundle budget warning (1.01 MB vs 1.00 MB)                                           |
+| Signed-in visual pass  | NOT RUN                                                                                                |

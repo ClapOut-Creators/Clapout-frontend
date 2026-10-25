@@ -55,7 +55,6 @@ const ADMIN_LINKS: NavLink[] = [
   { label: 'Campaigns', path: '/admin/campaigns', exact: false, icon: 'clipboard' },
   { label: 'Registrations', path: '/admin/registrations', exact: false, icon: 'compass' },
   { label: 'Submissions', path: '/admin/submissions', exact: false, icon: 'video' },
-  { label: 'Inquiries', path: '/admin/inquiries', exact: false, icon: 'inbox' },
 ];
 
 /**

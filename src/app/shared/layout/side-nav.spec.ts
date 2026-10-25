@@ -67,10 +67,12 @@ describe('SideNav', () => {
 
     expect(element.querySelector('.co-shell-rail')).toBeTruthy();
     expect(element.querySelector('a[aria-label="Dashboard"]')).toBeTruthy();
+    expect(element.querySelector('a[aria-label="Brands"]')).toBeTruthy();
     expect(element.querySelector('a[aria-label="Campaigns"]')).toBeTruthy();
     expect(element.querySelector('a[aria-label="Registrations"]')).toBeTruthy();
     expect(element.querySelector('a[aria-label="Submissions"]')).toBeTruthy();
-    expect(element.querySelector('a[aria-label="Inquiries"]')).toBeTruthy();
+    // Inquiries keeps its route but is no longer a nav destination.
+    expect(element.querySelector('a[aria-label="Inquiries"]')).toBeFalsy();
     expect(element.querySelector('button[aria-label="Settings coming soon"]')).toBeTruthy();
     expect(element.querySelector('button[aria-haspopup="menu"]')).toBeTruthy();
   });

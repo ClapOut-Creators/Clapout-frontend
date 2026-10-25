@@ -1,13 +1,10 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { Params, Router, RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { ArrowDown } from '@primeicons/angular/arrow-down';
 import { ArrowUp } from '@primeicons/angular/arrow-up';
 import { ChevronRight } from '@primeicons/angular/chevron-right';
 import { Clock } from '@primeicons/angular/clock';
-import { File as FileIcon } from '@primeicons/angular/file';
 import { Home } from '@primeicons/angular/home';
-import { Megaphone } from '@primeicons/angular/megaphone';
-import { Users } from '@primeicons/angular/users';
 import { ButtonModule } from 'primeng/button';
 import { MessageModule } from 'primeng/message';
 import { ProgressBarModule } from 'primeng/progressbar';
@@ -37,24 +34,15 @@ interface StatCard {
   /**
    * Mock period-over-period change — AdminStats has no trend data yet, so this
    * is placeholder only. Replace with real figures once the API adds them.
+   * Omitted on revenue: an invented percentage on a money figure misleads.
    */
-  readonly trend: { readonly direction: 'up' | 'down'; readonly label: string };
-}
-
-interface AttentionItem {
-  readonly key: string;
-  readonly label: string;
-  readonly detail: string;
-  readonly count: number;
-  readonly href: string;
-  /** Deep-links the campaigns list into the matching filter (`?show=`). */
-  readonly query?: Params;
-  readonly tone: 'warning' | 'primary' | 'success' | 'neutral';
+  readonly trend?: { readonly direction: 'up' | 'down'; readonly label: string };
 }
 
 /** How many campaigns the "Recent campaigns" card shows. */
 const RECENT_CAMPAIGN_COUNT = 3;
-const ENDING_SOON_WINDOW_DAYS = 7;
+/** Shown when there are no campaigns to take a currency from. */
+const DEFAULT_CURRENCY = '¢';
 
 /** '11 Aug' — compact enough for a 21-column axis. */
 function compactDay(iso: string): string {
@@ -78,18 +66,6 @@ function formatCount(value: number): string {
   return Number.isFinite(value) ? value.toLocaleString('en-GB') : '—';
 }
 
-function endsWithinDays(campaign: PublicCampaign, days: number): boolean {
-  if (!campaign.endDate || campaign.status !== 'ACTIVE') {
-    return false;
-  }
-  const end = new Date(campaign.endDate).getTime();
-  if (Number.isNaN(end)) {
-    return false;
-  }
-  const now = Date.now();
-  return end >= now && end <= now + days * 24 * 60 * 60 * 1000;
-}
-
 /**
  * Admin home: platform totals, the 21-day registration trend, and the campaigns
  * touched most recently. Both `/admin` calls load together behind one state, so
@@ -103,15 +79,12 @@ function endsWithinDays(campaign: PublicCampaign, days: number): boolean {
     ButtonModule,
     ChevronRight,
     Clock,
-    FileIcon,
     Home,
-    Megaphone,
     MessageModule,
     ProgressBarModule,
     RouterLink,
     SkeletonModule,
     TagModule,
-    Users,
   ],
   selector: 'app-admin-dashboard',
   templateUrl: './admin-dashboard.html',
@@ -124,8 +97,24 @@ export class AdminDashboard {
   protected readonly stats = signal<AdminStats | null>(null);
   protected readonly campaigns = signal<PublicCampaign[]>([]);
   protected readonly errorMessage = signal<string>('');
-  protected readonly skeletonCards = [0, 1, 2, 3, 4];
+  protected readonly skeletonCards = [0, 1, 2, 3];
   protected readonly skeletonRows = [0, 1, 2];
+
+  /**
+   * Budget spent across every campaign, summed client side because
+   * `GET /admin/stats` has no revenue figure yet. Mixed currencies cannot be
+   * added up, so that case shows '—'.
+   */
+  protected readonly totalRevenue = computed(() => {
+    const campaigns = this.campaigns();
+    const currencies = new Set(campaigns.map((campaign) => campaign.currency));
+    if (currencies.size > 1) {
+      return '—';
+    }
+    const currency = campaigns[0]?.currency ?? DEFAULT_CURRENCY;
+    const total = campaigns.reduce((sum, campaign) => sum + (campaign.budgetSpent ?? 0), 0);
+    return formatMoney(currency, total);
+  });
 
   protected readonly statCards = computed<StatCard[]>(() => {
     const stats = this.stats();
@@ -133,6 +122,11 @@ export class AdminDashboard {
       return [];
     }
     return [
+      {
+        key: 'revenue',
+        label: 'Total revenue',
+        value: this.totalRevenue(),
+      },
       {
         key: 'published',
         label: 'Published campaigns',
@@ -146,22 +140,10 @@ export class AdminDashboard {
         trend: { direction: 'up', label: '+2%' },
       },
       {
-        key: 'review',
-        label: 'Awaiting review',
-        value: formatCount(stats.awaitingReview),
-        trend: { direction: 'up', label: '+3.5%' },
-      },
-      {
         key: 'creators',
         label: 'Total creators',
         value: formatCount(stats.totalCreators),
         trend: { direction: 'down', label: '-3%' },
-      },
-      {
-        key: 'brands',
-        label: 'Total brands',
-        value: formatCount(stats.totalBrands),
-        trend: { direction: 'down', label: '-4.3%' },
       },
     ];
   });
@@ -211,52 +193,6 @@ export class AdminDashboard {
       .sort((left, right) => timestamp(right.updatedAt) - timestamp(left.updatedAt))
       .slice(0, RECENT_CAMPAIGN_COUNT),
   );
-
-  protected readonly attentionItems = computed<AttentionItem[]>(() => {
-    const stats = this.stats();
-    const campaigns = this.campaigns();
-    const pendingBudget = campaigns.filter((campaign) => !hasBudget(campaign.budgetTotal)).length;
-    const endingSoon = campaigns.filter((campaign) =>
-      endsWithinDays(campaign, ENDING_SOON_WINDOW_DAYS),
-    ).length;
-
-    return [
-      {
-        key: 'awaiting-review',
-        label: 'Creator applications',
-        detail: 'Awaiting review',
-        count: stats?.awaitingReview ?? 0,
-        href: '/admin/registrations',
-        tone: 'warning',
-      },
-      {
-        key: 'ending-soon',
-        label: 'Campaigns',
-        detail: 'Ending soon',
-        count: endingSoon,
-        href: '/admin/campaigns',
-        query: { show: 'ending-soon' },
-        tone: 'primary',
-      },
-      {
-        key: 'pending-budget',
-        label: 'Campaigns',
-        detail: 'Pending budget',
-        count: pendingBudget,
-        href: '/admin/campaigns',
-        query: { show: 'pending-budget' },
-        tone: 'success',
-      },
-      {
-        key: 'reports',
-        label: 'Reports',
-        detail: 'Require action',
-        count: 0,
-        href: '/admin/campaigns',
-        tone: 'neutral',
-      },
-    ];
-  });
 
   protected readonly budgetPercent = budgetPercent;
   protected readonly campaignStatusLabel = campaignStatusLabel;
